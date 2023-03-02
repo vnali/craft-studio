@@ -483,7 +483,7 @@ class Podcast extends Element
      */
     public function canDeleteForSite(User $user): bool
     {
-        return  true;
+        return true;
     }
 
     /**
@@ -1053,7 +1053,7 @@ class Podcast extends Element
         // get podcast image URL
         list($assetFilename, $assetFilePath, $assetFileUrl) = GeneralHelper::getElementAsset($this, $fieldContainer, $fieldHandle);
 
-        return  $assetFileUrl;
+        return $assetFileUrl;
     }
 
     /**

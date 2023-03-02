@@ -368,7 +368,7 @@ class Episode extends Element
      */
     public function canDeleteForSite(User $user): bool
     {
-        return  true;
+        return true;
     }
 
     /**
@@ -1091,7 +1091,7 @@ class Episode extends Element
                 }
             }
         }
-        return  $assetFileUrl;
+        return $assetFileUrl;
     }
 
     /**
