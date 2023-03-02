@@ -1,4 +1,4 @@
-# Migrate From WordPress plugin
+# studio plugin for Craft CMS
 This Craft CMS plugin helps you to manage podcast, episodes and more!
 
 This plugin is in the development phase.
