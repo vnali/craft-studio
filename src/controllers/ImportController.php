@@ -374,7 +374,7 @@ class ImportController extends Controller
             }
 
             $podcastImageVolume = new Volume([
-                "name" => "podcast images",
+                "name" => "Studio podcast images",
                 "handle" => "studioPodcastImageVol",
                 "fsHandle" => 'studioPodcastImageFs',
             ]);
@@ -602,7 +602,7 @@ class ImportController extends Controller
             }
 
             $episodeImageVolume = new Volume([
-                "name" => "episode images",
+                "name" => "Studio episode images",
                 "handle" => "studioEpisodeImageVol",
                 "fsHandle" => 'studioEpisodeImageFs',
             ]);
