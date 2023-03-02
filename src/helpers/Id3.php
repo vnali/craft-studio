@@ -51,18 +51,18 @@ class Id3
         return $year;
     }
 
-    public static function getImage($mp3fileinfo)
+    public static function getImage($fileInfo)
     {
         $mimetype = null;
-        if (isset($mp3fileinfo['id3v2']['APIC'][0]['data'])) {
-            $cover = $mp3fileinfo['id3v2']['APIC'][0]['data'];
-        } elseif (isset($mp3fileinfo['id3v2']['PIC'][0]['data'])) {
-            $cover = $mp3fileinfo['id3v2']['PIC'][0]['data'];
+        if (isset($fileInfo['id3v2']['APIC'][0]['data'])) {
+            $cover = $fileInfo['id3v2']['APIC'][0]['data'];
+        } elseif (isset($fileInfo['id3v2']['PIC'][0]['data'])) {
+            $cover = $fileInfo['id3v2']['PIC'][0]['data'];
         } else {
             $cover = null;
         }
-        if (isset($mp3fileinfo['id3v2']['APIC'][0]['image_mime'])) {
-            $mimetype = $mp3fileinfo['id3v2']['APIC'][0]['image_mime'];
+        if (isset($fileInfo['id3v2']['APIC'][0]['image_mime'])) {
+            $mimetype = $fileInfo['id3v2']['APIC'][0]['image_mime'];
         }
         // TODO: other supported formats
         if (!is_null($cover)) {
