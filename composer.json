@@ -1,0 +1,39 @@
+{
+    "name": "vnali/craft-studio",
+    "description": "Podcast management and more for Craft CMS",
+    "type": "craft-plugin",
+    "version": "0.1.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "podcast",
+        "episode"
+    ],
+    "license": "proprietary",
+    "authors": [{
+        "name": "vnali",
+        "homepage": "https://github.com/vnali"
+    }],
+    "require": {
+        "craftcms/cms": "^4.3.0",
+        "james-heinrich/getid3": "^1.9.19",
+        "symfony/dom-crawler": "^6.0.0",
+        "symfony/css-selector": "^6.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "vnali\\studio\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "studio",
+        "handle": "studio",
+        "schemaVersion": "0.1.0",
+        "hasCpSettings": true,
+        "hasCpSection": true,
+		"class": "vnali\\studio\\Studio",
+        "developer": "vnali"
+    }
+}

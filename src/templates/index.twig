@@ -1,0 +1,34 @@
+{% set podcasts = craft.podcasts.status(null).all %}
+{% set canAccessPodcasts = false %}
+
+{% if currentUser.can('studio-managePodcasts') or currentUser.can('studio-createDraftPodcasts') %}
+    {% set canAccessPodcasts = true %}
+    {% set break = true %}
+{% else %}
+    {% set break = false %}
+    {% for podcast in podcasts %}
+        {% if currentUser.can('studio-viewPodcasts-' ~ podcast.uid) %}
+            {% set canAccessPodcasts = true %}
+            {% set break = true %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+{% if canAccessPodcasts %}
+    {% extends 'studio/_layouts/index.twig' %}
+
+    {% set title = 'Podcasts' %}
+    {% set selectedSubnavItem = 'podcasts' %}
+    {% set elementType = 'vnali\\studio\\elements\\Podcast' %}
+    {% set canHaveDrafts = true %}
+{# only way to redirect to episodes is access to manage episodes permission. we already checked viewPodcasts-uid #}
+{% elseif currentUser.can('studio-manageEpisodes') %}
+    {% redirect 'studio/episodes' %}
+{% elseif currentUser.can('studio-importCategory') %}
+    {% redirect 'studio/import' %}
+{% elseif currentUser.can('studio-manageSettings') %}
+    {% redirect 'studio/settings' %}
+{% else %}
+{# If user has access to studio plugin but not sub permission #}
+    {% redirect 'dashboard' %}
+{% endif %}

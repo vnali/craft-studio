@@ -1,0 +1,26 @@
+{% extends 'studio/_layouts/index.twig' %}
+
+{% set selectedSubnavItem = 'import' %}
+
+{% set baseCrumbs = [
+    { label: 'Import'|t('studio'), url: url('studio/import') }
+] %}
+{% set crumbs = crumbs is defined ? baseCrumbs|merge(crumbs) : [] %}
+
+{% set segment3 = craft.app.request.getSegment(3) %}
+
+{% block sidebar %}
+
+	<nav class="last">
+		<ul>
+			{% if currentUser.can('studio-importCategory') %}
+				<li>
+					<a class="{{ segment3 == 'category' ? 'sel' }}" href="{{ url('studio/import/category') }}">
+						{{ 'Import Category'|t('studio') }}
+					</a>
+				</li>
+			{% endif %}
+		</ul>
+	</nav>
+
+{% endblock %}

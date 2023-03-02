@@ -1,0 +1,13 @@
+includes:
+    - %currentWorkingDirectory%/vendor/craftcms/phpstan/phpstan.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+    ignoreErrors:
+    -   '#Access to static property \$plugin on an unknown class verbb\\supertable\\SuperTable.#'
+    -   '#Access to property \$handle on an unknown class verbb\\supertable\\fields\\SuperTableField#'
+    -   '#Access to property \$id on an unknown class verbb\\supertable\\fields\\SuperTableField.#'
+    -   '#Access to property \$name on an unknown class verbb\\supertable\\fields\\SuperTableField.#'
+    reportUnmatchedIgnoredErrors: false

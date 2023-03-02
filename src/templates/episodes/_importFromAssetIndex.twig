@@ -1,0 +1,48 @@
+{% extends 'studio/_layouts/index.twig' %}
+
+{% set title = 'Import'|t('studio') %}
+
+{% set crumbs = [] %}
+
+{% block content %}
+
+	{% import "_includes/forms" as forms %}
+
+	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+		{{ redirectInput('studio/podcasts/index') }}
+		{{ csrfInput() }}
+
+		{{ hiddenInput('podcastId', podcastId) }}
+
+		<input type="hidden" name="action" value="studio/episodes/save-import-from-asset-index">
+
+		{{ forms.lightswitchField({
+            label: 'Enable episodes import when indexing these volumes'|t('studio'),
+            id: 'enable',
+            name: 'enable',
+            required: false,
+            errors: settings.getErrors('enable'),
+            value: 1,
+            on: enable is defined ? enable
+        }) }}
+
+		{{ forms.multiSelectField({
+            label: 'Import episode when indexing assets of these volumes'|t('studio'),
+            id: 'volumesImport',
+            name: 'volumesImport',
+            options: volumes,
+            values: settings.volumesImport ?? null,
+            required: false,
+            tip: 'After saving this form, Go to Asset indexes utility to index volume and import assets/episodes'
+        }) }}
+
+		<input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
+
+	</form>
+{% endblock %}
+{% js %}
+$('#volumesImport').selectize({
+        plugins: ['remove_button'],
+        dropdownParent: 'body'
+    });
+{% endjs %}

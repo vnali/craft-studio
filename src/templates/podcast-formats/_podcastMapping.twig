@@ -1,0 +1,75 @@
+{% import "_includes/forms" as forms %}
+
+{% set fieldRows = [] %}
+{% set fieldErrors = [] %}
+
+{% for itemSetting in podcastItemSettings %}
+	{% set lightswitchAttributes = {
+            class: [
+                'lightswitchConvert',
+                'lightswitchConvert'~loop.index
+            ]|filter,
+    } %}
+
+	{% set podcastMapping = podcastMappings[itemSetting.handle] ?? null %}
+
+	{% set fieldRows = fieldRows|merge({
+        (itemSetting.handle): {
+            heading: itemSetting.label|t('site'),
+            convertTo: include('_includes/forms/select', {
+                name: 'podcastFields['~itemSetting.handle~'][convertTo]',
+                options: itemSetting.convertTo,
+                id: 'convertTo'~loop.index,
+                class: 'convertTo',
+                value: podcastMapping ? podcastMapping.type,
+            }),
+            container: include('studio/settings/_container', {
+                uniqueId: 'podcast'~loop.index,
+                handle: itemSetting.handle,
+                item: 'podcast',
+                defaultValue: podcastMapping ? podcastMapping.container,
+                fieldNameSpace: 'podcastFields',
+                containers: podcastContainers
+            }),
+            field: include('studio/settings/_field', {
+                handle: itemSetting.handle,
+                uniqueId: 'podcast'~loop.index,
+                defaultValue: podcastMapping ? podcastMapping.field,
+                fieldNameSpace: 'podcastFields',
+            }),
+        }|filter
+    }) %}
+{% endfor %}
+
+{{ forms.editableTableField({
+    label: "Field Mapping"|t('studio'),
+    id: 'fields',
+    name: 'fields',
+    cols: {
+        heading: {
+            type: 'heading',
+            heading: "Item Setting"|t('studio'),
+            thin: true
+        },
+        convertTo: {
+            type: 'html',
+            heading: 'Craft Field/Column Type'|t('studio'),
+            thin: true,
+        },
+        container: {
+            type: 'html',
+            heading: 'Craft Field/Column Container'|t('studio'),
+            thin: false
+        },
+        field: {
+            type: 'html',
+            heading: 'Craft Field/Column Handle'|t('studio'),
+            thin: false
+        }
+    }|filter,
+    rows: fieldRows,
+    staticRows: true,
+    errors: fieldErrors|unique
+}) }}
+
+{% do view.registerAssetBundle("vnali\\studio\\assets\\MappingAsset") %}

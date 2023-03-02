@@ -1,0 +1,54 @@
+{% extends 'studio/settings/_layout' %}
+
+{% import '_includes/forms' as forms %}
+
+{% set title = podcastFormat.id ? podcastFormat.name : 'Create a new podcast format'|t('studio') %}
+
+{% set crumbs = [
+    { label: 'Podcast Formats'|t('studio'), url: url('studio/settings/podcast-formats') }
+] %}
+
+{% set fullPageForm = true %}
+
+{% block content %}
+
+	<div id="podcast-general-settings">
+		{% include "/studio/podcast-formats/_generalSettings" %}
+	</div>
+    <div id="podcast-mapping-settings" class="hidden">
+		{% include "/studio/podcast-formats/_podcastMapping" %}
+	</div>
+	<div id="episode-mapping-settings" class="hidden">
+		{% include "/studio/podcast-formats/_episodeMapping" %}
+	</div>
+	<div id="podcast-field-settings" class="hidden">
+		{% set namespace = 'podcast' %}
+		{% namespace namespace %}
+		{{ forms.fieldLayoutDesignerField({
+                    fieldLayout: podcastFormat.getFieldLayout(),
+            }) }}
+		{% endnamespace %}
+	</div>
+	<div id="episode-field-settings" class="hidden">
+		{% set namespace = 'episode' %}
+		{% namespace namespace %}
+		{{ forms.fieldLayoutDesignerField({
+                fieldLayout: podcastFormatEpisode.getFieldLayout(),
+        }) }}
+		{% endnamespace %}
+	</div>
+    <div id="extra-settings" class="hidden">
+		{% include "/studio/podcast-formats/_extraSettings" %}
+	</div>
+
+	<input type="hidden" name="action" value="studio/podcast-formats/save"/>
+
+	{{ redirectInput('studio/settings/podcast-formats') }}
+
+	{% if podcastFormat.id %}
+		<input type="hidden" id="podcastFormatId" name="podcastFormatId" value="{{ podcastFormat.id }}">
+	{% endif %}
+
+	<hr>
+
+{% endblock %}

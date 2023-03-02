@@ -1,0 +1,15 @@
+{% from 'studio/settings/_containerFieldSelect' import containerFieldSelect %}
+
+{% set containerParams = {
+    id: 'containerId'~uniqueId,
+    name: fieldNameSpace~'['~handle~'][containerField]',
+    value: defaultValue,
+    required: false,
+    options: containers,
+    class: 'selectize fullwidth container',
+} %}
+
+{{ containerFieldSelect(
+    containerParams,
+    item
+) }}

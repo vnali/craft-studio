@@ -1,0 +1,179 @@
+{% block content %}
+
+	{% import "_includes/forms" as forms %}
+
+	<input type="hidden" name="item" value="podcast">
+
+	{{ forms.textField({
+        first: true,
+        label: "Name"|t('studio'),
+        instructions: "What this podcast format will be called in the control panel."|t('studio'),
+        id: 'name',
+        name: 'name',
+        value: podcastFormat.name,
+        errors: podcastFormat.getErrors('name'),
+        autofocus: true,
+        required: true
+    }) }}
+
+    {{ forms.textField({
+        first: true,
+        label: "Handle"|t('studio'),
+        instructions: "How you’ll refer to this podcast format in the templates."|t('studio'),
+        id: 'handle',
+        name: 'handle',
+        value: podcastFormat.handle,
+        errors: podcastFormat.getErrors('handle'),
+        autofocus: true,
+        required: true
+    }) }}
+
+	{{ forms.lightswitchField({
+        label: 'Enable versioning for the podcast'|t('studio'),
+        id: 'podcastVersioning',
+        name: 'podcastVersioning',
+        required: false,
+        errors: podcastFormat.getErrors('enableVersioning'),
+        value: 1,
+        on: podcastFormat.enableVersioning
+    }) }}
+
+	{{ forms.lightswitchField({
+        label: 'Enable versioning for the episodes'|t('studio'),
+        id: 'episodeVersioning',
+        name: 'episodeVersioning',
+        required: false,
+        errors: podcastFormatEpisode.getErrors('enableVersioning'),
+        value: 1,
+        on: podcastFormatEpisode.enableVersioning
+    }) }}
+
+    {% set siteRows = [] %}
+	{% set episodeSiteErrors = [] %}
+	{% set podcastSiteErrors = podcastFormat.getErrors('siteSettings') %}
+	{% for site in craft.app.sites.getAllSites() %}
+		{% set siteSettings = podcastFormatSites[site.id] ?? null %}
+		{% set settingErrors = siteSettings.getErrors() ?? null %}
+		{% if settingErrors %}
+			{% for attribute, errors in settingErrors %}
+				{% if (attribute == 'podcastUriFormat') or (attribute == 'podcastTemplate') or (attribute == 'podcastEnabledByDefault') %}
+					{% set podcastSiteErrors = podcastSiteErrors|merge(errors) %}
+				{% else %}
+					{% set episodeSiteErrors = episodeSiteErrors|merge(errors) %}
+				{% endif %}
+			{% endfor %}
+		{% endif %}
+
+		{% set siteRows = siteRows|merge({
+            (site.handle): {
+                heading: site.name|t('site')|e,
+                extraHeading: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+                enabled: include('_includes/forms/lightswitch', {
+                    name: 'podcastSites['~site.handle~'][enabled]',
+                    on: siteSettings,
+                    value: site.id,
+                    small: true
+                }),
+                podcastUriFormat: {
+                    value: siteSettings ? siteSettings.podcastUriFormat,
+                    hasErrors: settingErrors ? siteSettings.hasErrors('podcastUriFormat')
+                },
+                episodeUriFormat: {
+                    value: siteSettings ? siteSettings.episodeUriFormat,
+                    hasErrors: settingErrors ? siteSettings.hasErrors('episodeUriFormat')
+                },
+                podcastTemplate: {
+                    value: siteSettings ? siteSettings.podcastTemplate,
+                    hasErrors: settingErrors ? siteSettings.hasErrors('podcastTemplate'),
+                },
+                episodeTemplate: {
+                    value: siteSettings ? siteSettings.episodeTemplate,
+                    hasErrors: settingErrors ? siteSettings.hasErrors('episodeTemplate'),
+                },
+                episodeEnabledByDefault: siteSettings ? siteSettings.episodeEnabledByDefault : false,
+                podcastEnabledByDefault: siteSettings ? siteSettings.podcastEnabledByDefault : false,
+            }|filter
+        }) %}
+	{% endfor %}
+
+	{{ forms.editableTableField({
+        label: "Podcast site settings"|t('app'),
+        instructions: "Configure the site-specific settings for podcasts related to the podcast format."|t('studio'),
+        id: 'podcastSitesSettings',
+        name: 'podcastSites',
+        cols: {
+            heading: {
+                type: 'heading',
+                heading: "Site"|t('app'),
+                thin: true
+            },
+            enabled: {
+                type: 'heading',
+                thin: true,
+            },
+            podcastUriFormat: {
+                type: 'singleline',
+                heading: "Podcast URI Format"|t('studio'),
+                info: "What podcast URIs should look like for the site. Leave blank if podcasts don’t have URLs."|t('studio'),
+                code: true,
+                placeholder: 'Leave blank if podcasts don’t have URLs'|t('studio'),
+            },
+            podcastTemplate: {
+                type: 'singleline',
+                heading: "Podcast template"|t('studio'),
+                info: "Which template should be loaded when an podcast’s URL is requested."|t('studio'),
+            },
+            podcastEnabledByDefault: {
+                type: 'lightswitch',
+                heading: "Default status"|t('studio'),
+                thin: true,
+            },
+        }|filter,
+        rows: siteRows,
+        staticRows: true,
+        errors: podcastSiteErrors|unique
+    }) }}
+
+	{{ forms.editableTableField({
+        label: "Episode site settings"|t('studio'),
+        instructions: "Configure the site-specific settings for episodes related to the podcast format."|t('studio'),
+        id: 'episodeSitesSettings',
+        name: 'episodeSites',
+        cols: {
+            heading: {
+                type: 'heading',
+                heading: "Site"|t('app'),
+                thin: true
+            },
+            extraHeading: {
+                type: 'heading',
+                thin: true,
+            },
+            episodeUriFormat: {
+                type: 'singleline',
+                heading: "Episode URI Format"|t('studio'),
+                info: "What episode URIs should look like for the site. Leave blank if episodes don’t have URLs."|t('studio'),
+                code: true,
+                placeholder: 'Leave blank if episodes don’t have URLs'|t('studio'),
+            },
+            episodeTemplate: {
+                type: 'singleline',
+                heading: "Episode template"|t('studio'),
+                info: "Which template should be loaded when an episode’s URL is requested."|t('studio'),
+            },
+            episodeEnabledByDefault: {
+                type: 'lightswitch',
+                heading: "Default status"|t('studio'),
+                thin: true,
+            }, 
+        }|filter,
+        rows: siteRows,
+        staticRows: true,
+        errors: episodeSiteErrors|unique
+    }) }}
+
+{% endblock %}
+
+{% if not podcastFormat.handle %}
+    {% js "new Craft.HandleGenerator('#name', '#handle');" %}
+{% endif %}

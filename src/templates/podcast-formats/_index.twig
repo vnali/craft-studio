@@ -1,0 +1,53 @@
+{% extends "studio/settings/_layout" %}
+
+{% set title = 'Podcast Formats'|t('studio') %}
+{% set crumbs = [] %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set title = "Podcast Formats"|t('studio') %}
+{% set fullPageForm = false %}
+
+{% do view.registerTranslations('app', [
+    'Title',
+    'Handle',
+]) %}
+{% do view.registerTranslations('studio', [
+    'Are you sure you want to delete “{name}”? This will also delete all of the podcasts that use it. This action cannot be undone.',
+    'No podcast formats exist.',
+]) %}
+
+{% block actionButton %}
+    <a href="{{ url('studio/settings/podcast-formats/new') }}" class="btn submit add icon">{{ "New podcast format"|t('studio') }}</a>
+{% endblock %}
+
+{% block content %}
+    <div id="podcastFormats-vue-admin-table"></div>
+{% endblock %}
+
+{% set podcastFormats = craft.studio.podcastFormats.getAllPodcastFormats() %}
+{% set tableData = [] %}
+{% for podcastFormat in podcastFormats %}
+    {% set tableData = tableData|merge([{
+        id: podcastFormat.id,
+        name: podcastFormat.name|e,
+        title: podcastFormat.name|e,
+        url: podcastFormat.cpEditUrl,
+        handle: podcastFormat.handle|e,
+    }]) %}
+{% endfor %}
+
+{% js %}
+    new Craft.VueAdminTable({
+        columns: [
+            { name: '__slot:title', title: Craft.t('app', 'Title') },
+            { name: '__slot:handle', title: Craft.t('app', 'Handle') },
+        ],
+        container: '#podcastFormats-vue-admin-table',
+        deleteAction: 'studio/podcast-formats/delete',
+        deleteConfirmationMessage: Craft.t('studio', 'Are you sure you want to delete “{name}”? This will also delete all of the podcasts that use it. This action cannot be undone.'),
+        emptyMessage: Craft.t('studio', 'No podcast formats exist.'),
+        tableData: {{ tableData|json_encode|raw }}
+    });
+{% endjs %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}

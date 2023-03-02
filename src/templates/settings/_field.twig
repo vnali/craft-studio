@@ -1,0 +1,38 @@
+{% macro fieldSelect(selectParams) %}
+
+{% from "_includes/forms" import selectField %}
+{{ selectField(selectParams) }}
+
+{% js %}
+    (function() {
+        var $select = $('#{{ selectParams.id }}').selectize({
+            dropdownParent: 'body',
+        });
+        var selectize = $select.get(0).selectize;
+
+        field = $('#{{ selectParams.id }}').closest('tr').data('id');
+        convertTo = $('#{{ selectParams.id }}').closest('tr').find('.convertTo select').val();
+        container = $('#{{ selectParams.id }}').closest('tr').find('.container select').val();
+
+        if (convertTo) {
+            selectField(field, convertTo, container, '{{ selectParams.value }}');
+        }
+    })();
+{% endjs %}
+
+{% endmacro %}
+
+{% from _self import fieldSelect %}
+
+{% set selectParams = {
+    id: 'craftField'~uniqueId,
+    name: fieldNameSpace~'['~handle~'][craftField]',
+    value: defaultValue,
+    required: false,
+    options: fields,
+    class: 'selectize fullwidth selectfield',
+} %}
+
+{{ fieldSelect(
+    selectParams,
+) }}

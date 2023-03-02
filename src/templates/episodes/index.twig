@@ -1,0 +1,32 @@
+{% set podcasts = craft.podcasts.status(null).all %}
+{% set canAccess = false %}
+
+{% if currentUser.can('studio-manageEpisodes') %}
+    {% set canAccess = true %}
+    {% set break = true %}
+{% else %}
+    {% set break = false %}
+    {% for podcast in podcasts %}
+        {% if currentUser.can('studio-viewPodcasts-' ~ podcast.uid) %}
+            {% set canAccess = true %}
+            {% set break = true %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+{% if canAccess %}
+	{% extends 'studio/_layouts/index.twig' %}
+
+	{% set title = 'Episodes' %}
+	{% set selectedSubnavItem = 'episodes' %}
+	{% set elementType = 'vnali\\studio\\elements\\Episode' %}
+	{% set canHaveDrafts = true %}
+
+    {% if podcastHandle is defined %}
+        {% js %}
+            window.defaultPodcastHandle = "{{ podcastHandle|e('js') }}";
+        {% endjs %}
+    {% endif %}
+{% else %}
+	{% redirect 'dashboard' %}
+{% endif %}

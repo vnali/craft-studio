@@ -1,0 +1,9 @@
+{% if elementType is defined %}
+ 	{% set extendedTemplate = "_layouts/elementindex.twig" %}
+{% else %}
+ 	{% set extendedTemplate = "_layouts/cp" %}
+{% endif %}
+
+{% extends extendedTemplate %}
+
+{% do view.registerAssetBundle('vnali\\studio\\assets\\StudioAsset') %}

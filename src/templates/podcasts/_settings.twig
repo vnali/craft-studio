@@ -1,0 +1,125 @@
+{% extends 'studio/_layouts/index.twig' %}
+
+{% set title = 'Import'|t('studio') %}
+
+{% set crumbs = [] %}
+
+{% block content %}
+
+	{% import "_includes/forms" as forms %}
+
+	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+		{{ redirectInput('studio/podcasts/index') }}
+		{{ csrfInput() }}
+
+		{{ hiddenInput('podcastId', podcastId) }}
+
+		<input type="hidden" name="action" value="studio/podcasts/settings-save">
+
+		{{ forms.multiSelectField({
+            label: 'Default episode category'|t('studio'),
+            id: 'categoryOnImport',
+            name: 'categoryOnImport',
+            options: categoryOptions,
+            values: settings.categoryOnImport is defined ? settings.categoryOnImport,
+            required: false,
+        }) }}
+
+		{{ forms.multiSelectField({
+            label: 'Default episode tag'|t('studio'),
+            id: 'tagOnImport',
+            name: 'tagOnImport',
+            options: tagOptions,
+            values: settings.tagOnImport is defined ? settings.tagOnImport,
+            required: false,
+        }) }}
+
+		<hr>
+
+		{{ forms.multiSelectField({
+            label: 'Default episode genre'|t('studio'),
+            id: 'genreOnImport',
+            name: 'genreOnImport',
+            options: genreOptions,
+            values: settings.genreOnImport is defined ?  settings.genreOnImport,
+            required: false,
+        }) }}
+
+		{{ forms.selectField({
+            label: 'When to use default episode genre'|t('studio'),
+            id: 'genreImportOption',
+            name: 'genreImportOption',
+            options: genreImportOptions,
+            value: settings.genreImportOption is defined ? settings.genreImportOption,
+            required: false,
+            errors: settings.getErrors('genreImportOption')      
+        }) }}
+
+		{{ forms.lightswitchField({
+            label: 'Ignore genres in meta if not available in list'|t('studio'),
+            id: 'genreImportCheck',
+            name: 'genreImportCheck',
+            required: false,
+            errors: settings.getErrors('genreImportCheck'),
+            value: 1,
+            on: settings.genreImportCheck is defined ? settings.genreImportCheck
+        }) }}
+
+		<hr>
+
+		{{ forms.elementSelectField({
+            label: 'Default episode image'|t('studio'),
+            id: 'imageOnImport',
+            name: 'imageOnImport',
+            viewMode: 'list',
+            elementType: 'craft\\elements\\Asset',
+            selectionLabel: "Add"|t("studio"),
+            sources: folder ?? null,
+            required: false,
+            errors: settings.getErrors('imageOnImport'),
+            limit: 1,
+            elements: images,
+            criteria: {kind: 'image'}
+        }) }}
+
+		{{ forms.lightswitchField({
+            label: 'Force using this image even if image is provided by meta tag'|t('studio'),
+            id: 'forceImage',
+            name: 'forceImage',
+            required: false,
+            errors: settings.getErrors('forceImage'),
+            value: 1,
+            on: settings.forceImage is defined ? settings.forceImage
+        }) }}
+
+		<hr>
+
+		{{ forms.dateTimeField({
+            label: 'Default episode release date'|t('studio'),
+            id: 'pubDateOnImport',
+            name: 'pubDateOnImport',
+            required: false,
+            errors: settings.getErrors('pubDateOnImport'),
+            value: settings.pubDateOnImport is defined ? settings.pubDateOnImport,
+        }) }}
+
+		{{ forms.lightswitchField({
+            label: 'Force using this release date even if year is provided by meta tag'|t('studio'),
+            id: 'forcePubDate',
+            name: 'forcePubDate',
+            required: false,
+            errors: settings.getErrors('forcePubDate'),
+            value: 1,
+            on: settings.forcePubDate is defined ? settings.forcePubDate
+        }) }}
+
+		<input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
+
+	</form>
+{% endblock %}
+{% js %}
+$('#categoryOnImport, #tagOnImport, #genreOnImport').selectize({
+        plugins: ['remove_button'],
+        dropdownParent: 'body'
+    });
+{% endjs %}

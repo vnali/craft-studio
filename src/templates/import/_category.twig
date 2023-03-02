@@ -1,0 +1,72 @@
+{% extends 'studio/import/_layout' %}
+
+{% set title = 'Import category'|t('studio') %}
+
+{% set crumbs = [] %}
+
+{% block content %}
+
+	{% import "_includes/forms" as forms %}
+
+    <p>
+        Import default podcast categories to entries or category groups
+    </p>
+	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+		{{ csrfInput() }}
+		{{ forms.selectField({
+            label: 'Category Group'|t('studio'),
+            id: 'categoryGroup',
+            name: 'categoryGroup',
+            options: categories,  
+        }) }}
+
+        ----------------
+
+        {{ forms.selectField({
+            label: 'Section'|t('app'),
+            id: 'section',
+            name: 'section',
+            options: sections,
+            value: sectionId ?? null,         
+        }) }}
+
+		{{ forms.selectField({
+            label: 'Entry Type'|t('app'),
+            id: 'entrytype',
+            name: 'entrytype',
+            options: entrytypes,
+            value: entryTypeId ?? null,     
+        }) }}
+        <p>
+            <input type="hidden" name="action" value="studio/import/category-import">
+            <input type="submit" class="btn submit" value="{{ 'Import'|t('studio') }}">
+        </p>
+	</form>
+    {% js %}
+        $("#section").change(function() {
+            if (this.value) {
+                sectionId = this.value;
+            } else {
+                sectionId = 0;
+            }
+            var data = {
+                'sectionId' : sectionId
+            }
+            $.ajax({
+                method: "GET",
+                url: Craft.getUrl("studio/default/get-entry-types" + "?=_" + new Date().getTime()),
+                data: data,
+                dataType: 'json',
+                success: function (data) {
+                    $('#entrytype').empty();
+                    $.each(data, function (i, item) {
+                        $('#entrytype').append($('<option>', { 
+                            value: item.value,
+                            text : item.label
+                        }));
+                    });
+                }
+            });
+        });
+    {% endjs %}
+{% endblock %}

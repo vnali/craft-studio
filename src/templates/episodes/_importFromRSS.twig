@@ -1,0 +1,43 @@
+{% extends 'studio/_layouts/index.twig' %}
+
+{% set title = 'Import'|t('studio') %}
+
+{% set crumbs = [] %}
+
+{% block content %}
+
+	{% import "_includes/forms" as forms %}
+
+	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+		{{ redirectInput('studio/podcasts/index') }}
+		{{ csrfInput() }}
+
+		{{ hiddenInput('podcastId', podcastId) }}
+
+		<input type="hidden" name="action" value="studio/episodes/import-job">
+
+		{{ forms.textField({
+            label: 'Import episode from RSS'|t('studio'),
+            id: 'importFromRSS',
+            name: 'importFromRSS',
+            required: true,
+            errors: settings.getErrors('importFromRSS'),
+            tip: 'After saving this form, import begins and you can check import process on left buttom of CP'
+        }) }}
+
+        {{ forms.textField({
+            label: 'limit'|t('studio'),
+            id: 'limit',
+            name: 'limit',
+            required: false,
+            errors: settings.getErrors('limit'),
+            tip: 'Limit number of items that should fetch from RSS',
+            type: 'number'
+        }) }}
+
+		<hr>
+
+		<input type="submit" class="btn submit" value="{{ 'Import'|t('studio') }}">
+
+	</form>
+{% endblock %}

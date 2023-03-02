@@ -1,0 +1,24 @@
+{% extends 'studio/settings/_layout' %}
+
+{% set title = 'Import podacst fields'|t('studio') %}
+
+{% set crumbs = [] %}
+
+{% block content %}
+    {% import "_includes/forms" as forms %}
+	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+    	Import sample podcast fields
+		{{ redirectInput('studio/settings/podcast-formats') }}
+		{{ csrfInput() }}
+        {{ forms.selectField({
+            label: 'Podcast Format'|t('studio'),
+            id: 'podcastFormat',
+            name: 'podcastFormat',
+            options: podcastFormats,  
+        }) }}
+		<p>
+			<input type="hidden" name="action" value="studio/import/import-podcast-fields">
+			<input type="submit" class="btn submit" value="{{ 'Import'|t('studio') }}">
+		</p>
+	</form>
+{% endblock %}

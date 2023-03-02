@@ -1,0 +1,83 @@
+{% block content %}
+
+	{% import "_includes/forms" as forms %}
+
+	<input type="hidden" name="item" value="podcast">
+
+	{% set nativeFieldRows = [] %}
+	{% for nativeFieldKey, podcastNativeField in podcastNativeFields %}
+		{% set nativeFieldSettings = podcastNativeSettings[nativeFieldKey] ?? null %}
+
+		{% set nativeFieldRows = nativeFieldRows|merge({
+            (nativeFieldKey): {
+                heading: podcastNativeField|t('studio')|e,
+                translatable: include('_includes/forms/lightswitch', {
+                    name: 'podcastNativeFields['~nativeFieldKey~'][translatable]',
+                    on: nativeFieldSettings.translatable|default(0),
+                    value: 1,
+                    small: true
+                }),
+            }|filter
+        }) %}
+	{% endfor %}
+
+	{{ forms.editableTableField({
+            label: "Podcast native field settings"|t('studio'),
+            instructions: "Choose podcast native field settings"|t('studio'),
+            id: 'sites',
+            name: 'sites',
+            cols: {
+                heading: {
+                    type: 'heading',
+                    heading: "Native field"|t('studio'),
+                    thin: true
+                },
+                translatable: {
+                    type: 'html',
+                    heading: "Translatable"|t('studio'),
+                    thin: true,
+                },
+            }|filter,
+            rows: nativeFieldRows,
+            staticRows: true,
+    }) }}
+
+	{% set nativeFieldRows = [] %}
+
+	{% for nativeFieldKey, episodeNativeField in episodeNativeFields %}
+		{% set nativeFieldSettings = episodeNativeSettings[nativeFieldKey] ?? null %}
+
+		{% set nativeFieldRows = nativeFieldRows|merge({
+            (nativeFieldKey): {
+                heading: episodeNativeField|t('studio')|e,
+                translatable: include('_includes/forms/lightswitch', {
+                    name: 'episodeNativeFields['~nativeFieldKey~'][translatable]',
+                    on: nativeFieldSettings.translatable|default(0),
+                    value: 1,
+                    small: true
+                }),
+            }|filter
+        }) %}
+	{% endfor %}
+
+	{{ forms.editableTableField({
+        label: "Episode native field settings"|t('studio'),
+        instructions: "Choose episode native field settings"|t('studio'),
+        id: 'sites',
+        name: 'sites',
+        cols: {
+            heading: {
+                type: 'heading',
+                heading: "Native field"|t('studio'),
+                thin: true
+            },
+            translatable: {
+                type: 'html',
+                heading: "Translatable"|t('studio'),
+                thin: true,
+            },
+        }|filter,
+        rows: nativeFieldRows,
+        staticRows: true,
+    }) }}
+{% endblock %}
