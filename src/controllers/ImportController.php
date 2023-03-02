@@ -54,7 +54,12 @@ class ImportController extends Controller
         }
     }
 
-    public function actionPodcastFields()
+    /**
+     * Render template for importing sample podcast fields.
+     *
+     * @return Response
+     */
+    public function actionPodcastFields(): Response
     {
         if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             throw new ForbiddenHttpException(Craft::t('studio', 'Administrative changes are disallowed in this environment.'));
@@ -81,7 +86,12 @@ class ImportController extends Controller
         );
     }
 
-    public function actionEpisodeFields()
+    /**
+     * Render template for importing sample episode fields.
+     *
+     * @return Response
+     */
+    public function actionEpisodeFields(): Response
     {
         if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             throw new ForbiddenHttpException(Craft::t('studio', 'Administrative changes are disallowed in this environment.'));
