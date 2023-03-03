@@ -1099,17 +1099,15 @@ class Episode extends Element
      */
     protected function statusFieldHtml(): string
     {
-        $id3metadata = Cp::lightswitchHtml([
+        $id3Metadata = Cp::lightswitchHtml([
             'label' => 'Id3 metadata',
-            'id' => 'id3metadata',
-            'name' => 'id3metadata',
+            'id' => 'id3Metadata',
             'value' => 1,
         ]);
 
-        $id3imagemetadata = Cp::lightswitchHtml([
+        $id3ImageMetadata = Cp::lightswitchHtml([
             'label' => 'Id3 image metadata',
-            'id' => 'id3imagemetadata',
-            'name' => 'id3imagemetadata',
+            'id' => 'id3ImageMetadata',
             'value' => 1,
         ]);
 
@@ -1122,21 +1120,27 @@ class Episode extends Element
 
         $getId3 = Html::beginTag('fieldset') .
             Html::tag('legend', Craft::t('studio', 'ID3'), ['class' => 'h6']) .
-            Html::tag('div', $id3metadata . $id3imagemetadata . $metaButton, ['class' => 'meta']) .
+            Html::tag('div', $id3Metadata . $id3ImageMetadata . $metaButton, ['class' => 'meta']) .
             Html::endTag('fieldset');
 
         $view = Craft::$app->getView();
         $js = <<<JS
             $('#meta-btn').on('click', () => {
-                var id3meta = $("input[name=id3metadata]").val();
-                var id3imagemeta = $("input[name=id3imagemetadata]").val();
+                var id3Metadata = $("#id3Metadata").hasClass("on");
+                if (id3Metadata == false) {
+                    id3Metadata = ''; 
+                }
+                var id3ImageMetadata = $("#id3ImageMetadata").hasClass("on");
+                if (id3ImageMetadata == false) {
+                    id3ImageMetadata = ''; 
+                }             
                 const \$form = Craft.createForm().appendTo(Garnish.\$bod);
                 \$form.append(Craft.getCsrfInput());
                 $('<input/>', {type: 'hidden', name: 'action', value: 'studio/default/meta'}).appendTo(\$form);
                 $('<input/>', {type: 'hidden', name: 'elementId', value: $this->id }).appendTo(\$form);
                 $('<input/>', {type: 'hidden', name: 'item', value: 'episode' }).appendTo(\$form);
-                $('<input/>', {type: 'hidden', name: 'fetchId3Metadata', value: id3meta}).appendTo(\$form);
-                $('<input/>', {type: 'hidden', name: 'fetchId3ImageMetadata', value: id3imagemeta}).appendTo(\$form);
+                $('<input/>', {type: 'hidden', name: 'fetchId3Metadata', value: id3Metadata}).appendTo(\$form);
+                $('<input/>', {type: 'hidden', name: 'fetchId3ImageMetadata', value: id3ImageMetadata}).appendTo(\$form);
                 $('<input/>', {type: 'submit', value: 'Submit'}).appendTo(\$form);
                 \$form.submit();
                 \$form.remove();
