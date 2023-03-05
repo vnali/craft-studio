@@ -556,7 +556,11 @@ class PodcastsController extends Controller
      */
     public function actionPodcastGeneralSettings(int $podcastId, PodcastGeneralSettings $settings = null): Response
     {
-        $this->requirePermission('studio-editPodcastGeneralSettings-' . $podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        if (!$podcast) {
+            throw new NotFoundHttpException('invalid podcast id');
+        }
+        $this->requirePermission('studio-editPodcastGeneralSettings-' . $podcast->uid);
 
         if ($settings === null) {
             $settings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId);
@@ -580,17 +584,16 @@ class PodcastsController extends Controller
      */
     public function actionPodcastEpisodeSettings(int $podcastId, PodcastEpisodeSettings $settings = null): Response
     {
-        $this->requirePermission('studio-editPodcastEpisodeSettings-' . $podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        if (!$podcast) {
+            throw new NotFoundHttpException('invalid podcast id');
+        }
+        $this->requirePermission('studio-editPodcastEpisodeSettings-' . $podcast->uid);
 
         if ($settings === null) {
             $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId);
         }
         $settings->pubDateOnImport = DateTimeHelper::toDateTime($settings->pubDateOnImport);
-
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
-        if (!$podcast) {
-            throw new NotFoundHttpException('invalid podcast id');
-        }
         $podcastFormat = $podcast->getPodcastFormat();
         $sitesSettings = $podcastFormat->getSiteSettings();
         $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
@@ -711,7 +714,11 @@ class PodcastsController extends Controller
         } else {
             throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
         }
-        $this->requirePermission('studio-importEpisode' . $podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        if (!$podcast) {
+            throw new NotFoundHttpException('invalid podcast id');
+        }
+        $this->requirePermission('studio-editPodcastGeneralSettings-' . $podcast->uid);
 
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $settings->publishRSS = Craft::$app->getRequest()->getBodyParam('publishRSS', $settings->publishRSS);
@@ -758,7 +765,11 @@ class PodcastsController extends Controller
         } else {
             throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
         }
-        $this->requirePermission('studio-importEpisode' . $podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        if (!$podcast) {
+            throw new NotFoundHttpException('invalid podcast id');
+        }
+        $this->requirePermission('studio-editPodcastEpisodeSettings-' . $podcast->uid);
 
         $settings->setScenario('import');
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
