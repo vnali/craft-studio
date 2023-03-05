@@ -251,7 +251,7 @@ class Episode extends Element
                     ],
                 ]);
             case 'duration':
-                $time =  Time::sec_to_time($this->$attribute);
+                $time = Time::sec_to_time($this->$attribute);
                 return $time ?? '';
             case 'dateCreated':
                 $date = $this->dateCreated;

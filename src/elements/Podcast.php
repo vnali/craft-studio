@@ -28,7 +28,8 @@ use Throwable;
 
 use vnali\studio\elements\actions\ImportEpisodeFromAssetIndex;
 use vnali\studio\elements\actions\ImportEpisodeFromRSS;
-use vnali\studio\elements\actions\PodcastSetting;
+use vnali\studio\elements\actions\PodcastGeneralSettings;
+use vnali\studio\elements\actions\PodcastImportSettings;
 use vnali\studio\elements\conditions\podcasts\PodcastCondition;
 use vnali\studio\elements\db\PodcastQuery;
 use vnali\studio\helpers\GeneralHelper;
@@ -943,9 +944,13 @@ class Podcast extends Element
             'successMessage' => Craft::t('studio', 'Podcasts deleted.'),
             'confirmationMessage' => Craft::t('studio', 'Delete selected podcasts?'),
         ]);
-        // Podcast settings
+        // Podcast general settings
         $actions[] = $elementsService->createAction([
-            'type' => PodcastSetting::class,
+            'type' => PodcastGeneralSettings::class,
+        ]);
+        // Podcast import settings
+        $actions[] = $elementsService->createAction([
+            'type' => PodcastImportSettings::class,
         ]);
         // Import from URL
         $actions[] = $elementsService->createAction([
@@ -1169,9 +1174,16 @@ class Podcast extends Element
             if ($context === 'index') {
                 if (
                     $user->can('studio-managePodcasts') ||
-                    $user->can('studio-editPodcastSettings-' . $element->uid)
+                    $user->can('studio-editPodcastImportSettings-' . $element->uid)
                 ) {
-                    $extraData .= 'data-editPodcastSettings ';
+                    $extraData .= 'data-editPodcastImportSettings ';
+                }
+
+                if (
+                    $user->can('studio-managePodcasts') ||
+                    $user->can('studio-editPodcastGeneralSettings-' . $element->uid)
+                ) {
+                    $extraData .= 'data-editPodcastGeneralSettings ';
                 }
 
                 if (

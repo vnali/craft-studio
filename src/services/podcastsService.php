@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) vnali
  */
@@ -14,7 +15,9 @@ use craft\models\FieldLayout;
 use vnali\studio\elements\db\PodcastQuery;
 use vnali\studio\elements\Podcast as PodcastElement;
 use vnali\studio\models\PodcastEpisodeSettings;
+use vnali\studio\models\PodcastGeneralSettings;
 use vnali\studio\records\PodcastEpisodeSettingsRecord;
+use vnali\studio\records\PodcastGeneralSettingsRecord;
 use vnali\studio\Studio;
 
 use yii\base\Component;
@@ -209,5 +212,26 @@ class podcastsService extends Component
             }
         }
         return $episodeImportSettings;
+    }
+
+    /**
+     * Get general settings for a podcast
+     *
+     * @param int $podcastId
+     * @return PodcastGeneralSettings
+     */
+    public function getPodcastGeneralSettings(int $podcastId): PodcastGeneralSettings
+    {
+        $podcastGeneralSettings = new PodcastGeneralSettings();
+        $record = PodcastGeneralSettingsRecord::find()
+            ->where(['podcastId' => $podcastId])
+            ->one();
+        if ($record) {
+            $podcastGeneralSettings = new PodcastGeneralSettings();
+            /** @var PodcastGeneralSettingsRecord $record */
+            $podcastGeneralSettings->podcastId = $record->podcastId;
+            $podcastGeneralSettings->publishRSS = $record->publishRSS;
+        }
+        return $podcastGeneralSettings;
     }
 }

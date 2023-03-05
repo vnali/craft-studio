@@ -30,7 +30,6 @@
     "extra": {
         "name": "studio",
         "handle": "studio",
-        "schemaVersion": "0.1.0",
         "hasCpSettings": true,
         "hasCpSection": true,
 		"class": "vnali\\studio\\Studio",

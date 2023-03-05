@@ -8,7 +8,7 @@ namespace vnali\studio\elements\actions;
 use Craft;
 use craft\base\ElementAction;
 
-class PodcastSetting extends ElementAction
+class PodcastGeneralSettings extends ElementAction
 {
     /**
      * @var string|null The trigger label
@@ -21,7 +21,7 @@ class PodcastSetting extends ElementAction
     public function init(): void
     {
         if (!isset($this->label)) {
-            $this->label = Craft::t('studio', 'Settings');
+            $this->label = Craft::t('studio', 'General settings');
         }
     }
 
@@ -44,13 +44,13 @@ class PodcastSetting extends ElementAction
         type: $type,
         bulk: false,
         validateSelection: \$selectedItems => {
-            if (!Garnish.hasAttr(\$selectedItems.find('.extra-element-data'), 'data-editPodcastSettings')) {
+            if (!Garnish.hasAttr(\$selectedItems.find('.extra-element-data'), 'data-editPodcastGeneralSettings')) {
                 return false;
             }
             return true;
         },
         activate: \$selectedItems => {
-            window.open('podcasts/settings?podcastId=' + \$selectedItems.find('.element').data('id'), '_self');
+            window.open('podcasts/podcast-general-settings?podcastId=' + \$selectedItems.find('.element').data('id'), '_self');
         },
     });
 })();

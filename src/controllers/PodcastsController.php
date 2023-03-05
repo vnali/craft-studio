@@ -30,6 +30,7 @@ use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\helpers\Id3;
 use vnali\studio\models\PodcastEpisodeSettings;
 use vnali\studio\models\PodcastFormat;
+use vnali\studio\models\PodcastGeneralSettings;
 use vnali\studio\Studio;
 
 use yii\web\BadRequestHttpException;
@@ -211,6 +212,12 @@ class PodcastsController extends Controller
         if (!$podcast || (!$podcast->enabled && (!$currentUser || !$currentUser->can("studio-viewPodcasts-" . $podcast->uid)))) {
             throw new ServerErrorHttpException('invalid podcast');
         }
+
+        $generalSettings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId);
+        if (!$generalSettings->publishRSS && (!$currentUser || !$currentUser->can("studio-viewPodcasts-" . $podcast->uid))) {
+            throw new ServerErrorHttpException('invalid podcast');
+        }
+
         $podcastFormat = $podcast->getPodcastFormat();
         $podcastMapping = json_decode($podcastFormat->mapping, true);
         $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
@@ -541,15 +548,39 @@ class PodcastsController extends Controller
     }
 
     /**
-     * Generate episode setting's template for podcast
+     * Generate general setting's template for podcast
+     *
+     * @param int $podcastId
+     * @param PodcastGeneralSettings $settings
+     * @return Response
+     */
+    public function actionPodcastGeneralSettings(int $podcastId, PodcastGeneralSettings $settings = null): Response
+    {
+        $this->requirePermission('studio-editPodcastGeneralSettings-' . $podcastId);
+
+        if ($settings === null) {
+            $settings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId);
+        }
+
+        $variables['podcastId'] = $podcastId;
+        $variables['settings'] = $settings;
+
+        return $this->renderTemplate(
+            'studio/podcasts/_generalSettings',
+            $variables
+        );
+    }
+
+    /**
+     * Generate import episode setting's template for podcast
      *
      * @param int $podcastId
      * @param PodcastEpisodeSettings $settings
      * @return Response
      */
-    public function actionSettings(int $podcastId, PodcastEpisodeSettings $settings = null): Response
+    public function actionPodcastImportSettings(int $podcastId, PodcastEpisodeSettings $settings = null): Response
     {
-        $this->requirePermission('studio-editPodcastSettings-' . $podcastId);
+        $this->requirePermission('studio-editPodcastImportSettings-' . $podcastId);
 
         if ($settings === null) {
             $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId);
@@ -661,17 +692,64 @@ class PodcastsController extends Controller
         }
 
         return $this->renderTemplate(
-            'studio/podcasts/_settings',
+            'studio/podcasts/_importSettings',
             $variables
         );
     }
 
     /**
-     * Save podcasts setting
+     * Save podcasts general settings
      *
      * @return Response|null|false
      */
-    public function actionSettingsSave(): Response|null|false
+    public function actionGeneralSettingsSave(): Response|null|false
+    {
+        $this->requirePostRequest();
+        $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
+        if ($podcastId) {
+            $settings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId);
+        } else {
+            throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
+        }
+        $this->requirePermission('studio-importEpisode' . $podcastId);
+
+        $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
+        $settings->publishRSS = Craft::$app->getRequest()->getBodyParam('publishRSS', $settings->publishRSS);
+
+        if (!$settings->validate()) {
+            Craft::$app->getSession()->setError(Craft::t('studio', 'Couldn’t save podcast general settings.'));
+
+            /** @var UrlManager $urlManager */
+            $urlManager = Craft::$app->getUrlManager();
+            $urlManager->setRouteParams([
+                'settings' => $settings,
+            ]);
+
+            return null;
+        }
+
+        // Save it
+        $user = Craft::$app->getUser()->getIdentity();
+        $userId = $user->id;
+        Db::upsert('{{%studio_podcast_general_settings}}', [
+            'userId' => $userId,
+            'podcastId' => $podcastId,
+            'publishRSS' => $settings->publishRSS,
+        ], [
+            'publishRSS' => $settings->publishRSS,
+        ]);
+
+        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast general settings saved'));
+
+        return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Save podcasts import settings
+     *
+     * @return Response|null|false
+     */
+    public function actionImportSettingsSave(): Response|null|false
     {
         $this->requirePostRequest();
         $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');

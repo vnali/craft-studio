@@ -1,0 +1,32 @@
+{% extends 'studio/_layouts/index.twig' %}
+
+{% set title = 'General settings'|t('studio') %}
+
+{% set crumbs = [] %}
+
+{% block content %}
+
+	{% import "_includes/forms" as forms %}
+
+	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+		{{ redirectInput('studio/podcasts/index') }}
+		{{ csrfInput() }}
+
+		{{ hiddenInput('podcastId', podcastId) }}
+
+		<input type="hidden" name="action" value="studio/podcasts/general-settings-save">
+
+		{{ forms.lightswitchField({
+            label: 'Enbale publishing RSS'|t('studio'),
+            id: 'publishRSS',
+            name: 'publishRSS',
+            required: false,
+            errors: settings.getErrors('publishRSS'),
+            value: 1,
+            on: settings.publishRSS is defined ? settings.publishRSS
+        }) }}
+
+		<input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
+
+	</form>
+{% endblock %}

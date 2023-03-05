@@ -89,7 +89,7 @@ class Studio extends Plugin
      */
     public static Studio $plugin;
 
-    public string $schemaVersion = '0.1.0';
+    public string $schemaVersion = '0.2.0';
 
     /**
      * @inheritdoc
@@ -858,7 +858,8 @@ class Studio extends Plugin
                 $event->rules['studio/import/podcast-fields'] = 'studio/import/podcast-fields';
                 $event->rules['studio/podcasts/edit/<elementId:\d+>'] = 'elements/edit';
                 $event->rules['studio/podcasts/new'] = 'studio/podcasts/create';
-                $event->rules['studio/podcasts/settings'] = 'studio/podcasts/settings';
+                $event->rules['studio/podcasts/podcast-import-settings'] = 'studio/podcasts/podcast-import-settings';
+                $event->rules['studio/podcasts/podcast-general-settings'] = 'studio/podcasts/podcast-general-settings';
                 $event->rules['studio/settings/podcast-formats'] = 'studio/podcast-formats/index';
                 $event->rules['studio/settings/podcast-formats/<podcastFormatId:\d+>'] = 'studio/podcast-formats/edit';
                 $event->rules['studio/settings/podcast-formats/new'] = 'studio/podcast-formats/edit';
@@ -1016,8 +1017,13 @@ class Studio extends Plugin
                             'name' => $podcast->title,
                         ]),
                     ];
-                    $podcastPermissions['studio-editPodcastSettings-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Set {name} settings.', [
+                    $podcastPermissions['studio-editPodcastGeneralSettings-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Set {name} general settings.', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $podcastPermissions['studio-editPodcastImportSettings-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Set {name} import settings.', [
                             'name' => $podcast->title,
                         ]),
                     ];

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) vnali
  */
@@ -177,7 +178,23 @@ class Install extends Migration
             $this->addForeignKey(null, '{{%studio_podcastFormat_sites}}', 'podcastFormatId', '{{%studio_podcastFormat}}', 'id', 'CASCADE', null);
         }
 
-        // Create episode's setting table
+        // Create general setting table for podcast
+        if (!$this->tableExists('{{%studio_podcast_general_settings}}')) {
+            $this->createTable('{{%studio_podcast_general_settings}}', [
+                'id' => $this->primaryKey(),
+                'podcastId' => $this->integer()->unique(),
+                'publishRSS' => $this->boolean()->defaultValue(false),
+                'userId' => $this->integer(),
+                'dateCreated' => $this->dateTime()->notNull(),
+                'dateUpdated' => $this->dateTime()->notNull(),
+                'uid' => $this->uid(),
+            ]);
+
+            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'podcastId', '{{%studio_podcast}}', 'id', 'SET NULL', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
+        }
+
+        // Create settings table for episode import
         if (!$this->tableExists('{{%studio_podcast_episode_settings}}')) {
             $this->createTable('{{%studio_podcast_episode_settings}}', [
                 'id' => $this->primaryKey(),
@@ -204,6 +221,7 @@ class Install extends Migration
     {
         $this->dropTableIfExists('{{%studio_podcastFormat_sites}}');
         $this->dropTableIfExists('{{%studio_podcastFormat_episode}}');
+        $this->dropTableIfExists('{{%studio_podcast_general_settings}}');
         $this->dropTableIfExists('{{%studio_podcast_episode_settings}}');
         $this->dropTableIfExists('{{%studio_i18n}}');
         $this->dropTableIfExists('{{%studio_episode}}');
