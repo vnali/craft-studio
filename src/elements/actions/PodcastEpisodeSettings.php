@@ -8,7 +8,7 @@ namespace vnali\studio\elements\actions;
 use Craft;
 use craft\base\ElementAction;
 
-class PodcastImportSettings extends ElementAction
+class PodcastEpisodeSettings extends ElementAction
 {
     /**
      * @var string|null The trigger label
@@ -21,7 +21,7 @@ class PodcastImportSettings extends ElementAction
     public function init(): void
     {
         if (!isset($this->label)) {
-            $this->label = Craft::t('studio', 'Import settings');
+            $this->label = Craft::t('studio', 'Episode settings');
         }
     }
 
@@ -44,13 +44,13 @@ class PodcastImportSettings extends ElementAction
         type: $type,
         bulk: false,
         validateSelection: \$selectedItems => {
-            if (!Garnish.hasAttr(\$selectedItems.find('.extra-element-data'), 'data-editPodcastImportSettings')) {
+            if (!Garnish.hasAttr(\$selectedItems.find('.extra-element-data'), 'data-editPodcastEpisodeSettings')) {
                 return false;
             }
             return true;
         },
         activate: \$selectedItems => {
-            window.open('podcasts/podcast-import-settings?podcastId=' + \$selectedItems.find('.element').data('id'), '_self');
+            window.open('podcasts/podcast-episode-settings?podcastId=' + \$selectedItems.find('.element').data('id'), '_self');
         },
     });
 })();

@@ -1,6 +1,6 @@
 {% extends 'studio/_layouts/index.twig' %}
 
-{% set title = 'Import settings'|t('studio') %}
+{% set title = 'Episode settings'|t('studio') %}
 
 {% set crumbs = [] %}
 
@@ -14,7 +14,7 @@
 
 		{{ hiddenInput('podcastId', podcastId) }}
 
-		<input type="hidden" name="action" value="studio/podcasts/import-settings-save">
+		<input type="hidden" name="action" value="studio/podcasts/episode-settings-save">
 
 		{{ forms.multiSelectField({
             label: 'Default episode category'|t('studio'),

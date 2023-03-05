@@ -572,15 +572,15 @@ class PodcastsController extends Controller
     }
 
     /**
-     * Generate import episode setting's template for podcast
+     * Generate episode setting's template for podcast
      *
      * @param int $podcastId
      * @param PodcastEpisodeSettings $settings
      * @return Response
      */
-    public function actionPodcastImportSettings(int $podcastId, PodcastEpisodeSettings $settings = null): Response
+    public function actionPodcastEpisodeSettings(int $podcastId, PodcastEpisodeSettings $settings = null): Response
     {
-        $this->requirePermission('studio-editPodcastImportSettings-' . $podcastId);
+        $this->requirePermission('studio-editPodcastEpisodeSettings-' . $podcastId);
 
         if ($settings === null) {
             $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId);
@@ -692,7 +692,7 @@ class PodcastsController extends Controller
         }
 
         return $this->renderTemplate(
-            'studio/podcasts/_importSettings',
+            'studio/podcasts/_episodeSettings',
             $variables
         );
     }
@@ -745,11 +745,11 @@ class PodcastsController extends Controller
     }
 
     /**
-     * Save podcasts import settings
+     * Save podcasts episode settings
      *
      * @return Response|null|false
      */
-    public function actionImportSettingsSave(): Response|null|false
+    public function actionEpisodeSettingsSave(): Response|null|false
     {
         $this->requirePostRequest();
         $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
@@ -794,6 +794,8 @@ class PodcastsController extends Controller
         ], [
             'settings' => json_encode($settings),
         ]);
+
+        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast episode settings saved'));
 
         return $this->redirectToPostedUrl();
     }

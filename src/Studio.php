@@ -858,7 +858,7 @@ class Studio extends Plugin
                 $event->rules['studio/import/podcast-fields'] = 'studio/import/podcast-fields';
                 $event->rules['studio/podcasts/edit/<elementId:\d+>'] = 'elements/edit';
                 $event->rules['studio/podcasts/new'] = 'studio/podcasts/create';
-                $event->rules['studio/podcasts/podcast-import-settings'] = 'studio/podcasts/podcast-import-settings';
+                $event->rules['studio/podcasts/podcast-episode-settings'] = 'studio/podcasts/podcast-episode-settings';
                 $event->rules['studio/podcasts/podcast-general-settings'] = 'studio/podcasts/podcast-general-settings';
                 $event->rules['studio/settings/podcast-formats'] = 'studio/podcast-formats/index';
                 $event->rules['studio/settings/podcast-formats/<podcastFormatId:\d+>'] = 'studio/podcast-formats/edit';
@@ -1018,12 +1018,12 @@ class Studio extends Plugin
                         ]),
                     ];
                     $podcastPermissions['studio-editPodcastGeneralSettings-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Set {name} general settings.', [
+                        'label' => Craft::t('studio', 'Set general settings for {name}.', [
                             'name' => $podcast->title,
                         ]),
                     ];
-                    $podcastPermissions['studio-editPodcastImportSettings-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Set {name} import settings.', [
+                    $podcastPermissions['studio-editPodcastEpisodeSettings-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Set episode settings for {name}.', [
                             'name' => $podcast->title,
                         ]),
                     ];

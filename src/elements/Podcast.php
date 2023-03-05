@@ -28,8 +28,8 @@ use Throwable;
 
 use vnali\studio\elements\actions\ImportEpisodeFromAssetIndex;
 use vnali\studio\elements\actions\ImportEpisodeFromRSS;
+use vnali\studio\elements\actions\PodcastEpisodeSettings;
 use vnali\studio\elements\actions\PodcastGeneralSettings;
-use vnali\studio\elements\actions\PodcastImportSettings;
 use vnali\studio\elements\conditions\podcasts\PodcastCondition;
 use vnali\studio\elements\db\PodcastQuery;
 use vnali\studio\helpers\GeneralHelper;
@@ -950,7 +950,7 @@ class Podcast extends Element
         ]);
         // Podcast import settings
         $actions[] = $elementsService->createAction([
-            'type' => PodcastImportSettings::class,
+            'type' => PodcastEpisodeSettings::class,
         ]);
         // Import from URL
         $actions[] = $elementsService->createAction([
@@ -1174,9 +1174,9 @@ class Podcast extends Element
             if ($context === 'index') {
                 if (
                     $user->can('studio-managePodcasts') ||
-                    $user->can('studio-editPodcastImportSettings-' . $element->uid)
+                    $user->can('studio-editPodcastEpisodeSettings-' . $element->uid)
                 ) {
-                    $extraData .= 'data-editPodcastImportSettings ';
+                    $extraData .= 'data-editPodcastEpisodeSettings ';
                 }
 
                 if (
