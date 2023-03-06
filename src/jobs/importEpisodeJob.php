@@ -7,6 +7,7 @@
 namespace vnali\studio\jobs;
 
 use Craft;
+use craft\helpers\Assets;
 use craft\queue\BaseJob;
 
 use Symfony\Component\DomCrawler\Crawler;
@@ -49,14 +50,14 @@ class importEpisodeJob extends BaseJob
                 }
 
                 $step++;
-                
+
                 // Set progress
                 $this->setProgress(
                     $queue,
-                    $step / $this->total,
+                    $step / ($this->limit ?? $this->total),
                     \Craft::t('app', 'Import {step, number} of {total, number}', [
                         'step' => $step,
-                        'total' => $this->total,
+                        'total' => ($this->limit ?? $this->total),
                     ])
                 );
 
@@ -124,6 +125,15 @@ class importEpisodeJob extends BaseJob
                                     $itemElement->{$imageFieldHandle} = $href;
                                 } elseif (get_class($imageField) == 'craft\fields\Assets') {
                                     if ($href) {
+                                        // Set progress
+                                        $this->setProgress(
+                                            $queue,
+                                            $step / ($this->limit ?? $this->total),
+                                            \Craft::t('app', 'Import {step, number} of {total, number} - Upload image', [
+                                                'step' => $step,
+                                                'total' => ($this->limit ?? $this->total),
+                                            ])
+                                        );
                                         $ch = curl_init();
                                         curl_setopt($ch, CURLOPT_POST, 0);
                                         curl_setopt($ch, CURLOPT_URL, $href);
@@ -132,7 +142,7 @@ class importEpisodeJob extends BaseJob
                                         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
                                         curl_setopt($ch, CURLOPT_HTTPGET, 1);
                                         $content = trim(curl_exec($ch));
-                                        $itemElement = GeneralHelper::uploadFile($content, $imageField, $imageContainer, $itemElement, $basename, $extension);
+                                        $itemElement = GeneralHelper::uploadFile($content, null, $imageField, $imageContainer, $itemElement, $basename, $extension);
                                     }
                                 }
                             }
@@ -153,16 +163,27 @@ class importEpisodeJob extends BaseJob
                                     if ($field) {
                                         if (get_class($field) == 'craft\fields\Assets') {
                                             if ($url) {
-                                                $ch = curl_init();
-                                                curl_setopt($ch, CURLOPT_POST, 0);
-                                                curl_setopt($ch, CURLOPT_URL, $url);
-                                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                                                curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-                                                curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-                                                curl_setopt($ch, CURLOPT_HTTPGET, 1);
-                                                $content = trim(curl_exec($ch));
-                                                if ($content) {
-                                                    $itemElement = GeneralHelper::uploadFile($content, $field, $fieldContainer, $itemElement, $basename, $extension);
+                                                // Set progress
+                                                $this->setProgress(
+                                                    $queue,
+                                                    $step / ($this->limit ?? $this->total),
+                                                    \Craft::t('app', 'Import {step, number} of {total, number} - Upload file', [
+                                                        'step' => $step,
+                                                        'total' => $this->limit ?? $this->total,
+                                                    ])
+                                                );
+                                                $tempFile = Assets::tempFilePath();
+                                                $fp = fopen($tempFile, 'w+');
+                                                $ch = curl_init(str_replace(" ", "%20", $url));
+                                                curl_setopt($ch, CURLOPT_TIMEOUT, 180);
+                                                curl_setopt($ch, CURLOPT_FILE, $fp);
+                                                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                                                curl_exec($ch);
+                                                curl_close($ch);
+                                                fclose($fp);
+                                                if ($tempFile) {
+                                                    craft::info("Content fetched from RSS $url");
+                                                    $itemElement = GeneralHelper::uploadFile(null, $tempFile, $field, $fieldContainer, $itemElement, $basename, $extension);
                                                 }
                                             }
                                         }

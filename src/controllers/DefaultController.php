@@ -190,7 +190,7 @@ class DefaultController extends Controller
             if ($imageField) {
                 list($img, $mime, $ext) = Id3::getImage($fileInfo);
                 if ($img) {
-                    $element = GeneralHelper::uploadFile($img, $imageField, $imageFieldContainer, $element, $assetFilename, $ext, $blockId);
+                    $element = GeneralHelper::uploadFile($img, null, $imageField, $imageFieldContainer, $element, $assetFilename, $ext, $blockId);
                 } else {
                     Craft::$app->getSession()->setError(Craft::t('studio', 'no image extracted from file'));
                 }

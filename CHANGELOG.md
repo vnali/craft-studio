@@ -6,6 +6,8 @@
 - Added an option to disallow publishing RSS for a podcast
 - Added checkAccessToVolumes general setting which checks saveAssets:[VolumeUID] permission before listing volumes on asset index page
 - Now each podcast has two settings pages (general settings, episode settings)
+- Improved fetch from RSS via CURL 
+- Improved fetch from RSS progress notifications
 - Fixed a bug where changing lightswitch inputs on the sidebar of the episode edit page, creates unwanted drafts
 - Fixed permission issues where non-admin users were not able to access some plugin actions
 

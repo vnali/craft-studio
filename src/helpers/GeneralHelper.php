@@ -603,10 +603,13 @@ class GeneralHelper
         return $descriptionField;
     }
 
-    public static function UploadFile($file, $fileField, $fieldContainer, $element, $assetFilename, $ext, $blockId = null)
+    public static function UploadFile($content, $contentFile, $fileField, $fieldContainer, $element, $assetFilename, $ext, $blockId = null)
     {
-        $tempFile = Assets::tempFilePath();
-        file_put_contents($tempFile, $file);
+        // If there is a fetched content, create a temp file.
+        if ($content) {
+            $contentFile = Assets::tempFilePath();
+            file_put_contents($contentFile, $content);
+        }
 
         $folderId = $fileField->resolveDynamicPathToFolderId($element);
         if (empty($folderId)) {
@@ -622,7 +625,7 @@ class GeneralHelper
         $newAsset = new Asset();
         $newAsset->avoidFilenameConflicts = true;
         $newAsset->setScenario(Asset::SCENARIO_CREATE);
-        $newAsset->tempFilePath = $tempFile;
+        $newAsset->tempFilePath = $contentFile;
         $assetFilenameArray = explode('.', $assetFilename);
         $newAsset->filename = $assetFilenameArray[0] . '.' . $ext;
         $newAsset->newFolderId = $folder->id;

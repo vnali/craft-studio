@@ -12,12 +12,12 @@ class ImportEpisodeRSS extends Model
     /**
      * @var string import From RSS
      */
-    public $importFromRSS;
+    public string $importFromRSS;
 
     /**
-     * @var int limit
+     * @var int|null limit
     */
-    public $limit;
+    public ?int $limit = null;
 
     public function rules(): array
     {

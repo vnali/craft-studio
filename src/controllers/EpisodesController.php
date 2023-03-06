@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) vnali
  */
@@ -203,58 +204,57 @@ class EpisodesController extends Controller
             return null;
         }
 
-        if (Craft::$app->getRequest()->getBodyParam('importFromRSS')) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_POST, 0);
-            curl_setopt($ch, CURLOPT_URL, Craft::$app->getRequest()->getBodyParam('importFromRSS'));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            // TODO: let request to sent via proxy
-            #curl_setopt($ch, CURLOPT_PROXY, 'ip:port');
-            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-            curl_setopt($ch, CURLOPT_HTTPGET, 1);
-            $content = trim(curl_exec($ch));
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            if (!$httpCode || $httpCode != 200) {
-                Craft::$app->getSession()->setError(Craft::t('studio', 'problem reaching site.'));
-                $this->redirect('studio/import/episode');
-                return false;
-            }
-
-            $crawler = new Crawler($content);
-            $total = $crawler->filter('rss channel item')->count();
-            if ($crawler->filter('rss channel item')->count() == 0) {
-                Craft::$app->getSession()->setError(Craft::t('studio', 'No item found'));
-                $this->redirect('studio/import/episode');
-                return false;
-            }
-
-            $items = [];
-            $crawler = new Crawler($content);
-            foreach ($crawler->filter('rss channel')->children() as $domElement) {
-                $html = $domElement->ownerDocument->saveHTML($domElement);
-                $items[] = $html;
-            }
-
-            /** @var Queue $queue */
-            $queue = Craft::$app->getQueue();
-            // Add sync job to queue
-            $queue->push(
-                new importEpisodeJob(
-                    [
-                        'items' => $items,
-                        'total' => $total,
-                        'podcastId' => $podcastId,
-                        'limit' => $settings->limit,
-                    ]
-                )
-            );
-
-            Craft::$app->getSession()->setNotice(Craft::t('studio', 'Importing ' . $total . ' episodes'));
-        } else {
-            Craft::$app->getSession()->setNotice(Craft::t('studio', 'Episode Import settings saved.'));
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_POST, 0);
+        curl_setopt($ch, CURLOPT_URL, Craft::$app->getRequest()->getBodyParam('importFromRSS'));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        // TODO: let request to sent via proxy
+        #curl_setopt($ch, CURLOPT_PROXY, 'ip:port');
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_HTTPGET, 1);
+        $content = trim(curl_exec($ch));
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if (!$httpCode || $httpCode != 200) {
+            Craft::$app->getSession()->setError(Craft::t('studio', 'problem reaching site.'));
+            $this->redirect('studio/episodes/import-from-rss?podcastId=' . $podcastId);
+            return false;
         }
+
+        $crawler = new Crawler($content);
+        $total = $crawler->filter('rss channel item')->count();
+        if ($crawler->filter('rss channel item')->count() == 0) {
+            Craft::$app->getSession()->setError(Craft::t('studio', 'No item found'));
+            $this->redirect('studio/episodes/import-from-rss?podcastId=' . $podcastId);
+            return false;
+        }
+
+        $items = [];
+        $crawler = new Crawler($content);
+        foreach ($crawler->filter('rss channel')->children() as $domElement) {
+            $html = $domElement->ownerDocument->saveHTML($domElement);
+            $items[] = $html;
+        }
+
+        /** @var Queue $queue */
+        $queue = Craft::$app->getQueue();
+        // Add sync job to queue
+        $queue->push(
+            new importEpisodeJob(
+                [
+                    'items' => $items,
+                    'total' => $total,
+                    'podcastId' => $podcastId,
+                    'limit' => $settings->limit,
+                ]
+            )
+        );
+
+        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Importing {limit} from {total} episodes', [
+            'limit' => $settings->limit,
+            'total' => $total,
+        ]));
 
         return $this->redirectToPostedUrl();
     }
