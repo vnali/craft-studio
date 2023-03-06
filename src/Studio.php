@@ -1002,7 +1002,7 @@ class Studio extends Plugin
                     $episodeCreatePermissions = [];
                     $podcastCreatePermissions = [];
                     $podcastCreatePermissions['studio-editPodcasts-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Edit {name}.', [
+                        'label' => Craft::t('studio', 'Edit {name} podcast.', [
                             'name' => $podcast->title,
                         ]),
                     ];
@@ -1013,7 +1013,7 @@ class Studio extends Plugin
                         'nested' => $podcastCreatePermissions,
                     ];
                     $podcastPermissions['studio-deletePodcasts-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Delete {name}.', [
+                        'label' => Craft::t('studio', 'Delete {name} podcast.', [
                             'name' => $podcast->title,
                         ]),
                     ];
