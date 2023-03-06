@@ -72,6 +72,7 @@ use vnali\studio\services\podcastFormatsService;
 use vnali\studio\services\podcastsService;
 use vnali\studio\services\settingsService;
 use vnali\studio\twig\CraftVariableBehavior;
+use vnali\studio\Studio as StudioPlugin;
 
 use yii\base\Event;
 use yii\web\BadRequestHttpException;
@@ -131,7 +132,11 @@ class Studio extends Plugin
 
         // Check version before installing
         if (version_compare(Craft::$app->getInfo()->version, '4.4', '>=')) {
-            Event::on(AssetIndexes::class, AssetIndexes::EVENT_LIST_VOLUMES, [GeneralHelper::class, 'listVolumes']);
+            $settings = StudioPlugin::$plugin->getSettings();
+            /** @var Settings $settings */
+            if ($settings->checkAccessToVolumes) {
+                Event::on(AssetIndexes::class, AssetIndexes::EVENT_LIST_VOLUMES, [GeneralHelper::class, 'listVolumes']);
+            }
         }
 
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_INNER_HTML, [PodcastElement::class, 'updatePodcastElementHtml']);
@@ -860,6 +865,7 @@ class Studio extends Plugin
                 $event->rules['studio/podcasts/new'] = 'studio/podcasts/create';
                 $event->rules['studio/podcasts/podcast-episode-settings'] = 'studio/podcasts/podcast-episode-settings';
                 $event->rules['studio/podcasts/podcast-general-settings'] = 'studio/podcasts/podcast-general-settings';
+                $event->rules['studio/settings/general'] = 'studio/settings/general';
                 $event->rules['studio/settings/podcast-formats'] = 'studio/podcast-formats/index';
                 $event->rules['studio/settings/podcast-formats/<podcastFormatId:\d+>'] = 'studio/podcast-formats/edit';
                 $event->rules['studio/settings/podcast-formats/new'] = 'studio/podcast-formats/edit';
