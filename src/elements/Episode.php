@@ -1038,11 +1038,25 @@ class Episode extends Element
     /**
      * @inheritdoc
      */
-    protected function route(): array
+    protected function route(): array|string|null
     {
+        // Make sure that the episode is actually live
+        if (!$this->previewing && $this->getStatus() != 'enabled') {
+            return null;
+        }
+
+        $siteId = Craft::$app->getSites()->getCurrentSite()->id;
+        $podcastFormat = $this->getPodcast()->getPodcastFormat();
+        $siteSettings = $podcastFormat->getSiteSettings();
+
+        // Todo: check if hasUrls
+        if (!isset($siteSettings[$siteId])) {
+            return null;
+        }
+
         return [
             'templates/render', [
-                'template' => 'episodes/view',
+                'template' => (string)$siteSettings[$siteId]->episodeTemplate,
                 'variables' => [
                     'episode' => $this,
                 ],
