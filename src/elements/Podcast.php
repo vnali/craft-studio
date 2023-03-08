@@ -977,7 +977,7 @@ class Podcast extends Element
      */
     protected function route(): array|string|null
     {
-        // Make sure that the entry is actually live
+        // Make sure that the podcast is actually live
         if (!$this->previewing && $this->getStatus() != 'enabled') {
             return null;
         }

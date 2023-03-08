@@ -115,7 +115,8 @@ class PodcastsController extends Controller
             if (count($editableSiteIds) > 1) {
                 return $this->renderTemplate('_special/sitepicker.twig', [
                     'siteIds' => $editableSiteIds,
-                    'baseUrl' => "entries/$podcastFormat->handle/new",
+                    // TODO: baseUrl need to be fixed
+                    'baseUrl' => "podcasts/$podcastFormat->handle/new",
                 ]);
             }
 
