@@ -71,8 +71,8 @@ use vnali\studio\services\episodesService;
 use vnali\studio\services\podcastFormatsService;
 use vnali\studio\services\podcastsService;
 use vnali\studio\services\settingsService;
-use vnali\studio\twig\CraftVariableBehavior;
 use vnali\studio\Studio as StudioPlugin;
+use vnali\studio\twig\CraftVariableBehavior;
 
 use yii\base\Event;
 use yii\web\BadRequestHttpException;

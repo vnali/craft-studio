@@ -9,8 +9,8 @@ namespace vnali\studio\controllers;
 use Craft;
 use craft\web\Controller;
 
-use vnali\studio\Studio;
 use vnali\studio\models\Settings;
+use vnali\studio\Studio;
 
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
