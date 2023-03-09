@@ -236,6 +236,14 @@ class PodcastsController extends Controller
         $episodeQuery->podcastId = $podcast->id;
         /** @var Episode[] $episodes */
         $episodes = $episodeQuery->all();
+
+        // Latest updated date for episodes
+        $lastBuildDate = null;
+        $latestUpdatedEpisode = $episodeQuery->orderBy('dateUpdated desc')->one();
+        if ($latestUpdatedEpisode) {
+            $lastBuildDate = $latestUpdatedEpisode->dateUpdated;
+        }
+
         // Create the document.
         $xml = new DOMDocument("1.0", "UTF-8");
 
@@ -254,6 +262,17 @@ class PodcastsController extends Controller
         $xmlChannel->appendChild($podcastTitle);
         $podcastTitle = $xml->createElement("itunes:title", htmlspecialchars($podcast->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
         $xmlChannel->appendChild($podcastTitle);
+
+        // Compare podcast updated date with latest update date for episodes
+        $podcastUpdate = $podcast->dateUpdated;
+        if ($lastBuildDate < $podcastUpdate) {
+            $lastBuildDate = $podcastUpdate;
+        }
+
+        // Add lastBuildDate
+        $lastBuildDate = $lastBuildDate->format('D, d M Y H:i:s T');
+        $lastBuildDate = $xml->createElement("lastBuildDate", $lastBuildDate);
+        $xmlChannel->appendChild($lastBuildDate);
 
         // Podcast Link
         if ($podcast->podcastLink) {
