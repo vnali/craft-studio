@@ -120,6 +120,16 @@ class PodcastFormatEpisode extends Model
                     'craft\redactor\Field' => 'redactor',
                 ],
             ],
+            'episodeContentEncoded' => [
+                'label' => 'Content encoded field',
+                'handle' => 'episodeContentEncoded',
+                'convertTo' => [
+                    '' => 'select one',
+                    'craft\fields\PlainText' => 'plain text',
+                    'craft\ckeditor\Field' => 'ckeditor',
+                    'craft\redactor\Field' => 'redactor',
+                ],
+            ],
             'episodePubDate' => [
                 'label' => 'Publish Date field',
                 'handle' => 'episodePubDate',

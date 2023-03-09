@@ -517,7 +517,7 @@ class PodcastsController extends Controller
                 $xmlItem->appendChild($xmlEpisodeExplicit);
             }
 
-            // Episode Description
+            // Episode itunes:summary Description
             $descriptionField = GeneralHelper::getElementDescriptionField('episode', $episodeMapping);
             if ($descriptionField) {
                 $descriptionFieldHandle = $descriptionField->handle;
@@ -525,6 +525,14 @@ class PodcastsController extends Controller
                 $xmlItem->appendChild($xmlEpisodeSummary);
                 $xmlEpisodeDescription = $xml->createElement("description", htmlspecialchars($episode->{$descriptionFieldHandle}, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                 $xmlItem->appendChild($xmlEpisodeDescription);
+            }
+
+            // Episode Content encoded
+            $contentEncodedField = GeneralHelper::getElementContentEncodedField('episode', $episodeMapping);
+            if ($contentEncodedField) {
+                $contentEncodedFieldHandle = $contentEncodedField->handle;
+                $xmlEpisodeContentEncoded = $xml->createElement("content:encoded", htmlspecialchars($episode->{$contentEncodedFieldHandle}, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlItem->appendChild($xmlEpisodeContentEncoded);
             }
 
             // Episode duration

@@ -603,6 +603,17 @@ class GeneralHelper
         return $descriptionField;
     }
 
+    public static function getElementContentEncodedField($item, $mapping)
+    {
+        $contentEncodedField = null;
+        $contentEncodedFieldUid = null;
+        if (isset($mapping[$item . 'ContentEncoded']['field']) && $mapping[$item . 'ContentEncoded']['field']) {
+            $contentEncodedFieldUid = $mapping[$item . 'ContentEncoded']['field'];
+            $contentEncodedField = Craft::$app->fields->getFieldByUid($contentEncodedFieldUid);
+        }
+        return $contentEncodedField;
+    }
+
     public static function UploadFile($content, $contentFile, $fileField, $fieldContainer, $element, $assetFilename, $ext, $blockId = null)
     {
         // If there is a fetched content, create a temp file.

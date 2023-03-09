@@ -113,6 +113,15 @@ class importEpisodeJob extends BaseJob
                                 }
                             }
                             break;
+                        case 'encoded':
+                            $crawler = new Crawler($domElement);
+                            $contentEncoded = $crawler->filter('encoded')->html();
+                            $contentEncodedField = GeneralHelper::getElementContentEncodedField('episode', $mapping);
+                            if ($contentEncodedField) {
+                                $contentEncodedFieldHandle = $contentEncodedField->handle;
+                                $itemElement->{$contentEncodedFieldHandle} = $contentEncoded;
+                            }
+                            break;
                         case 'image':
                             $href = $domElement->getAttribute('href');
                             $path = parse_url($href, PHP_URL_PATH);

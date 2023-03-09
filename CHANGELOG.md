@@ -8,6 +8,7 @@
 - Added studio-viewPublishedRSS-[PodcastUID] permission to check accessing to RSS
 - Added checkAccessToVolumes general setting which checks saveAssets:[VolumeUID] permission before listing volumes on asset index page
 - Added lastBuildDate for podcast RSS
+- Added support for content:encoded
 - Now each podcast has two settings pages (general settings, episode settings)
 - Improved fetch from RSS via CURL 
 - Improved fetch from RSS progress notifications
