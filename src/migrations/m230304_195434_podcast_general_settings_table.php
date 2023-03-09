@@ -23,6 +23,7 @@ class m230304_195434_podcast_general_settings_table extends Migration
                 'id' => $this->primaryKey(),
                 'podcastId' => $this->integer()->unique(),
                 'publishRSS' => $this->boolean()->defaultValue(false),
+                'allowAllToSeeRSS' => $this->boolean()->defaultValue(false),
                 'userId' => $this->integer(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),

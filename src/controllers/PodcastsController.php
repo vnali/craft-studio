@@ -208,15 +208,16 @@ class PodcastsController extends Controller
 
         /** @var PodcastElement|null $podcast */
         $podcast = PodcastElement::find()->id($podcastId)->status(null)->siteId($siteId)->one();
+        $generalSettings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId);
         $userSession = Craft::$app->getUser();
         $currentUser = $userSession->getIdentity();
-        if (!$podcast || (!$podcast->enabled && (!$currentUser || !$currentUser->can("studio-viewPodcasts-" . $podcast->uid)))) {
-            throw new ServerErrorHttpException('invalid podcast');
+
+        if (!$podcast || ((!$podcast->enabled || !$generalSettings->publishRSS) && (!$currentUser || !$currentUser->can("studio-viewPodcasts-" . $podcast->uid)))) {
+            throw new ServerErrorHttpException('Invalid podcast');
         }
 
-        $generalSettings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId);
-        if (!$generalSettings->publishRSS && (!$currentUser || !$currentUser->can("studio-viewPodcasts-" . $podcast->uid))) {
-            throw new ServerErrorHttpException('invalid podcast');
+        if (!$generalSettings->allowAllToSeeRSS) {
+            $this->requirePermission('studio-viewPublishedRSS-' . $podcast->uid);
         }
 
         $podcastFormat = $podcast->getPodcastFormat();
@@ -723,6 +724,7 @@ class PodcastsController extends Controller
 
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $settings->publishRSS = Craft::$app->getRequest()->getBodyParam('publishRSS', $settings->publishRSS);
+        $settings->allowAllToSeeRSS = Craft::$app->getRequest()->getBodyParam('allowAllToSeeRSS', $settings->allowAllToSeeRSS);
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'Couldn’t save podcast general settings.'));
@@ -743,8 +745,10 @@ class PodcastsController extends Controller
             'userId' => $userId,
             'podcastId' => $podcastId,
             'publishRSS' => $settings->publishRSS,
+            'allowAllToSeeRSS' => $settings->allowAllToSeeRSS,
         ], [
             'publishRSS' => $settings->publishRSS,
+            'allowAllToSeeRSS' => $settings->allowAllToSeeRSS,
         ]);
 
         Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast general settings saved'));

@@ -231,6 +231,7 @@ class podcastsService extends Component
             /** @var PodcastGeneralSettingsRecord $record */
             $podcastGeneralSettings->podcastId = $record->podcastId;
             $podcastGeneralSettings->publishRSS = $record->publishRSS;
+            $podcastGeneralSettings->allowAllToSeeRSS = $record->allowAllToSeeRSS;
         }
         return $podcastGeneralSettings;
     }

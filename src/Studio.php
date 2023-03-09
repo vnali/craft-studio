@@ -1034,26 +1034,31 @@ class Studio extends Plugin
                         ]),
                     ];
                     $episodeCreatePermissions['studio-createEpisodes-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Create episode for {name}.', [
+                        'label' => Craft::t('studio', 'Create episodes for {name}.', [
                             'name' => $podcast->title,
                         ]),
                     ];
                     $podcastPermissions['studio-createDraftEpisodes-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Create draft episode for {name}.', [
+                        'label' => Craft::t('studio', 'Create draft episodes for {name}.', [
                             'name' => $podcast->title,
                         ]),
                         'nested' => $episodeCreatePermissions,
                     ];
                     // Permission for importing episodes to this podcast from RSS
                     $podcastPermissions['studio-importEpisodeByRSS-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'import episodes by URL'),
+                        'label' => Craft::t('studio', 'Import episodes by URL'),
                     ];
                     // Permission for set settings to import episodes from Asset index utility
                     $podcastPermissions['studio-importEpisodeByAssetIndex-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'import episodes by Asset index'),
+                        'label' => Craft::t('studio', 'Import episodes by Asset index'),
                     ];
                     $podcastPermissions['studio-deleteEpisodes-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Delete episode from {name}.', [
+                        'label' => Craft::t('studio', 'Delete episodes from {name}.', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $podcastPermissions['studio-viewPublishedRSS-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'View published RSS for {name}.', [
                             'name' => $podcast->title,
                         ]),
                     ];

@@ -10,6 +10,7 @@ use vnali\studio\elements\Podcast;
 
 class PodcastGeneralSettings extends Model
 {
+    public ?bool $allowAllToSeeRSS = null;
     public ?bool $publishRSS = null;
     public int $podcastId;
 
@@ -23,7 +24,7 @@ class PodcastGeneralSettings extends Model
                 $this->addError($attribute, 'The podcast is not valid');
             }
         }, 'skipOnEmpty' => true];
-        $rules[] = [['publishRSS'], 'in', 'range' => [0, 1]];
+        $rules[] = [['publishRSS', 'allowAllToSeeRSS'], 'in', 'range' => [0, 1]];
         return $rules;
     }
 }

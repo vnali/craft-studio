@@ -26,6 +26,16 @@
             on: settings.publishRSS is defined ? settings.publishRSS
         }) }}
 
+        {{ forms.lightswitchField({
+            label: 'Allow All to see published RSS'|t('studio'),
+            id: 'allowAllToSeeRSS',
+            name: 'allowAllToSeeRSS',
+            required: false,
+            errors: settings.getErrors('allowAllToSeeRSS'),
+            value: 1,
+            on: settings.allowAllToSeeRSS is defined ? settings.allowAllToSeeRSS
+        }) }}
+
 		<input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
 
 	</form>
