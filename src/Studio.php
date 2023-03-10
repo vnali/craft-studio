@@ -500,17 +500,7 @@ class Studio extends Plugin
 
         list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField($item, $mapping);
 
-        list(, $tagField) = GeneralHelper::getElementTagField($item, $mapping);
-        $tagFieldHandle = null;
-        if ($tagField) {
-            $tagFieldHandle = $tagField->handle;
-        }
-
-        list(, $categoryField) = GeneralHelper::getElementCategoryField($item, $mapping);
-        $categoryFieldHandle = null;
-        if ($categoryField) {
-            $categoryFieldHandle = $categoryField->handle;
-        }
+        list($keywordField, $keywordFieldType, $keywordFieldHandle, $keywordFieldGroup) = GeneralHelper::getElementKeywordsField('episode', $mapping);
 
         // Genres
         list($genreFieldType, $genreFieldHandle, $genreFieldGroup) = GeneralHelper::getElementGenreField($item, $mapping);
@@ -572,51 +562,27 @@ class Studio extends Plugin
             list($genreIds,) = Id3::getGenres($fileInfo, $genreFieldType, $genreFieldGroup->id, $tagImportOptions, $tagImportCheck, $defaultGenres);
         }
 
-        // Genre field might be overlapped with tag field or category field
-        if ($genreFieldHandle != $tagFieldHandle && $genreFieldHandle != $categoryFieldHandle) {
+        // Genre field might be overlapped with keyword field
+        if ($genreFieldHandle != $keywordFieldHandle) {
             $columns = [];
             if ($genreFieldHandle) {
                 $columns[$genreFieldHandle] = $genreIds;
             }
-            if ($tagFieldHandle) {
-                $columns[$tagFieldHandle] = $importSetting['tagOnImport'];
-            }
-            if ($categoryFieldHandle) {
-                $columns[$categoryFieldHandle] = $importSetting['categoryOnImport'];
+            if ($keywordFieldHandle && isset($importSetting['keywordsOnImport'])) {
+                $columns[$keywordFieldHandle] = $importSetting['keywordsOnImport'];
             }
             $itemElement->setFieldValues($columns);
-        } elseif ($genreFieldHandle == $tagFieldHandle && $genreFieldHandle != $categoryFieldHandle) {
+        } else {
             $columns = [];
             if ($genreFieldHandle) {
-                $tagIds = $importSetting['tagOnImport'];
-                if (is_array($tagIds)) {
-                    foreach ($tagIds as $tagId) {
-                        if (!in_array($tagId, $genreIds)) {
-                            $genreIds[] = $tagId;
+                if (isset($importSetting['keywordsOnImport']) && is_array($importSetting['keywordsOnImport'])) {
+                    foreach ($importSetting['keywordsOnImport'] as $keywordId) {
+                        if (!in_array($keywordId, $genreIds)) {
+                            $genreIds[] = $keywordId;
                         }
                     }
                 }
                 $columns[$genreFieldHandle] = $genreIds;
-            }
-            if ($categoryFieldHandle) {
-                $columns[$categoryFieldHandle] = $importSetting['categoryOnImport'];
-            }
-            $itemElement->setFieldValues($columns);
-        } elseif ($genreFieldHandle != $tagFieldHandle && $genreFieldHandle == $categoryFieldHandle) {
-            $columns = [];
-            if ($genreFieldHandle) {
-                $categoryIds = $importSetting['categoryOnImport'];
-                if ($categoryIds) {
-                    foreach ($categoryIds as $categoryId) {
-                        if (!in_array($categoryId, $genreIds)) {
-                            $genreIds[] = $categoryId;
-                        }
-                    }
-                }
-                $columns[$genreFieldHandle] = $genreIds;
-            }
-            if ($tagFieldHandle) {
-                $columns[$tagFieldHandle] = $importSetting['tagOnImport'];
             }
             $itemElement->setFieldValues($columns);
         }

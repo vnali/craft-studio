@@ -16,57 +16,6 @@
 
 		<input type="hidden" name="action" value="studio/podcasts/episode-settings-save">
 
-		{{ forms.multiSelectField({
-            label: 'Default episode category'|t('studio'),
-            id: 'categoryOnImport',
-            name: 'categoryOnImport',
-            options: categoryOptions,
-            values: settings.categoryOnImport is defined ? settings.categoryOnImport,
-            required: false,
-        }) }}
-
-		{{ forms.multiSelectField({
-            label: 'Default episode tag'|t('studio'),
-            id: 'tagOnImport',
-            name: 'tagOnImport',
-            options: tagOptions,
-            values: settings.tagOnImport is defined ? settings.tagOnImport,
-            required: false,
-        }) }}
-
-		<hr>
-
-		{{ forms.multiSelectField({
-            label: 'Default episode genre'|t('studio'),
-            id: 'genreOnImport',
-            name: 'genreOnImport',
-            options: genreOptions,
-            values: settings.genreOnImport is defined ?  settings.genreOnImport,
-            required: false,
-        }) }}
-
-		{{ forms.selectField({
-            label: 'When to use default episode genre'|t('studio'),
-            id: 'genreImportOption',
-            name: 'genreImportOption',
-            options: genreImportOptions,
-            value: settings.genreImportOption is defined ? settings.genreImportOption,
-            required: false,
-            errors: settings.getErrors('genreImportOption')      
-        }) }}
-
-		{{ forms.lightswitchField({
-            label: 'Ignore genres in meta if not available in list'|t('studio'),
-            id: 'genreImportCheck',
-            name: 'genreImportCheck',
-            required: false,
-            errors: settings.getErrors('genreImportCheck'),
-            value: 1,
-            on: settings.genreImportCheck is defined ? settings.genreImportCheck
-        }) }}
-
-		<hr>
-
 		{{ forms.elementSelectField({
             label: 'Default episode image'|t('studio'),
             id: 'imageOnImport',
@@ -113,12 +62,43 @@
             on: settings.forcePubDate is defined ? settings.forcePubDate
         }) }}
 
+        <hr>
+
+        {{ forms.multiSelectField({
+            label: 'Default episode genre'|t('studio'),
+            id: 'genreOnImport',
+            name: 'genreOnImport',
+            options: genreOptions,
+            values: settings.genreOnImport is defined ?  settings.genreOnImport,
+            required: false,
+        }) }}
+
+		{{ forms.selectField({
+            label: 'When to use default episode genre'|t('studio'),
+            id: 'genreImportOption',
+            name: 'genreImportOption',
+            options: genreImportOptions,
+            value: settings.genreImportOption is defined ? settings.genreImportOption,
+            required: false,
+            errors: settings.getErrors('genreImportOption')      
+        }) }}
+
+		{{ forms.lightswitchField({
+            label: 'Ignore genres in meta if not available in list'|t('studio'),
+            id: 'genreImportCheck',
+            name: 'genreImportCheck',
+            required: false,
+            errors: settings.getErrors('genreImportCheck'),
+            value: 1,
+            on: settings.genreImportCheck is defined ? settings.genreImportCheck
+        }) }}
+
 		<input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
 
 	</form>
 {% endblock %}
 {% js %}
-$('#categoryOnImport, #tagOnImport, #genreOnImport').selectize({
+$('#genreOnImport').selectize({
         plugins: ['remove_button'],
         dropdownParent: 'body'
     });

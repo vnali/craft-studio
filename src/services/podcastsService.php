@@ -208,7 +208,10 @@ class podcastsService extends Component
             $settings = json_decode($settings, true);
             $episodeImportSettings = new PodcastEpisodeSettings();
             foreach ($settings as $key => $setting) {
-                $episodeImportSettings->$key = $setting;
+                // Check if we still have this record property also on model
+                if (property_exists($episodeImportSettings, $key)) {
+                    $episodeImportSettings->$key = $setting;
+                }
             }
         }
         return $episodeImportSettings;

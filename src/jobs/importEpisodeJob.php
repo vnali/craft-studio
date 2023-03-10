@@ -7,6 +7,7 @@
 namespace vnali\studio\jobs;
 
 use Craft;
+use craft\fields\PlainText;
 use craft\helpers\Assets;
 use craft\queue\BaseJob;
 
@@ -38,7 +39,6 @@ class importEpisodeJob extends BaseJob
         $sitesSettings = $podcastFormat->getSiteSettings();
         $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
         $mapping = json_decode($podcastFormatEpisode->mapping, true);
-
         $step = 0;
 
         foreach ($this->items as $key => $item) {
@@ -120,6 +120,19 @@ class importEpisodeJob extends BaseJob
                             if ($contentEncodedField) {
                                 $contentEncodedFieldHandle = $contentEncodedField->handle;
                                 $itemElement->{$contentEncodedFieldHandle} = $contentEncoded;
+                            }
+                            break;
+                        case 'keywords':
+                            $keywords = $domElement->textContent;
+                            // Episode keyword
+                            list($keywordField, $keywordFieldType, $keywordFieldHandle, $keywordFieldGroup) = GeneralHelper::getElementKeywordsField('episode', $mapping);
+                            if ($keywordFieldHandle) {
+                                if ($keywordFieldType == PlainText::class) {
+                                    $itemElement->{$keywordFieldHandle} = $keywords;
+                                } else {
+                                    list($keywordIds) = GeneralHelper::saveKeywords($keywords, $keywordFieldType, $keywordFieldGroup->id);
+                                    $itemElement->$keywordFieldHandle = $keywordIds;
+                                }
                             }
                             break;
                         case 'image':

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright © vnali
  */
@@ -9,12 +10,16 @@ use Craft;
 
 use craft\base\LocalFsInterface;
 use craft\elements\Asset;
+use craft\elements\Category;
+use craft\elements\Entry;
+use craft\elements\Tag;
 use craft\events\ListVolumesEvent;
 use craft\fields\Categories;
 use craft\fields\Entries;
 use craft\fields\Tags;
 use craft\fs\Local;
 use craft\helpers\Assets;
+use craft\helpers\Db;
 use verbb\supertable\SuperTable;
 
 use vnali\studio\Studio;
@@ -503,6 +508,48 @@ class GeneralHelper
         return array($genreFieldType, $genreFieldHandle, $genreFieldGroup);
     }
 
+    public static function getElementKeywordsField($item, $mapping)
+    {
+        $keywordField = null;
+        $keywordFieldUid = null;
+        $keywordFieldHandle = null;
+        $keywordFieldGroup = null;
+        $keywordFieldType = null;
+        if (isset($mapping[$item . 'Keywords']['type'])) {
+            $keywordFieldType = $mapping[$item . 'Keywords']['type'];
+        }
+        if (isset($mapping[$item . 'Keywords']['field']) && $mapping[$item . 'Keywords']['field']) {
+            $keywordFieldUid = $mapping[$item . 'Keywords']['field'];
+            /** @var Tags|Categories|null $keywordField */
+            $keywordField = Craft::$app->fields->getFieldByUid($keywordFieldUid);
+            if ($keywordField) {
+                $keywordFieldHandle = $keywordField->handle;
+                if ($keywordFieldType == Tags::class) {
+                    $source = $keywordField->source;
+                    $sources = explode(':', $source);
+                    $keywordFieldGroup = Craft::$app->tags->getTagGroupByUid($sources[1]);
+                } elseif ($keywordFieldType == Categories::class) {
+                    $source = $keywordField->source;
+                    $sources = explode(':', $source);
+                    $keywordFieldGroup = Craft::$app->categories->getGroupByUid($sources[1]);
+                } elseif ($keywordFieldType == Entries::class) {
+                    if ($keywordField->sources == '*') {
+                        // select one Source
+                        $sections = Craft::$app->sections->getEditableSections();
+                        $keywordFieldGroup = $sections[0];
+                    } elseif (is_array($keywordField->sources)) {
+                        $source = $keywordField->sources[0];
+                        $sources = explode(':', $source);
+                        $keywordFieldGroup = Craft::$app->sections->getSectionByUid($sources[1]);
+                    } else {
+                        throw new ServerErrorHttpException('sources for entries not accepted');
+                    }
+                }
+            }
+        }
+        return array($keywordField, $keywordFieldType, $keywordFieldHandle, $keywordFieldGroup);
+    }
+
     public static function getElementImageField($item, $mapping)
     {
         $imageField = null;
@@ -516,25 +563,6 @@ class GeneralHelper
             $imageField = Craft::$app->fields->getFieldByUid($imageFieldUid);
         }
         return array($imageField, $imageFieldContainer);
-    }
-
-    public static function getElementTagField($item, $mapping)
-    {
-        $tagField = null;
-        $tagFieldUid = null;
-        $tagGroup = null;
-        if (isset($mapping[$item . 'Tag']['field']) && $mapping[$item . 'Tag']['field']) {
-            $tagFieldUid = $mapping[$item . 'Tag']['field'];
-            /** @var Tags|null $tagField */
-            $tagField = Craft::$app->fields->getFieldByUid($tagFieldUid);
-            if ($tagField) {
-                $source = $tagField->source;
-                $sources = explode(':', $source);
-                $tagGroup = Craft::$app->tags->getTagGroupByUid($sources[1]);
-            }
-        }
-
-        return array($tagGroup, $tagField);
     }
 
     public static function getElementCategoryField($item, $mapping)
@@ -746,5 +774,125 @@ class GeneralHelper
             }
         }
         $event->volumes = $volumes;
+    }
+
+    public static function saveKeywords($keywordList, $fieldType, $fieldGroupId, $itemImportOptions = '', $itemCheck = false, $defaultKeywordsList = [])
+    {
+        $defaultKeywords = [];
+        $keywordIds = [];
+        $keywords = [];
+
+        $keywordList = explode(', ', $keywordList);
+
+        if (is_array($keywordList)) {
+            foreach ($keywordList as $keyword) {
+                if ($fieldType == Tags::class) {
+                    $tagQuery = Tag::find();
+                    $tag = $tagQuery
+                        ->groupId($fieldGroupId)
+                        ->title(Db::escapeParam($keyword))
+                        ->unique()
+                        ->one();
+
+                    if (!$itemCheck && !$tag) {
+                        $tag = new Tag();
+                        $tag->groupId = $fieldGroupId;
+                        $tag->title = $keyword;
+                        Craft::$app->getElements()->saveElement($tag);
+                    }
+                    if ($tag) {
+                        $keywordIds[] = $tag->id;
+                        $keywords[] = $tag->title;
+                    }
+                } elseif ($fieldType == Categories::class) {
+                    $category = \craft\elements\Category::find()
+                        ->groupId($fieldGroupId)
+                        ->title(Db::escapeParam($keyword))
+                        ->unique()
+                        ->one();
+
+                    if (!$itemCheck && !$category) {
+                        $category = new Category();
+                        $category->groupId = $fieldGroupId;
+                        $category->title = $keyword;
+                        Craft::$app->getElements()->saveElement($category);
+                    }
+                    if ($category) {
+                        $keywordIds[] = $category->id;
+                        $keywords[] = $category->title;
+                    }
+                } elseif ($fieldType == Entries::class) {
+                    $entry = \craft\elements\Entry::find()
+                        ->sectionId($fieldGroupId)
+                        ->title(Db::escapeParam($keyword))
+                        ->unique()
+                        ->one();
+
+                    if (!$itemCheck && !$entry) {
+                        $entry = new Entry();
+                        $entry->sectionId = $fieldGroupId;
+                        $entryTypes = Craft::$app->sections->getEntryTypesBySectionId($fieldGroupId);
+                        $entry->typeId = $entryTypes[0]->id;
+                        $entry->title = $keyword;
+                        Craft::$app->getElements()->saveElement($entry);
+                    }
+                    if ($entry) {
+                        $keywordIds[] = $entry->id;
+                        $keywords[] = $entry->title;
+                    }
+                } else {
+                }
+            }
+        }
+
+        if ((!$keywordIds && $itemImportOptions == 'default-if-not-meta') || $itemImportOptions == 'only-default' || $itemImportOptions == 'meta-and-default') {
+            $defaultKeywords = $defaultKeywordsList;
+        }
+
+        if (is_array($defaultKeywords)) {
+            foreach ($defaultKeywords as $defaultKeyword) {
+                if ($fieldType == Tags::class) {
+                    $tag = Tag::find()
+                        ->groupId($fieldGroupId)
+                        ->id($defaultKeyword)
+                        ->unique()
+                        ->one();
+
+                    if ($tag) {
+                        if (!in_array($tag->id, $keywordIds)) {
+                            $keywordIds[] = $tag->id;
+                            $keywords[] = $tag->title;
+                        }
+                    }
+                } elseif ($fieldType == Categories::class) {
+                    $category = Category::find()
+                        ->groupId($fieldGroupId)
+                        ->id($defaultKeyword)
+                        ->unique()
+                        ->one();
+
+                    if ($category) {
+                        if (!in_array($category->id, $keywordIds)) {
+                            $keywordIds[] = $category->id;
+                            $keywords[] = $category->title;
+                        }
+                    }
+                } elseif ($fieldType == Entries::class) {
+                    $entry = Entry::find()
+                        ->sectionId($fieldGroupId)
+                        ->id($defaultKeyword)
+                        ->unique()
+                        ->one();
+                    if ($entry) {
+                        if (!in_array($entry->id, $keywordIds)) {
+                            $keywordIds[] = $entry->id;
+                            $keywords[] = $entry->title;
+                        }
+                    }
+                }
+            }
+        }
+
+        return array($keywordIds, $keywords);
     }
 }

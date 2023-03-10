@@ -93,7 +93,7 @@ class PodcastFormatEpisode extends Model
     {
         return [
             'mainAsset' => [
-                'label' => 'Episode content field',
+                'label' => 'Episode asset field',
                 'handle' => 'mainAsset',
                 'convertTo' => [
                     '' => 'select one',
@@ -148,22 +148,15 @@ class PodcastFormatEpisode extends Model
                     'craft\fields\Entries' => 'entry',
                 ],
             ],
-            'episodeTag' => [
-                'label' => 'Episode tag',
-                'handle' => 'episodeTag',
+            'episodeKeywords' => [
+                'label' => 'Episode keyword field',
+                'handle' => 'episodeKeywords',
                 'convertTo' => [
                     '' => 'select one',
                     'craft\fields\Tags' => 'tag',
-                    'craft\fields\Entries' => 'entry',
-                ],
-            ],
-            'episodeCategory' => [
-                'label' => 'Episode category',
-                'handle' => 'episodeCategory',
-                'convertTo' => [
-                    '' => 'select one',
                     'craft\fields\Categories' => 'category',
                     'craft\fields\Entries' => 'entry',
+                    'craft\fields\PlainText' => 'plain text',
                 ],
             ],
         ];

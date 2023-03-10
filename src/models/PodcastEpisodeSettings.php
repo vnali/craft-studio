@@ -21,7 +21,6 @@ class PodcastEpisodeSettings extends Model
     public $imageOnImport = [];
     public int $podcastId;
     public $pubDateOnImport;
-    public $tagOnImport = [];
     public $volumesImport = [];
 
     public function rules(): array

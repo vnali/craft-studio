@@ -563,6 +563,23 @@ class PodcastsController extends Controller
                 $xmlItem->appendChild($xmlEpisodePubDate);
             }
 
+            // Episode keywords
+            list($keywordField) = GeneralHelper::getElementKeywordsField('episode', $episodeMapping);
+            if ($keywordField) {
+                if (get_class($keywordField) == 'craft\fields\PlainText') {
+                    $keywordFieldHandle = $keywordField->handle;
+                    $keywords = $episode->{$keywordFieldHandle};
+                } else {
+                    $keywordFieldHandle = $keywordField->handle;
+                    $keywords = $episode->$keywordFieldHandle->collect();
+                    $keywords = $keywords->pluck('title')->join(', ');
+                }
+                if (isset($keywords)) {
+                    $xmlEpisodeKeywords = $xml->createElement("itunes:keywords", htmlspecialchars($keywords, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlItem->appendChild($xmlEpisodeKeywords);
+                }
+            }
+
             // Episode GUID
             if ($episode->episodeGUID) {
                 $xmlEpisodeGUID = $xml->createElement("guid", $episode->episodeGUID);
@@ -633,28 +650,8 @@ class PodcastsController extends Controller
         }
 
         // Genres
-        list($tagGroup) = GeneralHelper::getElementTagField('episode', $mapping);
-        list($categoryGroup) = GeneralHelper::getElementCategoryField('episode', $mapping);
         list($genreFieldType, $genreFieldHandle, $genreFieldGroup) = GeneralHelper::getElementGenreField('episode', $mapping);
         list($imageField) = GeneralHelper::getElementImageField('episode', $mapping);
-
-        $variables['categoryOptions'][] = ['value' => '', 'label' => Craft::t('studio', 'select category')];
-        if ($categoryGroup) {
-            foreach (\craft\elements\Category::find()->groupId($categoryGroup->id)->all() as $categoryItem) {
-                $categoryOption['value'] = $categoryItem->id;
-                $categoryOption['label'] = $categoryItem->title;
-                $variables['categoryOptions'][] = $categoryOption;
-            }
-        }
-
-        $variables['tagOptions'][] = ['value' => '', 'label' => Craft::t('studio', 'select tag')];
-        if ($tagGroup) {
-            foreach (\craft\elements\Tag::find()->groupId($tagGroup->id)->all() as $tagItem) {
-                $tagOption['value'] = $tagItem->id;
-                $tagOption['label'] = $tagItem->title;
-                $variables['tagOptions'][] = $tagOption;
-            }
-        }
 
         $variables['genreOptions'][] = ['value' => '', 'label' => Craft::t('studio', 'select genre')];
         if (isset($genreFieldType)) {
@@ -805,8 +802,6 @@ class PodcastsController extends Controller
 
         $settings->setScenario('import');
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
-        $settings->tagOnImport = Craft::$app->getRequest()->getBodyParam('tagOnImport', $settings->tagOnImport);
-        $settings->categoryOnImport = Craft::$app->getRequest()->getBodyParam('categoryOnImport', $settings->categoryOnImport);
         $settings->genreOnImport = Craft::$app->getRequest()->getBodyParam('genreOnImport', $settings->genreOnImport);
         $settings->genreImportOption = Craft::$app->getRequest()->getBodyParam('genreImportOption', $settings->genreImportOption);
         $settings->genreImportCheck = Craft::$app->getRequest()->getBodyParam('genreImportCheck', $settings->genreImportCheck);
