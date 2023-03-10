@@ -19,12 +19,18 @@ class ImportEpisodeRSS extends Model
     */
     public ?int $limit = null;
 
+    /**
+     * @var bool Don't import main asset
+    */
+    public bool $ignoreMainAsset = false;
+
     public function rules(): array
     {
         $rules = parent::rules();
         $rules[] = [['importFromRSS'], 'required', 'on' => 'import'];
         $rules[] = [['importFromRSS'], 'url', 'on' => 'import'];
         $rules[] = [['limit'], 'integer', 'min' => 1, 'on' => 'import'];
+        $rules[] = [['ignoreMainAsset'], 'in', 'range' => [0, 1], 'on' => 'import'];
         return $rules;
     }
 }

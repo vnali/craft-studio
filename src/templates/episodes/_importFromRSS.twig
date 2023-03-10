@@ -35,6 +35,16 @@
             type: 'number'
         }) }}
 
+        
+		{{ forms.lightswitchField({
+            label: 'Don\'t import main asset'|t('studio'),
+            id: 'ignoreMainAsset',
+            name: 'ignoreMainAsset',
+            required: false,
+            errors: settings.getErrors('ignoreMainAsset'),
+            value: 1,
+        }) }}
+
 		<hr>
 
 		<input type="submit" class="btn submit" value="{{ 'Import'|t('studio') }}">

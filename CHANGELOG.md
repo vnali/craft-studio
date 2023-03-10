@@ -10,6 +10,7 @@
 - Added lastBuildDate for podcast RSS
 - Added support importing from content:encoded
 - Added support importing from itunes:keywords
+- Added ignoreMainAsset option on fetch from RSS form to prevent fetching large main asset via CURL
 - Now each podcast has two settings pages (general settings, episode settings)
 - Improved fetch from RSS via CURL 
 - Improved fetch from RSS progress notifications

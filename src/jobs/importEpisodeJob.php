@@ -21,13 +21,16 @@ use vnali\studio\Studio;
  */
 class importEpisodeJob extends BaseJob
 {
+
+    public bool $ignoreMainAsset;
+
     public array $items;
 
-    public int $total;
+    public ?int $limit;
 
     public int $podcastId;
 
-    public ?int $limit;
+    public int $total;
 
     /**
      * @inheritdoc
@@ -170,42 +173,44 @@ class importEpisodeJob extends BaseJob
                             }
                             break;
                         case 'enclosure':
-                            $url = $domElement->getAttribute('url');
-                            $path = parse_url($url, PHP_URL_PATH);
-                            $extension = pathinfo($path, PATHINFO_EXTENSION);
-                            $basename = basename($path);
-                            $fieldContainer = null;
-                            if (isset($mapping['mainAsset']['container'])) {
-                                $fieldContainer = $mapping['mainAsset']['container'];
-                            }
-                            if (isset($mapping['mainAsset']['field'])) {
-                                $fieldId = $mapping['mainAsset']['field'];
-                                if ($fieldId) {
-                                    $field = Craft::$app->fields->getFieldByUid($fieldId);
-                                    if ($field) {
-                                        if (get_class($field) == 'craft\fields\Assets') {
-                                            if ($url) {
-                                                // Set progress
-                                                $this->setProgress(
-                                                    $queue,
-                                                    $step / ($this->limit ?? $this->total),
-                                                    \Craft::t('app', 'Import {step, number} of {total, number} - Upload file', [
-                                                        'step' => $step,
-                                                        'total' => $this->limit ?? $this->total,
-                                                    ])
-                                                );
-                                                $tempFile = Assets::tempFilePath();
-                                                $fp = fopen($tempFile, 'w+');
-                                                $ch = curl_init(str_replace(" ", "%20", $url));
-                                                curl_setopt($ch, CURLOPT_TIMEOUT, 180);
-                                                curl_setopt($ch, CURLOPT_FILE, $fp);
-                                                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-                                                curl_exec($ch);
-                                                curl_close($ch);
-                                                fclose($fp);
-                                                if ($tempFile) {
-                                                    craft::info("Content fetched from RSS $url");
-                                                    $itemElement = GeneralHelper::uploadFile(null, $tempFile, $field, $fieldContainer, $itemElement, $basename, $extension);
+                            if (!$this->ignoreMainAsset) {
+                                $url = $domElement->getAttribute('url');
+                                $path = parse_url($url, PHP_URL_PATH);
+                                $extension = pathinfo($path, PATHINFO_EXTENSION);
+                                $basename = basename($path);
+                                $fieldContainer = null;
+                                if (isset($mapping['mainAsset']['container'])) {
+                                    $fieldContainer = $mapping['mainAsset']['container'];
+                                }
+                                if (isset($mapping['mainAsset']['field'])) {
+                                    $fieldId = $mapping['mainAsset']['field'];
+                                    if ($fieldId) {
+                                        $field = Craft::$app->fields->getFieldByUid($fieldId);
+                                        if ($field) {
+                                            if (get_class($field) == 'craft\fields\Assets') {
+                                                if ($url) {
+                                                    // Set progress
+                                                    $this->setProgress(
+                                                        $queue,
+                                                        $step / ($this->limit ?? $this->total),
+                                                        \Craft::t('app', 'Import {step, number} of {total, number} - Upload file', [
+                                                            'step' => $step,
+                                                            'total' => $this->limit ?? $this->total,
+                                                        ])
+                                                    );
+                                                    $tempFile = Assets::tempFilePath();
+                                                    $fp = fopen($tempFile, 'w+');
+                                                    $ch = curl_init(str_replace(" ", "%20", $url));
+                                                    curl_setopt($ch, CURLOPT_TIMEOUT, 180);
+                                                    curl_setopt($ch, CURLOPT_FILE, $fp);
+                                                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                                                    curl_exec($ch);
+                                                    curl_close($ch);
+                                                    fclose($fp);
+                                                    if ($tempFile) {
+                                                        craft::info("Content fetched from RSS $url");
+                                                        $itemElement = GeneralHelper::uploadFile(null, $tempFile, $field, $fieldContainer, $itemElement, $basename, $extension);
+                                                    }
                                                 }
                                             }
                                         }
