@@ -4,6 +4,7 @@
         container = $(this).closest('tr').find('.container select').val();
         if (this.value == '') {
             var selectize = $('tr[data-id="' + field + '"] .selectfield select').get(0).selectize;
+            selectize.clear();
             selectize.clearOptions();
         } else {
             selectField(field, this.value, container);
