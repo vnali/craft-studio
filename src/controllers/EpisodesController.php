@@ -191,7 +191,8 @@ class EpisodesController extends Controller
         $settings = new ImportEpisodeRSS();
         $settings->setScenario('import');
         $settings->importFromRSS = Craft::$app->getRequest()->getBodyParam('importFromRSS');
-        $settings->limit = Craft::$app->getRequest()->getBodyParam('limit');
+        $limit = Craft::$app->getRequest()->getBodyParam('limit');
+        $settings->limit = $limit ? $limit : null;
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'Couldn’t save podcast import settings.'));
 
@@ -246,13 +247,13 @@ class EpisodesController extends Controller
                     'items' => $items,
                     'total' => $total,
                     'podcastId' => $podcastId,
-                    'limit' => $settings->limit,
+                    'limit' => $settings->limit ?? $total,
                 ]
             )
         );
 
         Craft::$app->getSession()->setNotice(Craft::t('studio', 'Importing {limit} from {total} episodes', [
-            'limit' => $settings->limit,
+            'limit' => $settings->limit ?? $total,
             'total' => $total,
         ]));
 
