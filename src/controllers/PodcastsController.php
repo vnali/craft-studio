@@ -20,7 +20,7 @@ use craft\helpers\ElementHelper;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\UrlManager;
-
+use craft\web\View;
 use DOMDocument;
 
 use vnali\studio\elements\db\EpisodeQuery;
@@ -246,7 +246,8 @@ class PodcastsController extends Controller
 
         // Create the document.
         $xml = new DOMDocument("1.0", "UTF-8");
-
+        $xml->preserveWhiteSpace = false;
+        $xml->formatOutput = true;
         // Create "RSS" element
         $rss = $xml->createElement("rss");
         /** @var \DomElement $rssNode */
@@ -521,9 +522,11 @@ class PodcastsController extends Controller
             $descriptionField = GeneralHelper::getElementDescriptionField('episode', $episodeMapping);
             if ($descriptionField) {
                 $descriptionFieldHandle = $descriptionField->handle;
-                $xmlEpisodeSummary = $xml->createElement("itunes:summary", htmlspecialchars($episode->{$descriptionFieldHandle}, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlEpisodeSummary = $xml->createElement("itunes:summary");
+                $xmlEpisodeSummary->appendChild($xml->createCDATASection($episode->{$descriptionFieldHandle}));
                 $xmlItem->appendChild($xmlEpisodeSummary);
-                $xmlEpisodeDescription = $xml->createElement("description", htmlspecialchars($episode->{$descriptionFieldHandle}, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlEpisodeDescription = $xml->createElement("description");
+                $xmlEpisodeDescription->appendChild($xml->createCDATASection($episode->{$descriptionFieldHandle}));
                 $xmlItem->appendChild($xmlEpisodeDescription);
             }
 
@@ -531,7 +534,8 @@ class PodcastsController extends Controller
             $contentEncodedField = GeneralHelper::getElementContentEncodedField('episode', $episodeMapping);
             if ($contentEncodedField) {
                 $contentEncodedFieldHandle = $contentEncodedField->handle;
-                $xmlEpisodeContentEncoded = $xml->createElement("content:encoded", htmlspecialchars($episode->{$contentEncodedFieldHandle}, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlEpisodeContentEncoded = $xml->createElement("content:encoded");
+                $xmlEpisodeContentEncoded->appendChild($xml->createCDATASection($episode->{$contentEncodedFieldHandle}));
                 $xmlItem->appendChild($xmlEpisodeContentEncoded);
             }
 
@@ -589,8 +593,13 @@ class PodcastsController extends Controller
             $xmlChannel->appendChild($xmlItem);
         }
 
-        \Yii::$app->response->format = \yii\web\Response::FORMAT_XML;
-        echo $xml->saveXML();
+        $variables['xml'] = $xml->saveXML();
+        
+        Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_CP);
+        return $this->renderTemplate(
+            'studio/podcasts/_rss',
+            $variables
+        );
     }
 
     /**
