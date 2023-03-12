@@ -199,9 +199,9 @@ class PodcastsController extends Controller
      * Generate Podcast's RSS
      *
      * @param integer $podcastId
-     * @return void
+     * @return Response
      */
-    public function actionRss(int $podcastId)
+    public function actionRss(int $podcastId): Response
     {
         $currentSite = Craft::$app->sites->getCurrentSite();
         $siteId = $currentSite->id;

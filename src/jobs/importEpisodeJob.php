@@ -21,7 +21,6 @@ use vnali\studio\Studio;
  */
 class importEpisodeJob extends BaseJob
 {
-
     public bool $ignoreMainAsset;
 
     public array $items;
