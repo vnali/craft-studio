@@ -518,13 +518,19 @@ class PodcastsController extends Controller
                 $xmlItem->appendChild($xmlEpisodeExplicit);
             }
 
-            // Episode itunes:summary Description
+            // Episode itunes:summary
+            $summaryField = GeneralHelper::getElementSummaryField('episode', $episodeMapping);
+            if ($summaryField) {
+                $summaryFieldHandle = $summaryField->handle;
+                $xmlEpisodeSummary = $xml->createElement("itunes:summary");
+                $xmlEpisodeSummary->appendChild($xml->createCDATASection($episode->{$summaryFieldHandle}));
+                $xmlItem->appendChild($xmlEpisodeSummary);
+            }
+
+            // Episode Description
             $descriptionField = GeneralHelper::getElementDescriptionField('episode', $episodeMapping);
             if ($descriptionField) {
                 $descriptionFieldHandle = $descriptionField->handle;
-                $xmlEpisodeSummary = $xml->createElement("itunes:summary");
-                $xmlEpisodeSummary->appendChild($xml->createCDATASection($episode->{$descriptionFieldHandle}));
-                $xmlItem->appendChild($xmlEpisodeSummary);
                 $xmlEpisodeDescription = $xml->createElement("description");
                 $xmlEpisodeDescription->appendChild($xml->createCDATASection($episode->{$descriptionFieldHandle}));
                 $xmlItem->appendChild($xmlEpisodeDescription);
@@ -594,7 +600,7 @@ class PodcastsController extends Controller
         }
 
         $variables['xml'] = $xml->saveXML();
-        
+
         Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_CP);
         return $this->renderTemplate(
             'studio/podcasts/_rss',

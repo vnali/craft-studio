@@ -620,6 +620,17 @@ class GeneralHelper
         return array($postDateField);
     }
 
+    public static function getElementSummaryField($item, $mapping)
+    {
+        $summaryField = null;
+        $summaryFieldUid = null;
+        if (isset($mapping[$item . 'Summary']['field']) && $mapping[$item . 'Summary']['field']) {
+            $summaryFieldUid = $mapping[$item . 'Summary']['field'];
+            $summaryField = Craft::$app->fields->getFieldByUid($summaryFieldUid);
+        }
+        return $summaryField;
+    }
+
     public static function getElementDescriptionField($item, $mapping)
     {
         $descriptionField = null;

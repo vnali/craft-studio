@@ -68,7 +68,6 @@ class importEpisodeJob extends BaseJob
 
                 // Set podcast if podcast field is specified
                 $itemElement->podcastId = $this->podcastId;
-                $descriptionImported = false;
                 foreach ($crawler->filter('html body item')->children() as $domElement) {
                     /** @var \DOMElement $domElement */
                     $nodeName = $domElement->nodeName;
@@ -104,16 +103,22 @@ class importEpisodeJob extends BaseJob
                             $duration = $domElement->textContent;
                             $itemElement->duration = $duration;
                             break;
-                        case 'description':
                         case 'summary':
-                            if (!$descriptionImported) {
-                                $descriptionImported = true;
-                                $summary = $domElement->textContent;
-                                $descriptionField = GeneralHelper::getElementDescriptionField('episode', $mapping);
-                                if ($descriptionField) {
-                                    $descriptionFieldHandle = $descriptionField->handle;
-                                    $itemElement->{$descriptionFieldHandle} = $summary;
-                                }
+                            $crawler = new Crawler($domElement);
+                            $summary = $crawler->filter('summary')->html();
+                            $summaryField = GeneralHelper::getElementSummaryField('episode', $mapping);
+                            if ($summaryField) {
+                                $summaryFieldHandle = $summaryField->handle;
+                                $itemElement->{$summaryFieldHandle} = $summary;
+                            }
+                            break;
+                        case 'description':
+                            $crawler = new Crawler($domElement);
+                            $description = $crawler->html();
+                            $descriptionField = GeneralHelper::getElementDescriptionField('episode', $mapping);
+                            if ($descriptionField) {
+                                $descriptionFieldHandle = $descriptionField->handle;
+                                $itemElement->{$descriptionFieldHandle} = $description;
                             }
                             break;
                         case 'encoded':
