@@ -153,7 +153,7 @@ class podcastFormatsService extends Component
     public function getPodcastFormatByHandle(string $podcastFormatHandle): ?PodcastFormat
     {
         $podcastFormat = null;
-        $podcastFormatRecord = PodcastFormatRecord::find()->where(['handle' => $podcastFormatHandle])->one();
+        $podcastFormatRecord = PodcastFormatRecord::find()->where(['handle' => $podcastFormatHandle, 'dateDeleted' => null])->one();
         if ($podcastFormatRecord) {
             $podcastFormat = new PodcastFormat();
             $podcastFormat->setAttributes($podcastFormatRecord->getAttributes(), false);
