@@ -33,6 +33,7 @@ use craft\models\FieldLayout;
 use craft\services\Assets as AssetsServices;
 use craft\services\Elements;
 use craft\services\Fields;
+use craft\services\Gc;
 use craft\services\Gql;
 use craft\services\ProjectConfig;
 use craft\services\Sites;
@@ -125,6 +126,7 @@ class Studio extends Plugin
         $this->_registerPermissions();
         $this->_registerVariables();
         $this->_registerPreviewHandler();
+        $this->_registerGarbageCollection();
 
         $gqlService = Craft::$app->getGql();
         $gqlService->flushCaches();
@@ -1066,5 +1068,19 @@ class Studio extends Plugin
                 }
             }
         );
+    }
+
+    /**
+     * Register the items that need to be garbage collected
+     *
+     * @return void
+     */
+    private function _registerGarbageCollection(): void
+    {
+        Event::on(Gc::class, Gc::EVENT_RUN, function(Event $event) {
+            $gc = Craft::$app->getGc();
+            $gc->deletePartialElements(PodcastElement::class, '{{%studio_podcast}}', 'id');
+            $gc->deletePartialElements(EpisodeElement::class, '{{%studio_episode}}', 'id');
+        });
     }
 }

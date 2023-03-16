@@ -11,6 +11,7 @@
 - Added support importing from content:encoded
 - Added support importing from itunes:keywords
 - Added ignoreMainAsset option on fetch from RSS form to prevent fetching large main asset via CURL
+- Added podcast and episode elements to garbage collection
 - Now each podcast has two settings pages (general settings, episode settings)
 - Episode summary and description can be different now
 - podcasts and episodes records are now removing when their related elements are removed
