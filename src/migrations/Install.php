@@ -80,7 +80,7 @@ class Install extends Migration
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid(),
             ]);
-
+            $this->addForeignKey(null, '{{%studio_podcast}}', 'id', '{{%elements}}', 'id', 'CASCADE');
             $this->addForeignKey(null, '{{%studio_podcast}}', 'uploaderId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
             $this->addForeignKey(null, '{{%studio_podcast}}', 'podcastFormatId', '{{%studio_podcastFormat}}', 'id', 'CASCADE', 'CASCADE');
         }
@@ -97,7 +97,7 @@ class Install extends Migration
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid(),
             ]);
-
+            $this->addForeignKey(null, '{{%studio_episode}}', 'id', '{{%elements}}', 'id', 'CASCADE');
             $this->addForeignKey(null, '{{%studio_episode}}', 'podcastId', '{{%studio_podcast}}', 'id', 'CASCADE', 'CASCADE');
             $this->addForeignKey(null, '{{%studio_episode}}', 'uploaderId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
         }
