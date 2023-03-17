@@ -64,20 +64,18 @@ class EpisodesController extends Controller
     /**
      * Creates a new unpublished draft for episodes and redirects to its edit page.
      *
-     * @param string|null $podcast
+     * @param string|null $podcastHandle
      * @return Response
      */
-    public function actionCreate(?string $podcast = null): Response
+    public function actionCreate(?string $podcastHandle = null): Response
     {
-        if ($podcast) {
-            $podcastHandle = $podcast;
-        } else {
-            $podcastHandle = $this->request->getRequiredBodyParam('podcast');
+        if (!$podcastHandle) {
+            $podcastHandle = $this->request->getRequiredBodyParam('podcastHandle');
         }
 
-        $podcast = Studio::$plugin->podcasts->getPodcastBySlug($podcastHandle);
+        $podcast = Studio::$plugin->podcasts->getPodcastByHandle($podcastHandle);
         if (!$podcast) {
-            throw new BadRequestHttpException("Invalid podcast format handle: $podcastHandle");
+            throw new BadRequestHttpException("Invalid podcast handle: $podcastHandle");
         }
 
         $sitesService = Craft::$app->getSites();
@@ -101,9 +99,10 @@ class EpisodesController extends Controller
         if (!in_array($site->id, $editableSiteIds)) {
             // If there’s more than one possibility and podcasts doesn’t propagate to all sites, let the user choose
             if (count($editableSiteIds) > 1) {
+                $podcastHandle = $podcast->id . '-' . $podcast->slug;
                 return $this->renderTemplate('_special/sitepicker.twig', [
                     'siteIds' => $editableSiteIds,
-                    'baseUrl' => "episodes/$podcast->slug/new",
+                    'baseUrl' => "episodes/$podcastHandle/new",
                 ]);
             }
 

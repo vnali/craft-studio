@@ -67,6 +67,20 @@ class podcastsService extends Component
     }
 
     /**
+     * Get podcast by handle. podcast handle is in this format {podcastId}-{podcastSlug}.
+     *
+     * @param string $podcastHandle
+     * @return PodcastElement|null
+     */
+    public function getPodcastByHandle(string $podcastHandle): ?PodcastElement
+    {
+        $podcastHandleParts = explode('-', $podcastHandle);
+        /** @var PodcastElement|null $podcast; */
+        $podcast = PodcastElement::find()->status(null)->where(['studio_podcast.id' => $podcastHandleParts[0]])->one();
+        return $podcast;
+    }
+
+    /**
      * Delete podcast.
      *
      * @param PodcastElement $podcast

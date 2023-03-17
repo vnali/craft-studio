@@ -207,11 +207,10 @@ Studio.EpisodeIndex = Craft.BaseElementIndex.extend({
         }
 
         this.$newEpisodeBtn.addClass('loading');
-
         Craft.sendActionRequest('POST', 'studio/episodes/create', {
             data: {
                 siteId: this.siteId,
-                podcast: podcast.handle,
+                podcastHandle: podcast.handle,
             },
         })
             .then(({data}) => {

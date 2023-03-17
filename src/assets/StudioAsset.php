@@ -131,7 +131,7 @@ JS;
                 ($currentUser->can("studio-viewPodcasts-" . $podcast->uid) && $currentUser->can("studio-createDraftEpisodes-" . $podcast->uid))
             ) {
                 $availablePodcasts[] = [
-                    'handle' => $podcast->slug,
+                    'handle' => $podcast->id . '-' . $podcast->slug,
                     'id' => (int)$podcast->id,
                     'name' => $names,
                     'sites' => $siteIds,

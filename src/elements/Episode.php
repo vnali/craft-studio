@@ -781,7 +781,7 @@ class Episode extends Element
                 'key' => 'podcast:' . $podcast->uid,
                 'label' => $podcast->title,
                 'data' => [
-                    'handle' => $podcast->slug,
+                    'handle' => $podcast->id . '-' . $podcast->slug,
                 ],
                 'sites' => [$podcast->siteId],
                 'criteria' => [
