@@ -24,6 +24,7 @@
 - Fixed permission issues where non-admin users were not able to access some plugin actions
 - Fixed a bug where not passing the limit value on the fetch from RSS form resulted in an error.
 - Fixed a bug where a deleted podcast format with same handle was used in podcast creation
+- Removed getPodcastBySlug()
 
 ## 0.1.0 - 2023-03-02
 

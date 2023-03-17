@@ -54,19 +54,6 @@ class podcastsService extends Component
     }
 
     /**
-     * Get podcast by slug.
-     *
-     * @param string $podcastSlug
-     * @return PodcastElement|null
-     */
-    public function getPodcastBySlug(string $podcastSlug): ?PodcastElement
-    {
-        /** @var PodcastElement|null $podcast; */
-        $podcast = PodcastElement::find()->status(null)->where(['slug' => $podcastSlug])->one();
-        return $podcast;
-    }
-
-    /**
      * Get podcast by handle. podcast handle is in this format {podcastId}-{podcastSlug}.
      *
      * @param string $podcastHandle
