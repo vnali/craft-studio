@@ -285,9 +285,9 @@ class Podcast extends Element
                 $elementId = $this->id;
                 if (!$this->getIsDraft()) {
                     if ($this->enabled) {
-                        $RSSLabel = Craft::t('site', 'RSS');
+                        $RSSLabel = Craft::t('studio', 'View');
                     } else {
-                        $RSSLabel = Craft::t('site', 'Preview');
+                        $RSSLabel = Craft::t('studio', 'Preview');
                     }
                 }
                 return "<a href='/podcasts/rss?podcastId=" . $elementId . "&siteId=" . $this->siteId . "'>" . $RSSLabel . "</a>";
