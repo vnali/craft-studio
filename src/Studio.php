@@ -829,7 +829,7 @@ class Studio extends Plugin
                 $event->rules['studio/import/episode-fields'] = 'studio/import/episode-fields';
                 $event->rules['studio/import/podcast-fields'] = 'studio/import/podcast-fields';
                 $event->rules['studio/podcasts/edit/<elementId:\d+>'] = 'elements/edit';
-                $event->rules['studio/podcasts/new'] = 'studio/podcasts/create';
+                $event->rules['studio/podcasts/<podcastFormat>/new'] = 'studio/podcasts/create';
                 $event->rules['studio/podcasts/podcast-episode-settings'] = 'studio/podcasts/podcast-episode-settings';
                 $event->rules['studio/podcasts/podcast-general-settings'] = 'studio/podcasts/podcast-general-settings';
                 $event->rules['studio/settings/general'] = 'studio/settings/general';
@@ -875,12 +875,12 @@ class Studio extends Plugin
 
         // Show Podcast nav item
         $hasAccess = false;
-        if (Craft::$app->getUser()->checkPermission('studio-managePodcasts') || Craft::$app->getUser()->checkPermission('studio-createDraftPodcasts')) {
+        if (Craft::$app->getUser()->checkPermission('studio-managePodcasts') || Craft::$app->getUser()->checkPermission('studio-createDraftNewPodcasts')) {
             $hasAccess = true;
         } else {
             $podcasts = PodcastElement::find()->status(null)->all();
             foreach ($podcasts as $key => $podcast) {
-                if (Craft::$app->getUser()->checkPermission('studio-viewPodcasts-' . $podcast->uid)) {
+                if (Craft::$app->getUser()->checkPermission('studio-viewPodcast-' . $podcast->uid)) {
                     $hasAccess = true;
                     break;
                 }
@@ -900,7 +900,7 @@ class Studio extends Plugin
         } else {
             $podcasts = PodcastElement::find()->status(null)->all();
             foreach ($podcasts as $podcast) {
-                if (Craft::$app->getUser()->checkPermission('studio-viewPodcasts-' . $podcast->uid)) {
+                if (Craft::$app->getUser()->checkPermission('studio-viewPodcastEpisodes-' . $podcast->uid)) {
                     $hasAccess = true;
                     break;
                 }
@@ -955,98 +955,152 @@ class Studio extends Plugin
             function(RegisterUserPermissionsEvent $event) {
                 $podcastPermissions = [];
                 $podcasts = PodcastElement::find()->status(null)->all();
-                $viewPodcastPermissions = [];
                 $permissions = [
                     'studio-managePodcasts' => [
                         'label' => Craft::t('studio', 'Manage Podcasts'),
-                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting podcasts'),
+                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting and other actions for all podcasts'),
                     ],
                     'studio-manageEpisodes' => [
                         'label' => Craft::t('studio', 'Manage Episodes'),
-                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting episodes'),
+                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting and other actions for all episodes'),
                     ],
-                    'studio-createDraftPodcasts' => [
-                        'label' => Craft::t('studio', 'Create draft for podcasts'),
-                        'info' => Craft::t('studio', 'Includes viewing/creating draft podcasts'),
+                    'studio-createDraftNewPodcasts' => [
+                        'label' => Craft::t('studio', 'Create a draft for new podcasts'),
+                        'info' => Craft::t('studio', 'Includes creating/viewing/resaving/deleting those drafts'),
                     ],
-                ];
-                foreach ($podcasts as $podcast) {
-                    $podcastPermissions = [];
-                    $episodeCreatePermissions = [];
-                    $podcastCreatePermissions = [];
-                    $podcastCreatePermissions['studio-editPodcasts-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Edit {name} podcast.', [
-                            'name' => $podcast->title,
-                        ]),
-                    ];
-                    $podcastPermissions['studio-createDraftPodcasts-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Create draft for {name} podcast.', [
-                            'name' => $podcast->title,
-                        ]),
-                        'nested' => $podcastCreatePermissions,
-                    ];
-                    $podcastPermissions['studio-deletePodcasts-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Delete {name} podcast.', [
-                            'name' => $podcast->title,
-                        ]),
-                    ];
-                    $podcastPermissions['studio-editPodcastGeneralSettings-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Set general settings for {name}.', [
-                            'name' => $podcast->title,
-                        ]),
-                    ];
-                    $podcastPermissions['studio-editPodcastEpisodeSettings-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Set episode settings for {name}.', [
-                            'name' => $podcast->title,
-                        ]),
-                    ];
-                    $episodeCreatePermissions['studio-createEpisodes-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Create episodes for {name}.', [
-                            'name' => $podcast->title,
-                        ]),
-                    ];
-                    $podcastPermissions['studio-createDraftEpisodes-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Create draft episodes for {name}.', [
-                            'name' => $podcast->title,
-                        ]),
-                        'nested' => $episodeCreatePermissions,
-                    ];
-                    // Permission for importing episodes to this podcast from RSS
-                    $podcastPermissions['studio-importEpisodeByRSS-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Import episodes by URL'),
-                    ];
-                    // Permission for set settings to import episodes from Asset index utility
-                    $podcastPermissions['studio-importEpisodeByAssetIndex-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Import episodes by Asset index'),
-                    ];
-                    $podcastPermissions['studio-deleteEpisodes-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Delete episodes from {name}.', [
-                            'name' => $podcast->title,
-                        ]),
-                    ];
-                    $podcastPermissions['studio-viewPublishedRSS-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'View published RSS for {name}.', [
-                            'name' => $podcast->title,
-                        ]),
-                    ];
-                    $viewPodcastPermissions['studio-viewPodcasts-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'View {name} episodes.', [
-                            'name' => $podcast->title,
-                        ]),
-                        'nested' => $podcastPermissions,
-                    ];
-                }
-                $permissions += $viewPodcastPermissions;
-                $permissions += [
                     'studio-importCategory' => ['label' => Craft::t('studio', 'Import Category')],
-                ];
-                $permissions += [
-                    'studio-manageSettings' => ['label' => Craft::t('studio', 'Manage Settings')],
+                    'studio-manageSettings' => ['label' => Craft::t('studio', 'Manage plugin Settings')],
                 ];
                 $event->permissions[] = [
                     'heading' => Craft::t('studio', 'Studio'),
                     'permissions' => $permissions,
                 ];
+                foreach ($podcasts as $podcast) {
+                    $podcastPermissions = [];
+                    $nestedCreateDraftEpisodes = [];
+                    $nestedViewOtherUserDraftPermissions = [];
+                    $nestedViewPodcastPermissions = [];
+                    $nestedViewEpisodePodcastPermissions = [];
+                    $nestedCreateDraftPermissions = [];
+                    $nestedViewOtherUserDraftEpisodesPermissions = [];
+                    $nestedCreateDraftPermissions['studio-deleteDraftPodcast-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Delete own drafts for the podcast', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $nestedCreateDraftPermissions['studio-editPodcast-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Edit the podcast', [
+                            'name' => $podcast->title,
+                        ]),
+                        'info' => Craft::t('studio', 'Includes saving a podcast as published. For publishing other user drafts, user also need save other user drafts permission.'),
+                    ];
+                    $nestedViewPodcastPermissions['studio-createDraftPodcast-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Create drafts for the podcast', [
+                            'name' => $podcast->title,
+                        ]),
+                        'nested' => $nestedCreateDraftPermissions,
+                    ];
+                    $nestedViewOtherUserDraftPermissions['studio-saveOtherUserDraftPodcast-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Save other user drafts for the podcast', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $nestedViewOtherUserDraftPermissions['studio-deleteOtherUserDraftPodcast-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Delete other user drafts for the podcast', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $nestedViewPodcastPermissions['studio-viewOtherUserDraftPodcast-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'View other user drafts for the podcast', [
+                            'name' => $podcast->title,
+                        ]),
+                        'nested' => $nestedViewOtherUserDraftPermissions,
+                    ];
+                    $nestedViewPodcastPermissions['studio-deletePodcast-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Delete the podcast', [
+                            'name' => $podcast->title,
+                        ]),
+                        'info' => Craft::t('studio', 'Includes deleting the podcast and its drafts'),
+                    ];
+                    $nestedViewPodcastPermissions['studio-editPodcastGeneralSettings-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Set general settings for the podcast', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $nestedViewPodcastPermissions['studio-editPodcastEpisodeSettings-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Set episode settings for the podcast', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $podcastPermissions['studio-viewPodcast-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'View the podcast', [
+                            'name' => $podcast->title,
+                        ]),
+                        'nested' => $nestedViewPodcastPermissions,
+                    ];
+                    $nestedCreateDraftEpisodes['studio-deleteDraftEpisodes-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Delete own drafts for episodes', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $nestedCreateDraftEpisodes['studio-createEpisodes-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Create episodes', [
+                            'name' => $podcast->title,
+                        ]),
+                        'info' => Craft::t('studio', 'Includes saving an episode as published. For publishing other user draft episodes, user also need save other user drafts permission'),
+                    ];
+                    $nestedViewEpisodePodcastPermissions['studio-createDraftEpisodes-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Create draft episodes', [
+                            'name' => $podcast->title,
+                        ]),
+                        'nested' => $nestedCreateDraftEpisodes,
+                    ];
+                    $nestedViewOtherUserDraftEpisodesPermissions['studio-saveOtherUserDraftEpisodes-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Save other user drafts for episodes', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $nestedViewOtherUserDraftEpisodesPermissions['studio-deleteOtherUserDraftEpisodes-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Delete other user drafts for episodes', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $nestedViewEpisodePodcastPermissions['studio-viewOtherUserDraftEpisodes-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'View other user drafts for episodes', [
+                            'name' => $podcast->title,
+                        ]),
+                        'nested' => $nestedViewOtherUserDraftEpisodesPermissions,
+                    ];
+                    $nestedViewEpisodePodcastPermissions['studio-deleteEpisodes-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Delete episodes.', [
+                            'name' => $podcast->title,
+                        ]),
+                        'info' => Craft::t('studio', 'Includes all episodes and their drafts'),
+                    ];
+                    // Permission for importing episodes to this podcast from RSS
+                    $nestedViewEpisodePodcastPermissions['studio-importEpisodeByRSS-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Import episodes by URL'),
+                    ];
+                    // Permission for set settings to import episodes from Asset index utility
+                    $nestedViewEpisodePodcastPermissions['studio-importEpisodeByAssetIndex-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'Import episodes by Asset index'),
+                    ];
+                    $podcastPermissions['studio-viewPodcastEpisodes-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'View episodes'),
+                        'nested' => $nestedViewEpisodePodcastPermissions,
+                    ];
+                    $podcastPermissions['studio-viewPublishedRSS-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'View published RSS', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
+                    $event->permissions[] = [
+                        'heading' => Craft::t('studio', 'Studio - {name} podcast',[
+                            'name' => $podcast->title,
+                        ]),
+                        'permissions' => $podcastPermissions,
+                    ];
+                }
             }
         );
     }

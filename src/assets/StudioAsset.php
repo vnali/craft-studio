@@ -86,7 +86,7 @@ JS;
             // Maybe checking edit site before pushing site to siteIds
             $siteIds = ArrayHelper::getColumn($podcastFormatRecords, 'siteId');
             if (
-                $currentUser->can("studio-managePodcasts") || $currentUser->can("studio-createDraftPodcasts")
+                $currentUser->can("studio-managePodcasts") || $currentUser->can("studio-createDraftNewPodcasts")
             ) {
                 $availablePodcastFormats[] = [
                     'handle' => $podcastFormat->handle,
@@ -128,7 +128,7 @@ JS;
 
             if (
                 $currentUser->can("studio-manageEpisodes") ||
-                ($currentUser->can("studio-viewPodcasts-" . $podcast->uid) && $currentUser->can("studio-createDraftEpisodes-" . $podcast->uid))
+                ($currentUser->can("studio-viewPodcastEpisodes-" . $podcast->uid) && $currentUser->can("studio-createDraftEpisodes-" . $podcast->uid))
             ) {
                 $availablePodcasts[] = [
                     'handle' => $podcast->id . '-' . $podcast->slug,

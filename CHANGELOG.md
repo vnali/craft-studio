@@ -19,6 +19,8 @@
 - Improved fetch from RSS progress notifications
 - Improved RSS generation for podcasts
 - Make internal podcast handle unique which is now combination of {podcastId}-{podcastSlug} instead of {podcastSlug}
+- Each podcast has its heading in users permission page
+- Admin users can grant more specific permissions to users
 - Fixed route for episodes
 - Fixed a bug where changing lightswitch inputs on the sidebar of the episode edit page, creates unwanted drafts
 - Fixed permission issues where non-admin users were not able to access some plugin actions

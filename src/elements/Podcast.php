@@ -8,6 +8,7 @@ namespace vnali\studio\elements;
 
 use Craft;
 use craft\base\Element;
+use craft\behaviors\DraftBehavior;
 use craft\elements\actions\CopyReferenceTag;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Edit;
@@ -424,16 +425,21 @@ class Podcast extends Element
             return true;
         }
 
-        if ($user->can('studio-managePodcasts') || $user->can('studio-createDraftPodcasts')) {
+        if ($user->can('studio-managePodcasts') || $user->can('studio-createDraftNewPodcasts')) {
             return true;
         }
 
-        if (!$this->id || $this->getIsDraft() || $this->getIsRevision()) {
-            $uid = $this->getCanonical()->uid;
-        } else {
-            $uid = $this->uid;
+        $uid = $this->getCanonical()->uid;
+
+        if ($this->getIsDraft()) {
+            /** @var static|DraftBehavior $this */
+            if ($this->creatorId !== $user->id) {
+                return $user->can('studio-saveOtherUserDraftEpisodes-' . $uid);
+            }
         }
-        return ($user->can('studio-createDraftPodcasts-' . $uid));
+        
+        // If it is not draft, or it is a draft created by current user
+        return ($user->can('studio-createDraftEpisodes-' . $uid));
     }
 
     /**
@@ -445,16 +451,22 @@ class Podcast extends Element
             return true;
         }
 
-        if ($user->can('studio-managePodcasts') || $user->can('studio-createDraftPodcasts')) {
+        if ($user->can('studio-managePodcasts')) {
             return true;
         }
 
-        if (!$this->id || $this->getIsDraft() || $this->getIsRevision()) {
-            $uid = $this->getCanonical()->uid;
-        } else {
-            $uid = $this->uid;
+        $uid = $this->getCanonical()->uid;
+
+        if ($this->getIsDraft()) {
+            /** @var static|DraftBehavior $this */
+            if ($this->creatorId !== $user->id) {
+                return $user->can('studio-viewOtherUserDraftPodcast-' . $uid);
+            } elseif (!$this->getIsDerivative()) {
+                return $user->can('studio-createDraftNewPodcasts');
+            }
         }
-        return ($user->can('studio-viewPodcasts-' . $uid));
+        // If it is not draft, or it is a derivative draft created by current user
+        return $user->can('studio-viewPodcast-' . $uid);
     }
 
     /**
@@ -466,17 +478,23 @@ class Podcast extends Element
             return true;
         }
 
-        if ($user->can('studio-managePodcasts')) {
+        $uid = $this->getCanonical()->uid;
+
+        if ($user->can('studio-managePodcasts') || $user->can('studio-deletePodcast-' . $uid)) {
             return true;
         }
 
-        if (!$this->id || $this->getIsDraft() || $this->getIsRevision()) {
-            $uid = $this->getCanonical()->uid;
-        } else {
-            $uid = $this->uid;
+        if ($this->getIsDraft()) {
+            /** @var static|DraftBehavior $this */
+            if ($this->creatorId !== $user->id) {
+                return $user->can('studio-deleteOtherUserDraftPodcast-' . $uid);
+            } elseif (!$this->getIsDerivative()) {
+                return $user->can('studio-createDraftNewPodcasts');
+            } else {
+                return ($user->can('studio-deleteDraftPodcast-' . $uid));
+            }
         }
-
-        return ($user->can('studio-deletePodcasts-' . $uid));
+        return false;
     }
 
     /**
@@ -500,11 +518,24 @@ class Podcast extends Element
             return true;
         }
 
-        if (!$this->id || $this->getIsDraft() || $this->getIsRevision()) {
-            return ($user->can('studio-createDraftPodcasts-' . $this->getCanonical()->uid) || $user->can('studio-createDraftPodcasts'));
+        if (!$this->id) {
+            return $user->can('studio-createDraftNewPodcasts');
         }
 
-        return ($user->can('studio-editPodcasts-' . $this->getCanonical()->uid));
+        $uid = $this->getCanonical()->uid;
+
+        if ($this->getIsDraft()) {
+            /** @var static|DraftBehavior $this */
+            if ($this->creatorId !== $user->id) {
+                return $user->can('studio-saveOtherUserDraftPodcast-' . $uid);
+            } elseif (!$this->getIsDerivative()) {
+                return $user->can('studio-createDraftNewPodcasts');
+            } else {
+                return ($user->can('studio-createDraftPodcast-' . $uid));
+            }
+        }
+        // If it is not draft
+        return ($user->can('studio-editPodcast-' . $uid));
     }
 
     /**
@@ -702,14 +733,37 @@ class Podcast extends Element
     protected static function defineSources(string $context = null): array
     {
         $criteria = [];
-        if (!Craft::$app->user->checkPermission('studio-managePodcasts') && !Craft::$app->user->checkPermission('studio-createDraftPodcasts')) {
+        // If user has manage podcasts permission, we don't need criteria
+        if (!Craft::$app->user->checkPermission('studio-managePodcasts')) {
             $podcasts = Podcast::find()->status(null)->all();
             $podcastIds = [];
             foreach ($podcasts as $podcast) {
+                // If user can view podcast, show that podcast on element index
                 if (
-                    Craft::$app->user->checkPermission('studio-viewPodcasts-' . $podcast->uid)
+                    Craft::$app->user->checkPermission('studio-viewPodcast-' . $podcast->uid)
                 ) {
+                    // First step, show only podcast
                     $podcastIds[] = $podcast->id;
+                    // Now if the user can view other user's drafts, show all drafts for that podcast too
+                    if (Craft::$app->user->checkPermission('studio-viewOtherUserDraftPodcast-' . $podcast->uid)) {
+                        $drafts = Podcast::find()->status(null)->draftOf($podcast->id)->all();
+                        foreach ($drafts as $draft) {
+                            $podcastIds[] = $draft->id;
+                        }
+                    } else {
+                        // otherwise only show created drafts by this user on podcast index page
+                        $drafts = Podcast::find()->status(null)->draftOf($podcast->id)->draftCreator(Craft::$app->user->identity)->all();
+                        foreach ($drafts as $draft) {
+                            $podcastIds[] = $draft->id;
+                        }
+                    }
+                }
+            }
+            // If there is a draft for new podcast, show this draft to creator too
+            if (Craft::$app->user->checkPermission('studio-createDraftNewPodcasts')) {
+                $drafts = Podcast::find()->status(null)->draftOf(false)->draftCreator(Craft::$app->user->identity)->all();
+                foreach ($drafts as $draft) {
+                    $podcastIds[] = $draft->id;
                 }
             }
             $criteria = [

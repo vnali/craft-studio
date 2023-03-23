@@ -1,28 +1,39 @@
 {% set podcasts = craft.podcasts.status(null).all %}
 {% set canAccessPodcasts = false %}
 
-{% if currentUser.can('studio-managePodcasts') or currentUser.can('studio-createDraftPodcasts') %}
+{% if currentUser.can('studio-managePodcasts') or currentUser.can('studio-createDraftNewPodcasts') %}
     {% set canAccessPodcasts = true %}
     {% set break = true %}
 {% else %}
     {% set break = false %}
     {% for podcast in podcasts %}
-        {% if currentUser.can('studio-viewPodcasts-' ~ podcast.uid) %}
+        {% if currentUser.can('studio-viewPodcast-' ~ podcast.uid) %}
             {% set canAccessPodcasts = true %}
             {% set break = true %}
         {% endif %}
     {% endfor %}
 {% endif %}
 
-{% if canAccessPodcasts %}
-    {% extends 'studio/_layouts/index.twig' %}
+{# Don't check access permission if the user already has access to podcasts #}
+{% set canAccessEpisodes = false %}
+{% if not canAccessPodcasts %}
+    {% if currentUser.can('studio-manageEpisodes') %}
+        {% set canAccessEpisodes = true %}
+        {% set break = true %}
+    {% else %}
+        {% set break = false %}
+        {% for podcast in podcasts %}
+            {% if currentUser.can('studio-viewPodcastEpisodes-' ~ podcast.uid) %}
+                {% set canAccessEpisodes = true %}
+                {% set break = true %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+{% endif %}
 
-    {% set title = 'Podcasts' %}
-    {% set selectedSubnavItem = 'podcasts' %}
-    {% set elementType = 'vnali\\studio\\elements\\Podcast' %}
-    {% set canHaveDrafts = true %}
-{# only way to redirect to episodes is access to manage episodes permission. we already checked viewPodcasts-uid #}
-{% elseif currentUser.can('studio-manageEpisodes') %}
+{% if canAccessPodcasts %}
+    {% redirect 'studio/podcasts' %}
+{% elseif canAccessEpisodes %}
     {% redirect 'studio/episodes' %}
 {% elseif currentUser.can('studio-importCategory') %}
     {% redirect 'studio/import' %}

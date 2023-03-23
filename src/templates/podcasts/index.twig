@@ -1,13 +1,13 @@
 {% set podcasts = craft.podcasts.status(null).all %}
 {% set canAccess = false %}
 
-{% if currentUser.can('studio-managePodcasts') or currentUser.can('studio-createDraftPodcasts') %}
+{% if currentUser.can('studio-managePodcasts') or currentUser.can('studio-createDraftNewPodcasts') %}
     {% set canAccess = true %}
     {% set break = true %}
 {% else %}
     {% set break = false %}
     {% for podcast in podcasts %}
-        {% if currentUser.can('studio-viewPodcasts-' ~ podcast.uid) %}
+        {% if currentUser.can('studio-viewPodcast-' ~ podcast.uid) %}
             {% set canAccess = true %}
             {% set break = true %}
         {% endif %}

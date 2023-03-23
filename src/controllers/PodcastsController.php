@@ -212,7 +212,7 @@ class PodcastsController extends Controller
         $userSession = Craft::$app->getUser();
         $currentUser = $userSession->getIdentity();
 
-        if (!$podcast || ((!$podcast->enabled || !$generalSettings->publishRSS) && (!$currentUser || !$currentUser->can("studio-viewPodcasts-" . $podcast->uid)))) {
+        if (!$podcast || ((!$podcast->enabled || !$generalSettings->publishRSS) && (!$currentUser || !$currentUser->can("studio-viewPodcast-" . $podcast->uid)))) {
             throw new ServerErrorHttpException('Invalid podcast');
         }
 
