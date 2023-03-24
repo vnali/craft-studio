@@ -349,8 +349,12 @@ class Episode extends Element
                 if ($this->creatorId !== $user->id) {
                     return $user->can('studio-viewOtherUserDraftEpisodes-' . $uid);
                 }
+            } else {
+                if ($this->getUploaderId() !== $user->id) {
+                    return $user->can('studio-viewOtherUserEpisodes-' . $uid);
+                }
             }
-            // If it is not draft, or it is a draft created by current user
+            // If it is created by current user
             return $user->can('studio-viewPodcastEpisodes-' . $uid);
         }
     }
@@ -374,9 +378,6 @@ class Episode extends Element
             return false;
         } else {
             $uid = $podcast->uid;
-            if ($user->can('studio-deleteEpisodes-' . $uid)) {
-                return true;
-            }
             if ($this->getIsDraft()) {
                 /** @var static|DraftBehavior $this */
                 if ($this->creatorId !== $user->id) {
@@ -384,8 +385,13 @@ class Episode extends Element
                 } else {
                     return ($user->can('studio-deleteDraftEpisodes-' . $uid));
                 }
+            } else {
+                if ($this->getUploaderId() !== $user->id) {
+                    return ($user->can('studio-deleteOtherUserEpisodes-' . $uid));
+                } else {
+                    return ($user->can('studio-deleteEpisodes-' . $uid));
+                }
             }
-            return false;
         }
     }
 
@@ -420,9 +426,15 @@ class Episode extends Element
                 if ($this->creatorId !== $user->id) {
                     return $user->can('studio-saveOtherUserDraftEpisodes-' . $uid);
                 }
+            } else {
+                if ($this->getUploaderId() !== $user->id) {
+                    return ($user->can('studio-saveOtherUserEpisodes-' . $uid) &&
+                        $user->can('studio-createDraftEpisodes-' . $uid)
+                    );
+                }
             }
 
-            // If it is not draft, or it is a draft created by current user
+            // If it is created by current user
             return ($user->can('studio-createDraftEpisodes-' . $uid));
         }
     }
@@ -452,13 +464,19 @@ class Episode extends Element
             if ($this->getIsDraft()) {
                 /** @var static|DraftBehavior $this */
                 if ($this->creatorId !== $user->id) {
-                    return $user->can('studio-saveOtherUserDraftEpisodes-' . $uid);
+                    return ($user->can('studio-createDraftEpisodes-' . $uid) &&
+                        $user->can('studio-saveOtherUserDraftEpisodes-' . $uid));
                 } else {
                     return $user->can('studio-createDraftEpisodes-' . $uid);
                 }
+            } else {
+                if ($this->getUploaderId() !== $user->id) {
+                    return ($user->can('studio-createEpisodes-' . $uid) &&
+                        $user->can('studio-saveOtherUserEpisodes-' . $uid));
+                } else {
+                    return $user->can('studio-createEpisodes-' . $uid);
+                }
             }
-            // If it is not draft
-            return ($user->can('studio-createEpisodes-' . $uid));
         }
     }
 
@@ -807,27 +825,30 @@ class Episode extends Element
         $podcastCriteria = [];
         $podcasts = Podcast::find()->status(null)->all();
         $episodeIds = [];
+        $user = Craft::$app->getUser()->getIdentity();
         foreach ($podcasts as $podcast) {
             $podcastEpisodeIds = [];
             // If user can view podcast, show that podcast on element index
             if (
                 Craft::$app->user->checkPermission('studio-viewPodcastEpisodes-' . $podcast->uid)
             ) {
-                $episodes = Episode::find()->podcastId($podcast->id)->status(null)->all();
+                $episodes = Episode::find()->podcastId($podcast->id)->status(null)->trashed(null)->all();
                 foreach ($episodes as $episode) {
-                    $episodeIds[] = $episode->id;
-                    $podcastEpisodeIds[] = $episode->id;
+                    if ($episode->uploaderId === $user->id || $user->can('studio-viewOtherUserEpisodes-' . $podcast->uid)) {
+                        $episodeIds[] = $episode->id;
+                        $podcastEpisodeIds[] = $episode->id;
+                    }
                 }
                 // Now if the user can view other user's drafts, show all drafts for that podcast too
                 if (Craft::$app->user->checkPermission('studio-viewOtherUserDraftEpisodes-' . $podcast->uid)) {
-                    $drafts = Episode::find()->podcastId($podcast->id)->status(null)->drafts()->all();
+                    $drafts = Episode::find()->podcastId($podcast->id)->status(null)->drafts()->trashed(null)->all();
                     foreach ($drafts as $draft) {
                         $episodeIds[] = $draft->id;
                         $podcastEpisodeIds[] = $draft->id;
                     }
                 } else {
                     // otherwise only show created drafts by this user on podcast index page
-                    $drafts = Episode::find()->podcastId($podcast->id)->status(null)->drafts()->draftCreator(Craft::$app->user->identity)->all();
+                    $drafts = Episode::find()->podcastId($podcast->id)->status(null)->drafts()->draftCreator(Craft::$app->user->identity)->trashed(null)->all();
                     foreach ($drafts as $draft) {
                         $episodeIds[] = $draft->id;
                         $podcastEpisodeIds[] = $draft->id;
