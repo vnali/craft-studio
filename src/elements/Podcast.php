@@ -735,7 +735,7 @@ class Podcast extends Element
         $criteria = [];
         // If user has manage podcasts permission, we don't need criteria
         if (!Craft::$app->user->checkPermission('studio-managePodcasts')) {
-            $podcasts = Podcast::find()->status(null)->all();
+            $podcasts = Podcast::find()->status(null)->trashed(null)->all();
             $podcastIds = [];
             foreach ($podcasts as $podcast) {
                 // If user can view podcast, show that podcast on element index
@@ -746,13 +746,13 @@ class Podcast extends Element
                     $podcastIds[] = $podcast->id;
                     // Now if the user can view other user's drafts, show all drafts for that podcast too
                     if (Craft::$app->user->checkPermission('studio-viewOtherUserDraftPodcast-' . $podcast->uid)) {
-                        $drafts = Podcast::find()->status(null)->draftOf($podcast->id)->all();
+                        $drafts = Podcast::find()->status(null)->draftOf($podcast->id)->trashed(null)->all();
                         foreach ($drafts as $draft) {
                             $podcastIds[] = $draft->id;
                         }
                     } else {
                         // otherwise only show created drafts by this user on podcast index page
-                        $drafts = Podcast::find()->status(null)->draftOf($podcast->id)->draftCreator(Craft::$app->user->identity)->all();
+                        $drafts = Podcast::find()->status(null)->draftOf($podcast->id)->draftCreator(Craft::$app->user->identity)->trashed(null)->all();
                         foreach ($drafts as $draft) {
                             $podcastIds[] = $draft->id;
                         }
@@ -761,7 +761,7 @@ class Podcast extends Element
             }
             // If there is a draft for new podcast, show this draft to creator too
             if (Craft::$app->user->checkPermission('studio-createDraftNewPodcasts')) {
-                $drafts = Podcast::find()->status(null)->draftOf(false)->draftCreator(Craft::$app->user->identity)->all();
+                $drafts = Podcast::find()->status(null)->draftOf(false)->draftCreator(Craft::$app->user->identity)->trashed(null)->all();
                 foreach ($drafts as $draft) {
                     $podcastIds[] = $draft->id;
                 }
