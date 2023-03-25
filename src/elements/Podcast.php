@@ -425,8 +425,12 @@ class Podcast extends Element
             return true;
         }
 
-        if ($user->can('studio-managePodcasts') || $user->can('studio-createDraftNewPodcasts')) {
+        if ($user->can('studio-managePodcasts')) {
             return true;
+        }
+
+        if (!$this->id) {
+            return $user->can('studio-createDraftNewPodcasts');
         }
 
         $uid = $this->getCanonical()->uid;
