@@ -12,6 +12,7 @@
 - Added support importing from itunes:keywords
 - Added ignoreMainAsset option on fetch from RSS form to prevent fetching large main asset via CURL
 - Added podcast and episode elements to garbage collection
+- Added slug, uri, id, uid, revisionNotes, revisionCreator, drafts to podcast and episode index pages
 - Now each podcast has two settings pages (general settings, episode settings)
 - Episode summary and description can be different now
 - podcasts and episodes records are now removing when their related elements are removed
