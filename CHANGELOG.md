@@ -6,7 +6,7 @@
 - Added an option to disallow publishing RSS for a podcast
 - Added an option to allow all users/guests to view RSS
 - Added studio-viewPublishedRSS-[PodcastUID] permission to check accessing to RSS
-- Added checkAccessToVolumes general setting which checks saveAssets:[VolumeUID] permission before listing volumes on asset index page
+- Added checkAccessToVolumes general setting which checks saveAssets:[VolumeUID] permission before listing volumes on Asset Indexes utility page
 - Added lastBuildDate for podcast RSS
 - Added support importing from content:encoded
 - Added support importing from itunes:keywords

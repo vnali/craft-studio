@@ -10,9 +10,10 @@
 		{{ redirectInput('studio/settings/general') }}
 		{{ csrfInput() }}
 		{{ forms.lightswitchField({
-            label: 'Check save assets permission before listing volumes on asset index page.'|t('studio'),
+            label: 'On Asset Indexes utility page, only list the volumes that user has saveAssets:[VolumeUID] permission'|t('studio'),
             id: 'checkAccessToVolumes',
             name: 'checkAccessToVolumes',
+            tip: 'Needs Craft 4.4 and higher'|t('studio'),
             required: false,
             errors: settings.getErrors('checkAccessToVolumes'),
             value: 1,
