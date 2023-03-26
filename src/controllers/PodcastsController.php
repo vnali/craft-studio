@@ -327,10 +327,8 @@ class PodcastsController extends Controller
         // Podcast Category
         list($categoryGroup, $categoryField) = GeneralHelper::getElementCategoryField('podcast', $podcastMapping);
         if ($categoryGroup) {
-            if (get_class($categoryField) == Categories::class) {
+            if (get_class($categoryField) == Categories::class || get_class($categoryField) == Entries::class) {
                 $categories = $podcast->{$categoryField->handle}->level(1)->all();
-            } elseif (get_class($categoryField) == Entries::class) {
-                $categories = $podcast->{$categoryField->handle}->all();
             } else {
                 throw new ServerErrorHttpException('not supported field type' . get_class($categoryField));
             }
