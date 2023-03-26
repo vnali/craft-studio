@@ -178,15 +178,6 @@ class PodcastFormat extends Model
                     'craft\fields\Entries' => 'entry',
                 ],
             ],
-            'podcastLink' => [
-                'label' => 'Podcast Link',
-                'handle' => 'podcastLink',
-                'convertTo' => [
-                    '' => 'select one',
-                    'craft\fields\PlainText' => 'plain text',
-                    'craft\fields\Url' => 'URL',
-                ],
-            ],
         ];
     }
 
