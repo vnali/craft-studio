@@ -37,6 +37,7 @@ use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\models\PodcastFormat;
 use vnali\studio\models\PodcastFormatEpisode;
 use vnali\studio\records\I18nRecord;
+use vnali\studio\records\PodcastGeneralSettingsRecord;
 use vnali\studio\Studio;
 
 use yii\base\InvalidConfigException;
@@ -285,7 +286,9 @@ class Podcast extends Element
                 $RSSLabel = '';
                 $elementId = $this->id;
                 if (!$this->getIsDraft()) {
-                    if ($this->enabled) {
+                    $record = PodcastGeneralSettingsRecord::find()->where(['podcastId' => $this->id])->one();
+                    /** @var PodcastGeneralSettingsRecord $record */
+                    if ($this->enabled && $record->publishRSS) {
                         $RSSLabel = Craft::t('studio', 'View');
                     } else {
                         $RSSLabel = Craft::t('studio', 'Preview');
@@ -441,7 +444,7 @@ class Podcast extends Element
                 return $user->can('studio-saveOtherUserDraftEpisodes-' . $uid);
             }
         }
-        
+
         // If it is not draft, or it is a draft created by current user
         return ($user->can('studio-createDraftEpisodes-' . $uid));
     }

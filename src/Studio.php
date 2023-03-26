@@ -1107,6 +1107,11 @@ class Studio extends Plugin
                         'label' => Craft::t('studio', 'View episodes'),
                         'nested' => $nestedViewEpisodes,
                     ];
+                    $podcastPermissions['studio-viewNotPublishedRSS-' . $podcast->uid] = [
+                        'label' => Craft::t('studio', 'View not published RSS', [
+                            'name' => $podcast->title,
+                        ]),
+                    ];
                     $podcastPermissions['studio-viewPublishedRSS-' . $podcast->uid] = [
                         'label' => Craft::t('studio', 'View published RSS', [
                             'name' => $podcast->title,

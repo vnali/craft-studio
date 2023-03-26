@@ -212,12 +212,16 @@ class PodcastsController extends Controller
         $userSession = Craft::$app->getUser();
         $currentUser = $userSession->getIdentity();
 
-        if (!$podcast || ((!$podcast->enabled || !$generalSettings->publishRSS) && (!$currentUser || !$currentUser->can("studio-viewPodcast-" . $podcast->uid)))) {
+        if (!$podcast || (!$podcast->enabled && (!$currentUser || !$currentUser->can("studio-viewPodcast-" . $podcast->uid)))) {
             throw new ServerErrorHttpException('Invalid podcast');
         }
 
-        if (!$generalSettings->allowAllToSeeRSS) {
+        if ($generalSettings->publishRSS && !$generalSettings->allowAllToSeeRSS) {
             $this->requirePermission('studio-viewPublishedRSS-' . $podcast->uid);
+        }
+        
+        if (!$generalSettings->publishRSS) {
+            $this->requirePermission('studio-viewNotPublishedRSS-' . $podcast->uid);
         }
 
         $podcastFormat = $podcast->getPodcastFormat();
