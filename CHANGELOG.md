@@ -29,6 +29,7 @@
 - Fixed a bug where a deleted podcast format with same handle was used in podcast creation
 - Fixed a bug where trashed items won't show up correctly on podcast and episode index page 
 - Removed getPodcastBySlug()
+- Dropped Craft 4.3 support
 
 ## 0.1.0 - 2023-03-02
 

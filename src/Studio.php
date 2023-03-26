@@ -132,13 +132,10 @@ class Studio extends Plugin
         $gqlService->flushCaches();
         $this->_registerGraphQl();
 
-        // Check version before installing
-        if (version_compare(Craft::$app->getInfo()->version, '4.4', '>=')) {
-            $settings = StudioPlugin::$plugin->getSettings();
-            /** @var Settings $settings */
-            if ($settings->checkAccessToVolumes) {
-                Event::on(AssetIndexes::class, AssetIndexes::EVENT_LIST_VOLUMES, [GeneralHelper::class, 'listVolumes']);
-            }
+        $settings = StudioPlugin::$plugin->getSettings();
+        /** @var Settings $settings */
+        if ($settings->checkAccessToVolumes) {
+            Event::on(AssetIndexes::class, AssetIndexes::EVENT_LIST_VOLUMES, [GeneralHelper::class, 'listVolumes']);
         }
 
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_INNER_HTML, [PodcastElement::class, 'updatePodcastElementHtml']);
@@ -1118,7 +1115,7 @@ class Studio extends Plugin
                         ]),
                     ];
                     $event->permissions[] = [
-                        'heading' => Craft::t('studio', 'Studio - {name} podcast',[
+                        'heading' => Craft::t('studio', 'Studio - {name} podcast', [
                             'name' => $podcast->title,
                         ]),
                         'permissions' => $podcastPermissions,

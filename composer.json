@@ -17,7 +17,7 @@
         "homepage": "https://github.com/vnali"
     }],
     "require": {
-        "craftcms/cms": "^4.3.0",
+        "craftcms/cms": "^4.4.0",
         "james-heinrich/getid3": "^1.9.19",
         "symfony/dom-crawler": "^6.0.0",
         "symfony/css-selector": "^6.0.0"
