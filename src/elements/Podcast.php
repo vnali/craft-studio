@@ -441,12 +441,12 @@ class Podcast extends Element
         if ($this->getIsDraft()) {
             /** @var static|DraftBehavior $this */
             if ($this->creatorId !== $user->id) {
-                return $user->can('studio-saveOtherUserDraftEpisodes-' . $uid);
+                return $user->can('studio-saveOtherUserDraftPodcast-' . $uid);
             }
         }
 
         // If it is not draft, or it is a draft created by current user
-        return ($user->can('studio-createDraftEpisodes-' . $uid));
+        return ($user->can('studio-createDraftPodcast-' . $uid));
     }
 
     /**
