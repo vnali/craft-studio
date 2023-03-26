@@ -287,8 +287,8 @@ class Podcast extends Element
                 $elementId = $this->id;
                 if (!$this->getIsDraft()) {
                     $record = PodcastGeneralSettingsRecord::find()->where(['podcastId' => $this->id])->one();
-                    /** @var PodcastGeneralSettingsRecord $record */
-                    if ($this->enabled && $record->publishRSS) {
+                    /** @var PodcastGeneralSettingsRecord|null $record */
+                    if ($this->enabled && $record && $record->publishRSS) {
                         $RSSLabel = Craft::t('studio', 'View');
                     } else {
                         $RSSLabel = Craft::t('studio', 'Preview');
