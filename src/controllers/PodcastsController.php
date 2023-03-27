@@ -274,8 +274,10 @@ class PodcastsController extends Controller
             $lastBuildDate = $podcastUpdate;
         }
 
-        // Add lastBuildDate
+        // Add lastBuildDate and pubDate
         $lastBuildDate = $lastBuildDate->format('D, d M Y H:i:s T');
+        $pubDate = $xml->createElement("pubDate", $lastBuildDate);
+        $xmlChannel->appendChild($pubDate);
         $lastBuildDate = $xml->createElement("lastBuildDate", $lastBuildDate);
         $xmlChannel->appendChild($lastBuildDate);
 
