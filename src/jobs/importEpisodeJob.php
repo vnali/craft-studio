@@ -21,6 +21,8 @@ use vnali\studio\Studio;
  */
 class importEpisodeJob extends BaseJob
 {
+    public bool $ignoreImageAsset;
+
     public bool $ignoreMainAsset;
 
     public array $items;
@@ -143,35 +145,37 @@ class importEpisodeJob extends BaseJob
                             }
                             break;
                         case 'image':
-                            $href = $domElement->getAttribute('href');
-                            $path = parse_url($href, PHP_URL_PATH);
-                            $extension = pathinfo($path, PATHINFO_EXTENSION);
-                            $basename = basename($path);
-                            list($imageField, $imageContainer) = GeneralHelper::getElementImageField('episode', $mapping);
-                            if ($imageField) {
-                                if (get_class($imageField) == 'craft\fields\PlainText') {
-                                    $imageFieldHandle = $imageField->handle;
-                                    $itemElement->{$imageFieldHandle} = $href;
-                                } elseif (get_class($imageField) == 'craft\fields\Assets') {
-                                    if ($href) {
-                                        // Set progress
-                                        $this->setProgress(
-                                            $queue,
-                                            $step / ($this->limit ?? $this->total),
-                                            \Craft::t('app', 'Import {step, number} of {total, number} - Upload image', [
-                                                'step' => $step,
-                                                'total' => ($this->limit ?? $this->total),
-                                            ])
-                                        );
-                                        $ch = curl_init();
-                                        curl_setopt($ch, CURLOPT_POST, 0);
-                                        curl_setopt($ch, CURLOPT_URL, $href);
-                                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                                        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-                                        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-                                        curl_setopt($ch, CURLOPT_HTTPGET, 1);
-                                        $content = trim(curl_exec($ch));
-                                        $itemElement = GeneralHelper::uploadFile($content, null, $imageField, $imageContainer, $itemElement, $basename, $extension);
+                            if (!$this->ignoreImageAsset) {
+                                $href = $domElement->getAttribute('href');
+                                $path = parse_url($href, PHP_URL_PATH);
+                                $extension = pathinfo($path, PATHINFO_EXTENSION);
+                                $basename = basename($path);
+                                list($imageField, $imageContainer) = GeneralHelper::getElementImageField('episode', $mapping);
+                                if ($imageField) {
+                                    if (get_class($imageField) == 'craft\fields\PlainText') {
+                                        $imageFieldHandle = $imageField->handle;
+                                        $itemElement->{$imageFieldHandle} = $href;
+                                    } elseif (get_class($imageField) == 'craft\fields\Assets') {
+                                        if ($href) {
+                                            // Set progress
+                                            $this->setProgress(
+                                                $queue,
+                                                $step / ($this->limit ?? $this->total),
+                                                \Craft::t('app', 'Import {step, number} of {total, number} - Upload image', [
+                                                    'step' => $step,
+                                                    'total' => ($this->limit ?? $this->total),
+                                                ])
+                                            );
+                                            $ch = curl_init();
+                                            curl_setopt($ch, CURLOPT_POST, 0);
+                                            curl_setopt($ch, CURLOPT_URL, $href);
+                                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                                            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+                                            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+                                            curl_setopt($ch, CURLOPT_HTTPGET, 1);
+                                            $content = trim(curl_exec($ch));
+                                            $itemElement = GeneralHelper::uploadFile($content, null, $imageField, $imageContainer, $itemElement, $basename, $extension);
+                                        }
                                     }
                                 }
                             }

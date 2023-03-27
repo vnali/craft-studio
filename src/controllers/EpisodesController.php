@@ -191,6 +191,7 @@ class EpisodesController extends Controller
         $settings->setScenario('import');
         $settings->importFromRSS = Craft::$app->getRequest()->getBodyParam('importFromRSS');
         $settings->ignoreMainAsset = Craft::$app->getRequest()->getBodyParam('ignoreMainAsset');
+        $settings->ignoreImageAsset = Craft::$app->getRequest()->getBodyParam('ignoreImageAsset');
         $limit = Craft::$app->getRequest()->getBodyParam('limit');
         $settings->limit = $limit ? $limit : null;
         if (!$settings->validate()) {
@@ -249,6 +250,7 @@ class EpisodesController extends Controller
                     'podcastId' => $podcastId,
                     'limit' => $settings->limit ?? $total,
                     'ignoreMainAsset' => $settings->ignoreMainAsset,
+                    'ignoreImageAsset' => $settings->ignoreImageAsset,
                 ]
             )
         );

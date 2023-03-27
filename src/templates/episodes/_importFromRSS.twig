@@ -37,11 +37,20 @@
 
         
 		{{ forms.lightswitchField({
-            label: 'Don\'t import main asset'|t('studio'),
+            label: "Don't import episode's main asset"|t('studio'),
             id: 'ignoreMainAsset',
             name: 'ignoreMainAsset',
             required: false,
             errors: settings.getErrors('ignoreMainAsset'),
+            value: 1,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: "Don't import episode's image asset"|t('studio'),
+            id: 'ignoreImageAsset',
+            name: 'ignoreImageAsset',
+            required: false,
+            errors: settings.getErrors('ignoreImageAsset'),
             value: 1,
         }) }}
 

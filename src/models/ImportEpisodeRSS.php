@@ -24,13 +24,18 @@ class ImportEpisodeRSS extends Model
     */
     public bool $ignoreMainAsset = false;
 
+    /**
+     * @var bool Don't import asset image
+    */
+    public bool $ignoreImageAsset = false;
+
     public function rules(): array
     {
         $rules = parent::rules();
         $rules[] = [['importFromRSS'], 'required', 'on' => 'import'];
         $rules[] = [['importFromRSS'], 'url', 'on' => 'import'];
         $rules[] = [['limit'], 'integer', 'min' => 1, 'on' => 'import'];
-        $rules[] = [['ignoreMainAsset'], 'in', 'range' => [0, 1], 'on' => 'import'];
+        $rules[] = [['ignoreMainAsset', 'ignoreImageAsset'], 'in', 'range' => [0, 1], 'on' => 'import'];
         return $rules;
     }
 }
