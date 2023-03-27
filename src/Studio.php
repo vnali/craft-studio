@@ -816,11 +816,11 @@ class Studio extends Plugin
                 $event->rules['studio/default/fields-filter'] = 'studio/default/fields-filter';
                 $event->rules['studio/default/meta'] = 'studio/default/meta';
                 $event->rules['studio/default/get-entry-types'] = 'studio/default/get-entry-types';
+                $event->rules['studio/episodes/import-from-asset-index'] = 'studio/episodes/import-from-asset-index';
+                $event->rules['studio/episodes/import-from-rss'] = 'studio/episodes/import-from-rss';
                 $event->rules['studio/episodes/<podcastHandle>'] = ['template' => 'studio/episodes'];
                 $event->rules['studio/episodes/<podcastHandle>/new'] = 'studio/episodes/create';
                 $event->rules['studio/episodes/edit/<elementId:\d+>'] = 'elements/edit';
-                $event->rules['studio/episodes/import-from-asset-index'] = 'studio/episodes/import-from-asset-index';
-                $event->rules['studio/episodes/import-from-rss'] = 'studio/episodes/import-from-rss';
                 $event->rules['studio/import'] = 'studio/import/default';
                 $event->rules['studio/import/category'] = 'studio/import/category';
                 $event->rules['studio/import/episode-fields'] = 'studio/import/episode-fields';
