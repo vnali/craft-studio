@@ -1,6 +1,6 @@
 {% extends 'studio/_layouts/index.twig' %}
 
-{% set title = 'Import'|t('studio') %}
+{% set title = 'Setting for Importing episodes by asset index'|t('studio') %}
 
 {% set crumbs = [] %}
 
@@ -16,24 +16,25 @@
 
 		<input type="hidden" name="action" value="studio/episodes/save-import-from-asset-index">
 
-		{{ forms.lightswitchField({
-            label: 'Enable episodes import when indexing these volumes'|t('studio'),
-            id: 'enable',
-            name: 'enable',
-            required: false,
-            errors: settings.getErrors('enable'),
-            value: 1,
-            on: enable is defined ? enable
-        }) }}
-
 		{{ forms.multiSelectField({
-            label: 'Import episode when indexing assets of these volumes'|t('studio'),
+            label: 'Volumes to import assets as episodes'|t('studio'),
             id: 'volumesImport',
             name: 'volumesImport',
             options: volumes,
             values: settings.volumesImport ?? null,
             required: false,
             tip: 'After saving this form, Go to Asset indexes utility to index volume and import assets/episodes'
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Enable'|t('studio'),
+            tip: 'To disable importing episodes temporarily',
+            id: 'enable',
+            name: 'enable',
+            required: false,
+            errors: settings.getErrors('enable'),
+            value: 1,
+            on: enable is defined ? enable
         }) }}
 
 		<input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
