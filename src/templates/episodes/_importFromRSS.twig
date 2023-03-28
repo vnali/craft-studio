@@ -1,6 +1,6 @@
 {% extends 'studio/_layouts/index.twig' %}
 
-{% set title = 'Import'|t('studio') %}
+{% set title = 'Import from RSS'|t('studio') %}
 
 {% set crumbs = [] %}
 
@@ -17,11 +17,11 @@
 		<input type="hidden" name="action" value="studio/episodes/import-job">
 
 		{{ forms.textField({
-            label: 'Import episode from RSS'|t('studio'),
-            id: 'importFromRSS',
-            name: 'importFromRSS',
+            label: 'URL'|t('studio'),
+            id: 'rssURL',
+            name: 'rssURL',
             required: true,
-            errors: settings.getErrors('importFromRSS'),
+            errors: settings.getErrors('rssURL'),
             tip: 'After saving this form, import begins and you can check import process on left buttom of CP'
         }) }}
 

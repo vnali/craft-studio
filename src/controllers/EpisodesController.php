@@ -189,7 +189,7 @@ class EpisodesController extends Controller
 
         $settings = new ImportEpisodeRSS();
         $settings->setScenario('import');
-        $settings->importFromRSS = Craft::$app->getRequest()->getBodyParam('importFromRSS');
+        $settings->rssURL = Craft::$app->getRequest()->getBodyParam('rssURL');
         $settings->ignoreMainAsset = Craft::$app->getRequest()->getBodyParam('ignoreMainAsset');
         $settings->ignoreImageAsset = Craft::$app->getRequest()->getBodyParam('ignoreImageAsset');
         $limit = Craft::$app->getRequest()->getBodyParam('limit');
@@ -208,7 +208,7 @@ class EpisodesController extends Controller
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_POST, 0);
-        curl_setopt($ch, CURLOPT_URL, Craft::$app->getRequest()->getBodyParam('importFromRSS'));
+        curl_setopt($ch, CURLOPT_URL, $settings->rssURL);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         // TODO: let request to sent via proxy
         #curl_setopt($ch, CURLOPT_PROXY, 'ip:port');

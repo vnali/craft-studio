@@ -10,9 +10,9 @@ use craft\base\Model;
 class ImportEpisodeRSS extends Model
 {
     /**
-     * @var string import From RSS
+     * @var string RSS URL
      */
-    public string $importFromRSS;
+    public string $rssURL;
 
     /**
      * @var int|null limit
@@ -32,8 +32,8 @@ class ImportEpisodeRSS extends Model
     public function rules(): array
     {
         $rules = parent::rules();
-        $rules[] = [['importFromRSS'], 'required', 'on' => 'import'];
-        $rules[] = [['importFromRSS'], 'url', 'on' => 'import'];
+        $rules[] = [['rssURL'], 'required', 'on' => 'import'];
+        $rules[] = [['rssURL'], 'url', 'on' => 'import'];
         $rules[] = [['limit'], 'integer', 'min' => 1, 'on' => 'import'];
         $rules[] = [['ignoreMainAsset', 'ignoreImageAsset'], 'in', 'range' => [0, 1], 'on' => 'import'];
         return $rules;
