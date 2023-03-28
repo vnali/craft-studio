@@ -734,8 +734,8 @@ class PodcastsController extends Controller
         }
 
         $variables['images'] = [];
-        if (isset($settings->imageOnImport['episode']) && $settings->imageOnImport['episode']) {
-            $image = Craft::$app->elements->getElementById($settings->imageOnImport['episode'][0]);
+        if (isset($settings->imageOnImport) && $settings->imageOnImport) {
+            $image = Craft::$app->elements->getElementById($settings->imageOnImport[0]);
             $variables['images'] = [$image];
         }
 
