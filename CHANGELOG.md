@@ -14,6 +14,7 @@
 - Added ignoreImageAsset option on fetch from RSS form to prevent fetching episode's image via CURL
 - Added podcast and episode elements to garbage collection
 - Added slug, uri, id, uid, revisionNotes, revisionCreator, drafts to podcast and episode index pages
+- Added importerService
 - Now each podcast has two settings pages (general settings, episode settings)
 - Episode summary and description can be different now
 - Added basic support for pubDate on podcast RSS

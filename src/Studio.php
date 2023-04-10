@@ -8,8 +8,6 @@ namespace vnali\studio;
 
 use Craft;
 use craft\base\Element;
-use craft\base\ElementInterface;
-use craft\base\LocalFsInterface;
 use craft\base\Plugin;
 use craft\elements\Asset;
 use craft\events\DefineFieldLayoutFieldsEvent;
@@ -24,10 +22,7 @@ use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\fieldlayoutelements\TextField;
 use craft\fieldlayoutelements\TitleField;
-use craft\fs\Local;
-use craft\helpers\Assets;
 use craft\helpers\Cp;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\services\Assets as AssetsServices;
@@ -41,8 +36,6 @@ use craft\services\UserPermissions;
 use craft\utilities\AssetIndexes;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
-use Imagine\Exception\NotSupportedException;
-use InvalidArgumentException;
 
 use vnali\studio\assetpreviews\AudioPreview;
 use vnali\studio\elements\Episode as EpisodeElement;
@@ -61,14 +54,13 @@ use vnali\studio\gql\interfaces\elements\PodcastInterface;
 use vnali\studio\gql\queries\EpisodeQuery;
 use vnali\studio\gql\queries\PodcastQuery;
 use vnali\studio\helpers\GeneralHelper;
-use vnali\studio\helpers\Id3;
 use vnali\studio\helpers\ProjectConfigData;
-use vnali\studio\helpers\Time;
 use vnali\studio\models\Settings;
 use vnali\studio\records\PodcastEpisodeSettingsRecord;
 use vnali\studio\records\PodcastFormatEpisodeRecord;
 use vnali\studio\records\PodcastFormatRecord;
 use vnali\studio\services\episodesService;
+use vnali\studio\services\ImporterService;
 use vnali\studio\services\podcastFormatsService;
 use vnali\studio\services\podcastsService;
 use vnali\studio\services\settingsService;
@@ -76,10 +68,10 @@ use vnali\studio\Studio as StudioPlugin;
 use vnali\studio\twig\CraftVariableBehavior;
 
 use yii\base\Event;
-use yii\web\BadRequestHttpException;
 
 /**
  * @property-read episodesService $episodes
+ * @property-read importerService $importer
  * @property-read settingsService $pluginSettings
  * @property-read podcastsService $podcasts
  * @property-read podcastFormatsService $podcastFormats
@@ -101,6 +93,7 @@ class Studio extends Plugin
         return [
             'components' => [
                 'episodes' => episodesService::class,
+                'importer' => ImporterService::class,
                 'podcasts' => podcastsService::class,
                 'podcastFormats' => podcastFormatsService::class,
                 'pluginSettings' => settingsService::class,
@@ -342,10 +335,10 @@ class Studio extends Plugin
                         /** @var PodcastEpisodeSettingsRecord $importSetting */
                         foreach ($importSettings as $importSetting) {
                             $importSetting = json_decode($importSetting->settings, true);
-                            if (isset($importSetting['volumesImport']) && is_array($importSetting['volumesImport']) && in_array($element->volumeId, $importSetting['volumesImport'])) {
+                            if (isset($importSetting['volumes']) && is_array($importSetting['volumes']) && in_array($element->volumeId, $importSetting['volumes'])) {
                                 Craft::info('Importing episode via asset index');
                                 // TODO: don't let create episode if user can't have access to the volume
-                                $this->_importItem($element, 'episode', $importSetting);
+                                Studio::$plugin->importer->ImportByAssetIndex($element, 'episode', $importSetting);
                                 $found = true;
                                 break;
                             }
@@ -441,348 +434,6 @@ class Studio extends Plugin
                 $event->types[] = PodcastField::class;
             }
         );
-    }
-
-    /**
-     * Create items (currently only episodes) from assets index
-     *
-     * @param ElementInterface $element
-     * @param string $item
-     * @param array $importSetting
-     * @return void
-     */
-    private function _importItem(ElementInterface $element, string $item, array $importSetting): void
-    {
-        // PHP Stan fix
-        if (!$element instanceof Asset) {
-            throw new InvalidArgumentException('Import item can only be used for asset elements.');
-        }
-
-        if ($item == 'episode') {
-            $podcastId = $importSetting['podcastId'];
-            $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
-            $podcastFormat = $podcast->getPodcastFormat();
-            $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
-            $itemElement = new EpisodeElement();
-            $itemElement->episodeGUID = StringHelper::UUID();
-            $itemElement->podcastId = $podcastId;
-            $mapping = json_decode($podcastFormatEpisode->mapping, true);
-        } else {
-            throw new NotSupportedException('not supported' . $item);
-        }
-        $sitesSettings = $podcastFormat->getSiteSettings();
-        if (empty($sitesSettings)) {
-            Craft::warning('studio', "You should have set $item site settings");
-            return;
-        }
-
-        $itemFieldId = null;
-        $itemFieldContainer = null;
-
-        if (isset($mapping['mainAsset']['container'])) {
-            $itemFieldContainer = $mapping['mainAsset']['container'];
-        }
-        if (isset($mapping['mainAsset']['field']) && $mapping['mainAsset']['field']) {
-            $itemFieldId = $mapping['mainAsset']['field'];
-            $itemField = Craft::$app->fields->getFieldByUid($itemFieldId);
-            if ($itemField) {
-                $itemFieldHandle = $itemField->handle;
-            }
-        }
-
-        if (!isset($itemFieldHandle)) {
-            craft::warning("$item file is not specified in setting");
-            return;
-        } else {
-            craft::warning('warning' . $itemFieldHandle);
-        }
-
-        list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField($item, $mapping);
-
-        list($keywordField, $keywordFieldType, $keywordFieldHandle, $keywordFieldGroup) = GeneralHelper::getElementKeywordsField('episode', $mapping);
-
-        // Genres
-        list($genreFieldType, $genreFieldHandle, $genreFieldGroup) = GeneralHelper::getElementGenreField($item, $mapping);
-
-        // Get file meta info based on being file is local or remote
-        $fs = $element->getVolume()->getFs();
-
-        if ($fs instanceof LocalFsInterface) {
-            /** @var Local $fs */
-            $volumePath = $fs->path;
-            $path = Craft::getAlias($volumePath . '/' . $element->getPath());
-            $type = 'local';
-        } else {
-            $path = $element->getUrl();
-            $type = 'remote';
-        }
-        $fileInfo = Id3::analyze($type, $path);
-
-        if (isset($fileInfo['playtime_string'])) {
-            $duration = $fileInfo['playtime_string'];
-            if ($duration) {
-                if (!ctype_digit((string)$duration)) {
-                    $duration = Time::time_to_sec($duration);
-                }
-                $itemElement->duration = $duration;
-            }
-        }
-
-        if (isset($fileInfo['tags']['id3v2']['title'][0])) {
-            $title = $fileInfo['tags']['id3v2']['title'][0];
-        }
-
-        if (!isset($title) || !$title) {
-            $title = $element->title;
-        }
-
-        $itemElement->title = $title;
-
-        list($yearField) = GeneralHelper::getElementYearField($item, $mapping);
-
-        if (isset($yearField)) {
-            $forceYear = $importSetting['forceYear'];
-            $yearOnImport = $importSetting['yearOnImport'];
-            $year = Id3::getYear('import', $fileInfo, $forceYear, $yearOnImport);
-            $itemElement->{$yearField->handle} = $year;
-        }
-
-        if (isset($fileInfo['tags']['id3v2']['track_number'][0])) {
-            $track = trim($fileInfo['tags']['id3v2']['track_number'][0]);
-            $itemElement->episodeNumber = (int)$track;
-        }
-
-        $genreIds = [];
-        if ($genreFieldHandle) {
-            $tagImportOptions = $importSetting['genreImportOption'];
-            $tagImportCheck = $importSetting['genreImportCheck'];
-            $defaultGenres = $importSetting['genreOnImport'];
-
-            list($genreIds,) = Id3::getGenres($fileInfo, $genreFieldType, $genreFieldGroup->id, $tagImportOptions, $tagImportCheck, $defaultGenres);
-        }
-
-        // Genre field might be overlapped with keyword field
-        if ($genreFieldHandle != $keywordFieldHandle) {
-            $columns = [];
-            if ($genreFieldHandle) {
-                $columns[$genreFieldHandle] = $genreIds;
-            }
-            if ($keywordFieldHandle && isset($importSetting['keywordsOnImport'])) {
-                $columns[$keywordFieldHandle] = $importSetting['keywordsOnImport'];
-            }
-            $itemElement->setFieldValues($columns);
-        } else {
-            $columns = [];
-            if ($genreFieldHandle) {
-                if (isset($importSetting['keywordsOnImport']) && is_array($importSetting['keywordsOnImport'])) {
-                    foreach ($importSetting['keywordsOnImport'] as $keywordId) {
-                        if (!in_array($keywordId, $genreIds)) {
-                            $genreIds[] = $keywordId;
-                        }
-                    }
-                }
-                $columns[$genreFieldHandle] = $genreIds;
-            }
-            $itemElement->setFieldValues($columns);
-        }
-
-        // Set site status for episode
-        $siteId = null;
-        $siteStatus = [];
-        foreach ($sitesSettings as $key => $siteSetting) {
-            if (!$siteId) {
-                $siteId = $key;
-            }
-            //$siteStatus[$key] = $siteSetting[$item . 'EnabledByDefault'];
-            // To Prevent unwanted content on RSS or site, we force disabled status to be checked by admin first
-            // also if we use enabled status by default, there is a chance that doesn't save due to validation error like required rules
-            $siteStatus[$key] = false;
-        }
-        if (!$siteId) {
-            Craft::warning("not any site is enabled for $item");
-        }
-        $itemElement->siteId = $siteId;
-        $itemElement->setEnabledForSite($siteStatus);
-
-        if (!$itemFieldContainer) {
-            // TODO: check if we can set an asset to an item field which volume of that asset is not supported by field volume
-            $itemElement->{$itemFieldHandle} = [$element->id];
-        } else {
-            /** @var string|null $container0Type */
-            $container0Type = null;
-            /** @var string|null $container0Handle */
-            $container0Handle = null;
-            /** @var string|null $container1Type */
-            $container1Type = null;
-            /** @var string|null $container1Handle */
-            $container1Handle = null;
-            $fieldContainers = explode('|', $itemFieldContainer);
-            foreach ($fieldContainers as $key => $fieldContainer) {
-                $containerHandleVar = 'container' . $key . 'Handle';
-                $containerTypeVar = 'container' . $key . 'Type';
-                $container = explode('-', $fieldContainer);
-                if (isset($container[0])) {
-                    $$containerHandleVar = $container[0];
-                }
-                if (isset($container[1])) {
-                    $$containerTypeVar = $container[1];
-                }
-            }
-
-            if ($container0Handle && $container1Handle) {
-                if ($container0Type == 'Matrix' && $container1Type == 'BlockType') {
-                    $sortOrder[] = 'new:1';
-                    $newBlock = [
-                        'type' => $container1Handle,
-                        'fields' => [
-                            $itemFieldHandle => [$element->id],
-                        ],
-                    ];
-                    $itemElement->setFieldValue($container0Handle, [
-                        'sortOrder' => $sortOrder,
-                        'blocks' => [
-                            'new:1' => $newBlock,
-                        ],
-                    ]);
-                } elseif ($container0Type == 'SuperTable') {
-                    $sortOrder[] = 'new:1';
-                    $newBlock = [
-                        'type' => $container1Handle,
-                        'fields' => [
-                            $itemFieldHandle => [$element->id],
-                        ],
-                    ];
-                    $itemElement->setFieldValue($container0Handle, [
-                        'sortOrder' => $sortOrder,
-                        'blocks' => [
-                            'new:1' => $newBlock,
-                        ],
-                    ]);
-                }
-            }
-        }
-
-        // Get image Id3 meta data from audio and create a Craft asset
-        if (isset($imageField)) {
-            $imageIds = [];
-            $forceImage = $importSetting['forceImage'];
-            if (!$forceImage) {
-                $assetFilename = $element->filename;
-                if (isset($fileInfo)) {
-                    list($img, $mime, $ext) = Id3::getImage($fileInfo);
-                    if ($img) {
-                        $tempFile = Assets::tempFilePath();
-                        file_put_contents($tempFile, $img);
-
-                        $folderId = $imageField->resolveDynamicPathToFolderId($itemElement);
-                        if (empty($folderId)) {
-                            throw new BadRequestHttpException('The target destination provided for uploading is not valid');
-                        }
-
-                        $folder = Craft::$app->getAssets()->findFolder(['id' => $folderId]);
-
-                        if (!$folder) {
-                            throw new BadRequestHttpException('The target folder provided for uploading is not valid');
-                        }
-
-                        $imgAsset = new Asset();
-                        $imgAsset->avoidFilenameConflicts = true;
-                        $imgAsset->setScenario(Asset::SCENARIO_CREATE);
-                        $imgAsset->tempFilePath = $tempFile;
-                        $assetFilenameArray = explode('.', $assetFilename);
-                        $imgAsset->filename = $assetFilenameArray[0] . '.' . $ext;
-                        $imgAsset->newFolderId = $folder->id;
-                        $imgAsset->setVolumeId($folder->volumeId);
-
-                        if (Craft::$app->getElements()->saveElement($imgAsset)) {
-                            $imageId = $imgAsset->id;
-                            $imageIds[] = $imageId;
-                        } else {
-                            $forceImage = true;
-                            craft::Warning('can not save save image asset' . $assetFilename . json_encode($imgAsset));
-                        }
-                    } else {
-                        $forceImage = true;
-                        craft::Warning('no image from meta for ' . $assetFilename);
-                    }
-                } else {
-                    $forceImage = true;
-                }
-            }
-
-            if ($forceImage && isset($importSetting['imageOnImport']) && is_array($importSetting['imageOnImport'])) {
-                foreach ($importSetting['imageOnImport'] as $defaultElementImg) {
-                    $elementImg = \craft\elements\Asset::find()
-                        ->id($defaultElementImg)
-                        ->one();
-                    if ($elementImg) {
-                        $imageIds[] = $elementImg->id;
-                    }
-                }
-            }
-
-            // Set created asset to specified custom field for image
-            if (!$imageFieldContainer) {
-                $itemElement->{$imageField->handle} = $imageIds;
-            } else {
-                /** @var string|null $container0Type */
-                $container0Type = null;
-                /** @var string|null $container0Handle */
-                $container0Handle = null;
-                /** @var string|null $container1Type */
-                $container1Type = null;
-                /** @var string|null $container1Handle */
-                $container1Handle = null;
-                $fieldContainers = explode('|', $itemFieldContainer);
-                foreach ($fieldContainers as $key => $fieldContainer) {
-                    $containerHandleVar = 'container' . $key . 'Handle';
-                    $containerTypeVar = 'container' . $key . 'Type';
-                    $container = explode('-', $fieldContainer);
-                    if (isset($container[0])) {
-                        $$containerHandleVar = $container[0];
-                    }
-                    if (isset($container[1])) {
-                        $$containerTypeVar = $container[1];
-                    }
-                }
-
-                if ($container0Handle && $container1Handle) {
-                    if ($container0Type == 'Matrix' && $container1Type == 'BlockType') {
-                        $sortOrder[] = 'new:1';
-                        $newBlock = [
-                            'type' => $container1Handle,
-                            'fields' => [
-                                $imageField->handle => $imageIds,
-                            ],
-                        ];
-                        $itemElement->setFieldValue($container0Handle, [
-                            'sortOrder' => $sortOrder,
-                            'blocks' => [
-                                'new:1' => $newBlock,
-                            ],
-                        ]);
-                    } elseif ($container0Type == 'SuperTable') {
-                        $sortOrder[] = 'new:1';
-                        $newBlock = [
-                            'type' => $container1Handle,
-                            'fields' => [
-                                $imageField->handle => $imageIds,
-                            ],
-                        ];
-                        $itemElement->setFieldValue($container0Handle, [
-                            'sortOrder' => $sortOrder,
-                            'blocks' => [
-                                'new:1' => $newBlock,
-                            ],
-                        ]);
-                    }
-                }
-            }
-        }
-
-        if (!Craft::$app->getElements()->saveElement($itemElement)) {
-            craft::warning("$item Creation error" . json_encode($itemElement->getErrors()));
-        }
     }
 
     /**
@@ -1065,7 +716,7 @@ class Studio extends Plugin
                         ]),
                     ];
                     $nestedViewEpisodes['studio-deleteEpisodes-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Delete own episodes.', [
+                        'label' => Craft::t('studio', 'Delete own episodes', [
                             'name' => $podcast->title,
                         ]),
                         'info' => Craft::t('studio', 'Includes deleting episodes created by the user'),
