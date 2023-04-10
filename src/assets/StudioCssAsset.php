@@ -24,12 +24,9 @@ class StudioCssAsset extends AssetBundle
             CpAsset::class,
         ];
 
-        /*
         $this->css = [
-            'css/tailwind.css',
             'css/custom.css',
         ];
-        */
 
         parent::init();
     }
