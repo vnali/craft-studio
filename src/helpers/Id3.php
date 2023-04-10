@@ -21,31 +21,30 @@ use craft\helpers\Db;
  */
 class Id3
 {
-    public static function getYear($action, $fileInfo, $forceYear, $yearOnImport)
+    public static function getYear($fileInfo, $option = null, $defaultValue = null)
     {
+        $noMetaData = false;
         $year = null;
 
-        if (!$forceYear && isset($fileInfo['tags']['id3v2']['year'][0])) {
+        if (isset($fileInfo['tags']['id3v2']['year'][0])) {
             $year = $fileInfo['tags']['id3v2']['year'][0];
-            $yealLen = strlen($year);
-            if ($yealLen < 4) {
-                Craft::warning('year of is less than 4: ' . $year);
-                $forceYear = true;
-            } elseif ($yealLen > 4) {
+            $yearLen = strlen($year);
+            if ($yearLen < 4) {
+                $noMetaData = true;
+            } elseif ($yearLen > 4) {
                 $year = substr($year, 0, 4);
                 Craft::warning('year is more than 4: ' . $year);
                 if (!is_numeric($year)) {
-                    $forceYear = true;
-                    $year = '';
+                    $noMetaData = true;
                     Craft::warning('year is not numeric' . $year . ' we skip it');
                 }
             }
+        } else {
+            $noMetaData = true;
         }
 
-        if ($action == 'import' && $forceYear) {
-            if ($yearOnImport) {
-                $year = $yearOnImport;
-            }
+        if ($noMetaData && $option == 'default-if-not-metadata') {
+            $year = $defaultValue;
         }
 
         return $year;
@@ -81,7 +80,7 @@ class Id3
         }
     }
 
-    public static function getGenres($fileInfo, $genreFieldType, $genreFieldGroupId, $itemGenreImportOptions, $itemGenreCheck, $defaultGenresList)
+    public static function getGenres($fileInfo, $genreFieldType = null, $genreFieldGroupId = null, $itemGenreImportOptions = null, $itemGenreCheck = null, $defaultGenresList = [])
     {
         // Read Genres
         $metaGenres = [];
@@ -89,11 +88,11 @@ class Id3
         $genreIds = [];
         $genres = [];
 
-        if ($itemGenreImportOptions != 'only-default' && isset($fileInfo['tags']['id3v2']['genre'][0])) {
+        if (isset($fileInfo['tags']['id3v2']['genre'][0])) {
             $metaGenres = $fileInfo['tags']['id3v2']['genre'];
         }
 
-        if (is_array($metaGenres)) {
+        if ($itemGenreImportOptions && $itemGenreImportOptions != 'only-default' && is_array($metaGenres)) {
             foreach ($metaGenres as $genre) {
                 // TODO: if we should normalize case
                 //$genre = strtolower($genre);
@@ -155,7 +154,7 @@ class Id3
             }
         }
 
-        if ((!$genreIds && $itemGenreImportOptions == 'default-if-not-meta') || $itemGenreImportOptions == 'only-default' || $itemGenreImportOptions == 'meta-and-default') {
+        if ((!$genreIds && $itemGenreImportOptions == 'default-if-not-metadata') || $itemGenreImportOptions == 'only-default' || $itemGenreImportOptions == 'metadata-and-default') {
             $defaultGenres = $defaultGenresList;
         }
 
@@ -203,7 +202,7 @@ class Id3
             }
         }
 
-        return array($genreIds, $genres);
+        return array($genreIds, $genres, $metaGenres);
     }
 
     public static function analyze($type, $path)
