@@ -13,7 +13,6 @@ use craft\web\Controller;
 use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\helpers\Id3;
 use vnali\studio\helpers\Time;
-use vnali\studio\records\PodcastEpisodeSettingsRecord;
 use vnali\studio\Studio;
 
 use yii\web\Response;
@@ -91,11 +90,6 @@ class DefaultController extends Controller
             $podcast = Studio::$plugin->podcasts->getPodcastById($element->podcastId);
             $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
             $episodeMapping = json_decode($podcastFormatEpisode->mapping, true);
-            /** @var PodcastEpisodeSettingsRecord|null $importSettings */
-            $importSettings = PodcastEpisodeSettingsRecord::find()->where(['podcastId' => $element->podcastId])->one();
-            if ($importSettings) {
-                $settings = json_decode($importSettings->settings, true);
-            }
         } else {
             throw new ServerErrorHttpException($item . ' is not supported');
         }
@@ -141,45 +135,48 @@ class DefaultController extends Controller
                     if (!ctype_digit((string)$duration)) {
                         $duration = Time::time_to_sec($duration);
                     }
-                    $element->duration = $duration;
+                    if (!$element->duration) {
+                        $element->duration = $duration;
+                    }
                 }
             }
 
             if (isset($fileInfo['tags']['id3v2']['track_number'][0])) {
                 $track = trim($fileInfo['tags']['id3v2']['track_number'][0]);
                 if ($track) {
-                    $element->episodeNumber = (int)$track;
+                    if (!$element->episodeNumber) {
+                        $element->episodeNumber = (int)$track;
+                    }
                 }
             }
 
             if (isset($fileInfo['tags']['id3v2']['title'][0])) {
                 $title = $fileInfo['tags']['id3v2']['title'][0];
-                $element->title = $title;
+                if (!$element->title) {
+                    $element->title = $title;
+                }
             }
 
             list($genreFieldType, $genreFieldHandle, $genreFieldGroup) = GeneralHelper::getElementGenreField($item, $episodeMapping);
             if (isset($genreFieldGroup)) {
-                $itemGenreImportOptions = '';
-                // TODO: to get from setting or setting from import
+                $itemGenreImportOptions = 'only-metadata';
                 $itemGenreCheck = false;
                 $defaultGenres = [];
 
                 list($genreIds,) = Id3::getGenres($fileInfo, $genreFieldType, $genreFieldGroup->id, $itemGenreImportOptions, $itemGenreCheck, $defaultGenres);
-                // TODO: implement if tag field is inside matrix or ST
                 $element->setFieldValues([
                     $genreFieldHandle => $genreIds,
                 ]);
             }
 
             list($pubDateField) = GeneralHelper::getElementPubDateField($item, $episodeMapping);
+
             if (isset($pubDateField)) {
-                $forcePubDate = false;
-                $pubDateOnImport = false;
-                if (isset($settings['pubDateOnImport'])) {
-                    $pubDateOnImport = $settings['pubDateOnImport'];
+                $pubDateOption = 'only-metadata';
+                $pubDate = Id3::getYear($fileInfo, $pubDateOption);
+                if (!$element->{$pubDateField->handle}) {
+                    $element->{$pubDateField->handle} = $pubDate;
                 }
-                $year = Id3::getYear('import', $fileInfo, $forcePubDate, $pubDateOnImport);
-                $element->{$pubDateField->handle} = $year;
             }
         }
 
