@@ -355,7 +355,7 @@ class EpisodesController extends Controller
 
         $settings->setScenario('import');
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
-        $settings->volumesImport = Craft::$app->getRequest()->getBodyParam('volumesImport', $settings->volumesImport);
+        $settings->volumes = Craft::$app->getRequest()->getBodyParam('volumes', $settings->volumes);
         $settings->enable = Craft::$app->getRequest()->getBodyParam('enable', $settings->enable);
 
         if (!$settings->validate()) {

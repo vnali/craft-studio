@@ -6,6 +6,13 @@
 
 {% block content %}
 
+    <div class="studio-info">
+        <span class="info"></span> &nbsp; 
+        {{ 'These settings only applies when importing episodes via asset index utility or resaving episodes via console'|t('studio') }} 
+    </div>
+
+    <br>
+
 	{% import "_includes/forms" as forms %}
 
 	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
@@ -18,58 +25,58 @@
 
 		{{ forms.elementSelectField({
             label: 'Default episode image'|t('studio'),
-            id: 'imageOnImport',
-            name: 'imageOnImport',
+            id: 'defaultImage',
+            name: 'defaultImage',
             viewMode: 'list',
             elementType: 'craft\\elements\\Asset',
             selectionLabel: "Add"|t("studio"),
             sources: folder ?? null,
             required: false,
-            errors: settings.getErrors('imageOnImport'),
+            errors: settings.getErrors('defaultImage'),
             limit: 1,
             elements: images,
             criteria: {kind: 'image'}
         }) }}
 
-		{{ forms.lightswitchField({
-            label: 'Force using this image even if image is provided by meta tag'|t('studio'),
-            id: 'forceImage',
-            name: 'forceImage',
+        {{ forms.selectField({
+            label: 'Image field options'|t('studio'),
+            id: 'imageOption',
+            name: 'imageOption',
+            options: imageOptions,
+            value: settings.imageOption is defined ? settings.imageOption,
             required: false,
-            errors: settings.getErrors('forceImage'),
-            value: 1,
-            on: settings.forceImage is defined ? settings.forceImage
+            errors: settings.getErrors('imageOption')      
         }) }}
 
 		<hr>
 
 		{{ forms.dateTimeField({
             label: 'Default episode release date'|t('studio'),
-            id: 'pubDateOnImport',
-            name: 'pubDateOnImport',
+            id: 'defaultPubDate',
+            name: 'defaultPubDate',
             required: false,
-            errors: settings.getErrors('pubDateOnImport'),
-            value: settings.pubDateOnImport is defined ? settings.pubDateOnImport,
+            errors: settings.getErrors('defaultPubDate'),
+            value: settings.defaultPubDate is defined ? settings.defaultPubDate,
         }) }}
 
-		{{ forms.lightswitchField({
-            label: 'Force using this release date even if year is provided by meta tag'|t('studio'),
-            id: 'forcePubDate',
-            name: 'forcePubDate',
+        {{ forms.selectField({
+            label: 'pub Date field options'|t('studio'),
+            id: 'pubDateOption',
+            name: 'pubDateOption',
+            options: pubDateOptions,
+            value: settings.pubDateOption is defined ? settings.pubDateOption,
             required: false,
-            errors: settings.getErrors('forcePubDate'),
-            value: 1,
-            on: settings.forcePubDate is defined ? settings.forcePubDate
+            errors: settings.getErrors('pubDateOption')      
         }) }}
 
         <hr>
 
         {{ forms.multiSelectField({
             label: 'Default episode genre'|t('studio'),
-            id: 'genreOnImport',
-            name: 'genreOnImport',
+            id: 'defaultGenres',
+            name: 'defaultGenres',
             options: genreOptions,
-            values: settings.genreOnImport is defined ?  settings.genreOnImport,
+            values: settings.defaultGenres is defined ?  settings.defaultGenres,
             required: false,
         }) }}
 
@@ -80,7 +87,7 @@
             options: genreImportOptions,
             value: settings.genreImportOption is defined ? settings.genreImportOption,
             required: false,
-            errors: settings.getErrors('genreImportOption')      
+            errors: settings.getErrors('genreImportOption'),
         }) }}
 
 		{{ forms.lightswitchField({
@@ -98,8 +105,10 @@
 	</form>
 {% endblock %}
 {% js %}
-$('#genreOnImport').selectize({
+$('#defaultGenres').selectize({
         plugins: ['remove_button'],
         dropdownParent: 'body'
     });
 {% endjs %}
+
+{% do view.registerAssetBundle("vnali\\studio\\assets\\StudioCssAsset") %}

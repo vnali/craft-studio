@@ -18,10 +18,10 @@
 
 		{{ forms.multiSelectField({
             label: 'Volumes to import assets as episodes'|t('studio'),
-            id: 'volumesImport',
-            name: 'volumesImport',
+            id: 'volumes',
+            name: 'volumes',
             options: volumes,
-            values: settings.volumesImport ?? null,
+            values: settings.volumes ?? null,
             required: false,
             tip: 'After saving this form, Go to Asset indexes utility to index volume and import assets/episodes'
         }) }}
@@ -42,7 +42,7 @@
 	</form>
 {% endblock %}
 {% js %}
-$('#volumesImport').selectize({
+$('#volumes').selectize({
         plugins: ['remove_button'],
         dropdownParent: 'body'
     });

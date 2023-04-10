@@ -10,18 +10,16 @@ use vnali\studio\elements\Podcast;
 
 class PodcastEpisodeSettings extends Model
 {
-    public $categoryOnImport = [];
     public ?bool $enable = null;
-    public ?bool $forceImage = null;
-    public ?bool $forcePubDate = null;
-    public ?bool $genreCheck = null;
     public ?bool $genreImportCheck = null;
     public ?string $genreImportOption = null;
-    public $genreOnImport = [];
-    public $imageOnImport = [];
+    public ?string $imageOption = null;
     public int $podcastId;
-    public $pubDateOnImport;
-    public $volumesImport = [];
+    public ?string $pubDateOption = null;
+    public $defaultGenres = [];
+    public $defaultImage = [];
+    public $defaultPubDate;
+    public $volumes = [];
 
     public function rules(): array
     {
@@ -34,6 +32,7 @@ class PodcastEpisodeSettings extends Model
             }
         }, 'skipOnEmpty' => true, 'on' => 'import'];
         $rules[] = [['enable'], 'in', 'range' => [0, 1]];
+        $rules[] = [['defaultGenres', 'defaultImage', 'volumes'], 'default', 'value' => []];
         return $rules;
     }
 }

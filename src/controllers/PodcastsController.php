@@ -219,7 +219,7 @@ class PodcastsController extends Controller
         if ($generalSettings->publishRSS && !$generalSettings->allowAllToSeeRSS) {
             $this->requirePermission('studio-viewPublishedRSS-' . $podcast->uid);
         }
-        
+
         if (!$generalSettings->publishRSS) {
             $this->requirePermission('studio-viewNotPublishedRSS-' . $podcast->uid);
         }
@@ -658,7 +658,7 @@ class PodcastsController extends Controller
         if ($settings === null) {
             $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId);
         }
-        $settings->pubDateOnImport = DateTimeHelper::toDateTime($settings->pubDateOnImport);
+        $settings->defaultPubDate = DateTimeHelper::toDateTime($settings->defaultPubDate);
         $podcastFormat = $podcast->getPodcastFormat();
         $sitesSettings = $podcastFormat->getSiteSettings();
         $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
@@ -696,11 +696,11 @@ class PodcastsController extends Controller
         }
 
         $variables['genreImportOptions'] = [
-            ['value' => '', 'label' => Craft::t('studio', 'select one')],
-            ['value' => 'only-meta', 'label' => Craft::t('studio', 'use only meta genres')],
-            ['value' => 'only-default', 'label' => Craft::t('studio', 'use only default genres')],
-            ['value' => 'default-if-not-meta', 'label' => Craft::t('studio', 'use default genres only if meta genre is not available')],
-            ['value' => 'meta-and-default', 'label' => Craft::t('studio', 'merge default genres and meta genres')],
+            ['value' => '', 'label' => Craft::t('studio', "Don't import")],
+            ['value' => 'only-metadata', 'label' => Craft::t('studio', 'Use only genre metadata')],
+            ['value' => 'only-default', 'label' => Craft::t('studio', 'Use only default values')],
+            ['value' => 'default-if-not-metadata', 'label' => Craft::t('studio', 'Use default genres only if metadata is not available')],
+            ['value' => 'metadata-and-default', 'label' => Craft::t('studio', 'Merge default values and metadata')],
         ];
 
         $variables['volumes'][] = ['value' => '', 'label' => Craft::t('studio', 'select volume')];
@@ -734,10 +734,24 @@ class PodcastsController extends Controller
         }
 
         $variables['images'] = [];
-        if (isset($settings->imageOnImport) && $settings->imageOnImport) {
-            $image = Craft::$app->elements->getElementById($settings->imageOnImport[0]);
+        if (isset($settings->defaultImage) && $settings->defaultImage) {
+            $image = Craft::$app->elements->getElementById($settings->defaultImage[0]);
             $variables['images'] = [$image];
         }
+
+        $variables['imageOptions'] = [
+            ['value' => '', 'label' => Craft::t('studio', "Don't import")],
+            ['value' => 'only-metadata', 'label' => Craft::t('studio', 'Use only image available in metadata')],
+            ['value' => 'only-default', 'label' => Craft::t('studio', 'Use only default image')],
+            ['value' => 'default-if-not-metadata', 'label' => Craft::t('studio', 'Use default image only if metadata is not available')],
+        ];
+
+        $variables['pubDateOptions'] = [
+            ['value' => '', 'label' => Craft::t('studio', "Don't import")],
+            ['value' => 'only-metadata', 'label' => Craft::t('studio', 'Use only year available in metadata')],
+            ['value' => 'only-default', 'label' => Craft::t('studio', 'Use only default pubDate')],
+            ['value' => 'default-if-not-metadata', 'label' => Craft::t('studio', 'Use default pubDate only if metadata is not available')],
+        ];
 
         return $this->renderTemplate(
             'studio/podcasts/_episodeSettings',
@@ -821,13 +835,13 @@ class PodcastsController extends Controller
 
         $settings->setScenario('import');
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
-        $settings->genreOnImport = Craft::$app->getRequest()->getBodyParam('genreOnImport', $settings->genreOnImport);
+        $settings->defaultGenres = Craft::$app->getRequest()->getBodyParam('defaultGenres', $settings->defaultGenres);
         $settings->genreImportOption = Craft::$app->getRequest()->getBodyParam('genreImportOption', $settings->genreImportOption);
         $settings->genreImportCheck = Craft::$app->getRequest()->getBodyParam('genreImportCheck', $settings->genreImportCheck);
-        $settings->imageOnImport = Craft::$app->getRequest()->getBodyParam('imageOnImport', $settings->imageOnImport);
-        $settings->pubDateOnImport = Craft::$app->getRequest()->getBodyParam('pubDateOnImport', $settings->pubDateOnImport);
-        $settings->forcePubDate = Craft::$app->getRequest()->getBodyParam('forcePubDate', $settings->forcePubDate);
-        $settings->forceImage = Craft::$app->getRequest()->getBodyParam('forceImage', $settings->forceImage);
+        $settings->defaultImage = Craft::$app->getRequest()->getBodyParam('defaultImage', $settings->defaultImage);
+        $settings->imageOption = Craft::$app->getRequest()->getBodyParam('imageOption', $settings->imageOption);
+        $settings->defaultPubDate = Craft::$app->getRequest()->getBodyParam('defaultPubDate', $settings->defaultPubDate);
+        $settings->pubDateOption = Craft::$app->getRequest()->getBodyParam('pubDateOption', $settings->pubDateOption);
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'Couldn’t save podcast import settings.'));
