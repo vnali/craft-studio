@@ -13,14 +13,16 @@ use craft\console\Controller;
 use craft\elements\Asset;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\errors\InvalidElementException;
 use craft\events\BatchElementActionEvent;
-use craft\fieldlayoutelements\CustomField;
 use craft\helpers\Assets;
+use craft\helpers\ElementHelper;
 use craft\helpers\Queue;
 use craft\helpers\StringHelper;
 use craft\queue\jobs\ResaveElements;
 use craft\services\Elements;
-
+use Throwable;
+use verbb\supertable\SuperTable;
 use vnali\studio\elements\Episode;
 use vnali\studio\elements\Podcast;
 use vnali\studio\helpers\GeneralHelper;
@@ -38,6 +40,50 @@ use yii\web\BadRequestHttpException;
  */
 class ResaveController extends Controller
 {
+    /**
+     * Returns [[to]] normalized to a callable.
+     *
+     * @param string|null $to
+     * @return callable
+     * @since 4.2.6
+     * @internal
+     */
+    final public static function normalizeTo(?string $to): callable
+    {
+        // empty
+        if ($to === ':empty:') {
+            return function() {
+                return null;
+            };
+        }
+
+        // object template
+        if (str_starts_with($to, '=')) {
+            $template = substr($to, 1);
+            $view = Craft::$app->getView();
+            return function(ElementInterface $element) use ($template, $view) {
+                return $view->renderObjectTemplate($template, $element);
+            };
+        }
+
+        // PHP arrow function
+        if (preg_match('/^fn\s*\(\s*(?:\$(\w+)\s*)?\)\s*=>\s*(.+)/', $to, $match)) {
+            $var = $match[1];
+            $php = sprintf('return %s;', StringHelper::removeLeft(rtrim($match[2], ';'), 'return '));
+            return function(ElementInterface $element) use ($var, $php) {
+                if ($var) {
+                    $$var = $element;
+                }
+                return eval($php);
+            };
+        }
+
+        // attribute name
+        return static function(ElementInterface $element) use ($to) {
+            return $element->$to;
+        };
+    }
+
     public bool $queue = false;
 
     public bool $drafts = false;
@@ -60,6 +106,8 @@ class ResaveController extends Controller
 
     public bool $updateSearchIndex = false;
 
+    public bool $touch = false;
+
     public ?string $set = null;
 
     public ?string $to = null;
@@ -70,13 +118,17 @@ class ResaveController extends Controller
 
     public bool $imageMetadata = false;
 
-    public bool $ifMetaValueNotEmpty = true;
+    public bool $allowEmptyMetaValue = false;
+
+    public bool $overwriteDuration = false;
+
+    public bool $overwriteGenre = false;
 
     public bool $overwriteImage = false;
 
     public bool $overwriteNumber = false;
 
-    public bool $overwriteTag = false;
+    public bool $overwritePubDate = false;
 
     public bool $overwriteTitle = false;
 
@@ -96,17 +148,24 @@ class ResaveController extends Controller
         $options[] = 'offset';
         $options[] = 'limit';
         $options[] = 'updateSearchIndex';
+        $options[] = 'touch';
 
         // Available option for episode actions
         switch ($actionID) {
             case 'episodes':
+                $options[] = 'allowEmptyMetaValue';
+                $options[] = 'drafts';
                 $options[] = 'metadata';
                 $options[] = 'imageMetadata';
-                $options[] = 'ifMetaValueNotEmpty';
+                $options[] = 'overwriteDuration';
+                $options[] = 'overwriteGenre';
                 $options[] = 'overwriteImage';
                 $options[] = 'overwriteNumber';
+                $options[] = 'overwritePubDate';
                 $options[] = 'overwriteTitle';
                 $options[] = 'previewMetadata';
+                $options[] = 'provisionalDrafts';
+                $options[] = 'revisions';
                 break;
         }
 
@@ -156,23 +215,18 @@ class ResaveController extends Controller
         return $this->resaveElements(Podcast::class, $criteria);
     }
 
-    /**
-     * @param string $elementType The element type that should be resaved
-     * @phpstan-param class-string<ElementInterface> $elementType
-     * @param array $criteria The element criteria that determines which elements should be resaved
-     * @return int
-     * @since 3.7.0
-     */
     public function resaveElements(string $elementType, array $criteria = []): int
     {
-        /** @var string|ElementInterface $elementType */
-        /** @phpstan-var class-string<ElementInterface>|ElementInterface $elementType */
         $criteria += $this->_baseCriteria();
 
         if ($this->queue) {
             Queue::push(new ResaveElements([
                 'elementType' => $elementType,
                 'criteria' => $criteria,
+                'set' => $this->set,
+                'to' => $this->to,
+                'ifEmpty' => $this->ifEmpty,
+                'touch' => $this->touch,
                 'updateSearchIndex' => $this->updateSearchIndex,
             ]));
             $this->stdout($elementType::pluralDisplayName() . ' queued to be resaved.' . PHP_EOL);
@@ -276,11 +330,15 @@ class ResaveController extends Controller
             return ExitCode::OK;
         }
 
+        if ($query->offset) {
+            $count = max($count - (int)$query->offset, 0);
+        }
+
         if ($query->limit) {
             $count = min($count, (int)$query->limit);
         }
 
-        $to = isset($this->set) ? $this->_normalizeTo() : null;
+        $to = isset($this->set) ? self::normalizeTo($this->to) : null;
 
         $elementsText = $count === 1 ? $elementType::lowerDisplayName() : $elementType::pluralLowerDisplayName();
         $this->stdout("Resaving $count $elementsText ..." . PHP_EOL, Console::FG_YELLOW);
@@ -304,10 +362,6 @@ class ResaveController extends Controller
                     if ($setting) {
                         $importSetting = json_decode($setting->settings, true);
                     }
-                    if (!$importSetting) {
-                        //$this->stdout('Import setting is not defined');
-                        //return ExitCode::OK;
-                    }
                 }
                 $this->stdout("    - [$e->position/$count] Resaving $element ($element->id) ... ");
 
@@ -318,6 +372,7 @@ class ResaveController extends Controller
                 if (isset($mapping['mainAsset']['container'])) {
                     $fieldContainer = $mapping['mainAsset']['container'];
                 }
+
                 if (isset($mapping['mainAsset']['field'])) {
                     $fieldUid = $mapping['mainAsset']['field'];
                     $field = Craft::$app->fields->getFieldByUid($fieldUid);
@@ -325,9 +380,13 @@ class ResaveController extends Controller
                         $fieldHandle = $field->handle;
                         list($assetFilename, $assetFilePath, $assetFileUrl, $blockId, $asset) = GeneralHelper::getElementAsset($element, $fieldContainer, $fieldHandle);
 
-                        $fileInfo = [];
-                        // Fetch id3 tag
-                        if ($asset && ($this->metadata || $this->imageMetadata)) {
+                        if (!$asset) {
+                            $this->stdout(PHP_EOL . "    - No main Asset" . PHP_EOL, Console::FG_YELLOW);
+                            return ExitCode::OK;
+                        }
+                        $fileInfo = null;
+
+                        if ($this->metadata || $this->imageMetadata) {
                             $vol = $asset->getVolume();
                             $fs = $vol->getFs();
                             if ($fs instanceof LocalFsInterface) {
@@ -338,72 +397,168 @@ class ResaveController extends Controller
                                 $path = $assetFileUrl;
                             }
                             $fileInfo = Id3::analyze($type, $path);
+                            if (!$fileInfo) {
+                                $this->stdout(PHP_EOL . "    - No metadata" . PHP_EOL, Console::FG_YELLOW);
+                                return ExitCode::OK;
+                            }
                         }
 
                         if ($this->metadata) {
-                            if (isset($fileInfo['playtime_string'])) {
+                            // Get duration from ID3 metadata
+                            if (!isset($fileInfo['playtime_string'])) {
+                                $this->stdout(PHP_EOL . "    - Duration not found", Console::FG_YELLOW);
+                            } else {
                                 $duration = $fileInfo['playtime_string'];
                                 $this->stdout(PHP_EOL . "    - Duration: $duration", Console::FG_GREEN);
-                                if (!$this->previewMetadata && $duration) {
-                                    /** @var Episode $element */
+                                /** @var Episode $element */
+                                if (!$this->previewMetadata && (!$element->duration || $this->overwriteDuration) && ($duration || $this->allowEmptyMetaValue)) {
                                     if (!ctype_digit($duration)) {
                                         $duration = Time::time_to_sec($duration);
                                     }
+                                    if ($this->overwriteDuration) {
+                                        $this->stdout(PHP_EOL . "    - Duration is overwritten. Old value: " . Time::sec_to_time($element->duration), Console::FG_GREEN);
+                                    } else {
+                                        $this->stdout(PHP_EOL . "    - Duration is saved", Console::FG_GREEN);
+                                    }
                                     $element->duration = $duration;
-                                    $this->stdout(PHP_EOL . "    - Duration set", Console::FG_GREEN);
+                                } elseif (!$this->previewMetadata && $element->duration && !$this->overwriteDuration) {
+                                    $this->stdout(PHP_EOL . "    - Overwriting of the duration is not allowed", Console::FG_YELLOW);
+                                } elseif (!$this->previewMetadata && !$duration && !$this->allowEmptyMetaValue) {
+                                    $this->stdout(PHP_EOL . "    - Duration is empty and empty value is not allowed", Console::FG_YELLOW);
                                 }
-                            } else {
-                                $this->stdout(PHP_EOL . "    - Duration not found", Console::FG_YELLOW);
                             }
 
+                            // Get title from ID3 metadata
                             if (isset($fileInfo['tags']['id3v2']['title'][0])) {
                                 $title = $fileInfo['tags']['id3v2']['title'][0];
                                 $this->stdout(PHP_EOL . "    - Title: $title", Console::FG_GREEN);
-                                if (!$this->previewMetadata && ($this->overwriteTitle || !$element->title) && (!$this->ifMetaValueNotEmpty || $title)) {
-                                    $this->stdout(PHP_EOL . "    - Title set", Console::FG_GREEN);
+                                if (!$this->previewMetadata && (!$element->title || $this->overwriteTitle) && ($title || $this->allowEmptyMetaValue)) {
+                                    if ($this->overwriteTitle) {
+                                        $this->stdout(PHP_EOL . "    - Title is overWritten. Old value: " . $element->title, Console::FG_GREEN);
+                                    } else {
+                                        $this->stdout(PHP_EOL . "    - Title is saved", Console::FG_GREEN);
+                                    }
                                     $element->title = $title;
+                                } elseif (!$this->previewMetadata && $element->title && !$this->overwriteTitle) {
+                                    $this->stdout(PHP_EOL . "    - Overwriting of the title is not allowed", Console::FG_YELLOW);
+                                } elseif (!$this->previewMetadata && !$title && !$this->allowEmptyMetaValue) {
+                                    $this->stdout(PHP_EOL . "    - Title is empty and empty value is not allowed", Console::FG_YELLOW);
                                 }
+                            } else {
+                                $this->stdout(PHP_EOL . "    - Title is not available in metadata", Console::FG_YELLOW);
                             }
 
+                            // Get genres from ID3 metadata
+                            list($genreIds, $genres, $metaGenres) = Id3::getGenres($fileInfo);
+                            $this->stdout(PHP_EOL . "    - Meta genres: " . implode(' | ', $metaGenres), Console::FG_GREEN);
                             list($genreFieldType, $genreFieldHandle, $genreFieldGroup) = GeneralHelper::getElementGenreField($elementItem, $mapping);
                             if (isset($genreFieldGroup) && isset($importSetting)) {
                                 $elementGenreImportOptions = $importSetting['genreImportOption'];
                                 $elementGenreCheck = $importSetting['genreImportCheck'];
-                                $defaultGenres = $importSetting['genreOnImport'];
-
-                                list($genreIds, $genres) = Id3::getGenres($fileInfo, $genreFieldType, $genreFieldGroup->id, $elementGenreImportOptions, $elementGenreCheck, $defaultGenres);
-                                // TODO: implement if tag field is inside matrix or ST
-                                $this->stdout(PHP_EOL . "    - Genres: " . implode(' | ', $genres), Console::FG_GREEN);
-                                $currentTagCount = $element->$genreFieldHandle->count();
-                                if (!$this->previewMetadata && ($this->overwriteTag || $currentTagCount == 0) && (!$this->ifMetaValueNotEmpty || count($genreIds) > 0)) {
-                                    $this->stdout(PHP_EOL . "    - Genres set", Console::FG_GREEN);
-                                    $element->setFieldValues([
-                                        $genreFieldHandle => $genreIds,
-                                    ]);
+                                $defaultGenres = $importSetting['defaultGenres'];
+                                if ($elementGenreImportOptions) {
+                                    list($genreIds, $genres, $metaGenres) = Id3::getGenres($fileInfo, $genreFieldType, $genreFieldGroup->id, $elementGenreImportOptions, $elementGenreCheck, $defaultGenres);
+                                    if (!$this->previewMetadata) {
+                                        $this->stdout(PHP_EOL . "    - Genres: " . implode(' | ', $genres), Console::FG_GREEN);
+                                        $currentTagCount = $element->$genreFieldHandle->count();
+                                        if (($currentTagCount == 0 || $this->overwriteGenre) && (count($genreIds) > 0 || $this->allowEmptyMetaValue)) {
+                                            if ($this->overwriteGenre) {
+                                                $currentTags = $element->$genreFieldHandle->collect();
+                                                $currentTags = $currentTags->pluck('title')->join(', ');
+                                                $this->stdout(PHP_EOL . "    - Genres are overwritten. Old values: $currentTags", Console::FG_GREEN);
+                                            } else {
+                                                $this->stdout(PHP_EOL . "    - Genres are saved", Console::FG_GREEN);
+                                            }
+                                            $element->setFieldValues([
+                                                $genreFieldHandle => $genreIds,
+                                            ]);
+                                        } elseif ($currentTagCount != 0 && !$this->overwriteGenre) {
+                                            $this->stdout(PHP_EOL . "    - Overwriting of the genres is not allowed", Console::FG_YELLOW);
+                                        } elseif (count($genreIds) == 0 && !$this->allowEmptyMetaValue) {
+                                            $this->stdout(PHP_EOL . "    - Genre is empty and empty value is not allowed", Console::FG_YELLOW);
+                                        }
+                                    }
+                                } else {
+                                    $this->stdout(PHP_EOL . "    - Genre import option is not specified", Console::FG_YELLOW);
                                 }
+                            } elseif (!$this->previewMetadata && !isset($genreFieldGroup)) {
+                                $this->stdout(PHP_EOL . "    - Genre field is not specified", Console::FG_YELLOW);
+                            } elseif (!$this->previewMetadata && !isset($importSetting)) {
+                                $this->stdout(PHP_EOL . "    - Genres import setting is not specified", Console::FG_YELLOW);
                             }
 
+                            // Get track number from ID3 metadata
                             if (isset($fileInfo['tags']['id3v2']['track_number'][0])) {
                                 $track = trim($fileInfo['tags']['id3v2']['track_number'][0]);
-                                $this->stdout(PHP_EOL . "    - track number: " . $track, Console::FG_GREEN);
+                                $this->stdout(PHP_EOL . "    - Track number: " . $track, Console::FG_GREEN);
                                 /** @var Episode $element */
-                                if (!$this->previewMetadata && ($this->overwriteNumber || !$element->episodeNumber) && (!$this->ifMetaValueNotEmpty || $track)) {
-                                    $this->stdout(PHP_EOL . "    - Number set", Console::FG_GREEN);
+                                if (!$this->previewMetadata && (!$element->episodeNumber || $this->overwriteNumber) && ($track || $this->allowEmptyMetaValue)) {
+                                    if ($this->overwriteNumber) {
+                                        $this->stdout(PHP_EOL . "    - Episode number is overwritten. Old value: " . $element->episodeNumber, Console::FG_GREEN);
+                                    } else {
+                                        $this->stdout(PHP_EOL . "    - Episode number is saved", Console::FG_GREEN);
+                                    }
                                     $element->episodeNumber = (int)$track;
+                                } elseif (!$this->previewMetadata && $element->episodeNumber && !$this->overwriteNumber) {
+                                    $this->stdout(PHP_EOL . "    - Overwriting of the number is not allowed", Console::FG_YELLOW);
+                                } elseif (!$this->previewMetadata && !$track && !$this->allowEmptyMetaValue) {
+                                    $this->stdout(PHP_EOL . "    - Track is empty and empty value is not allowed", Console::FG_YELLOW);
+                                }
+                            } else {
+                                $this->stdout(PHP_EOL . "    - Track number is not available in metadata ", Console::FG_YELLOW);
+                            }
+
+                            // Get year from ID3 metadata
+                            list($pubDateField) = GeneralHelper::getElementPubDateField($elementItem, $mapping);
+                            $pubDate = Id3::getYear($fileInfo);
+                            if ($pubDate) {
+                                $this->stdout(PHP_EOL . "    - Year in metadata", Console::FG_GREEN);
+                            } else {
+                                $this->stdout(PHP_EOL . "    - Year is not available in metadata", Console::FG_YELLOW);
+                            }
+                            if (isset($pubDateField)) {
+                                $pubDateOption = $importSetting['pubDateOption'];
+                                if ($pubDateOption == 'only-metadata' || $pubDateOption == 'default-if-not-metadata') {
+                                    $defaultPubDate = $importSetting['defaultPubDate'];
+                                    $pubDate = Id3::getYear($fileInfo, $pubDateOption, $defaultPubDate);
+                                } elseif ($pubDateOption == 'only-default') {
+                                    $pubDate = $importSetting['defaultPubDate'];
+                                }
+                                /** @var Episode $element */
+                                if (!$this->previewMetadata && (!$element->{$pubDateField->handle} || $this->overwritePubDate) && ($pubDate || $this->allowEmptyMetaValue)) {
+                                    if ($this->overwritePubDate) {
+                                        $this->stdout(PHP_EOL . "    - Pub date is overwritten. Old value: " . $element->episodeNumber, Console::FG_GREEN);
+                                    } else {
+                                        $this->stdout(PHP_EOL . "    - Pub date is saved", Console::FG_GREEN);
+                                    }
+                                    $element->{$pubDateField->handle} = $pubDate;
+                                } elseif (!$this->previewMetadata && $element->{$pubDateField->handle} && !$this->overwritePubDate) {
+                                    $this->stdout(PHP_EOL . "    - Overwriting of the pub date is not allowed", Console::FG_YELLOW);
+                                } elseif (!$this->previewMetadata && !$pubDate && !$this->allowEmptyMetaValue) {
+                                    $this->stdout(PHP_EOL . "    - Pub date is empty and empty value is not allowed", Console::FG_YELLOW);
                                 }
                             }
                         }
 
                         if ($this->imageMetadata) {
                             $imageId = null;
+                            list($img, $mime, $ext) = Id3::getImage($fileInfo);
+                            if ($img) {
+                                $this->stdout(PHP_EOL . "    - Image is available in metadata", Console::FG_GREEN);
+                            } else {
+                                $this->stdout(PHP_EOL . "    - Image is not available in metadata", Console::FG_YELLOW);
+                            }
                             list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField($elementItem, $mapping);
                             if ($imageField) {
-                                $forceImage = null;
-                                if (isset($importSetting['forceImage'])) {
-                                    $forceImage = $importSetting['forceImage'];
+                                list($imgAssetFilename, $imgAssetFilePath, $imgAssetFileUrl, $imgBlockId, $imgAsset) = GeneralHelper::getElementAsset($element, $imageFieldContainer, $imageField->handle);
+                            }
+                            if ($imageField && get_class($imageField) == 'craft\fields\Assets') {
+                                $imageOption = null;
+                                $useDefaultImage = false;
+                                if (isset($importSetting['imageOption'])) {
+                                    $imageOption = $importSetting['imageOption'];
                                 }
-                                if (!$forceImage) {
-                                    list($img, $mime, $ext) = Id3::getImage($fileInfo);
+                                if (!$this->previewMetadata && ($imageOption == 'only-metadata' || $imageOption == 'default-if-not-metadata')) {
                                     if ($img) {
                                         $tempFile = Assets::tempFilePath();
                                         file_put_contents($tempFile, $img);
@@ -427,51 +582,60 @@ class ResaveController extends Controller
                                         $newAsset->newFolderId = $folder->id;
                                         $newAsset->setVolumeId($folder->volumeId);
                                         if (Craft::$app->getElements()->saveElement($newAsset)) {
-                                            $this->stdout(PHP_EOL . "    - Image fetched", Console::FG_GREEN);
+                                            $this->stdout(PHP_EOL . "    - Image saved as an asset $newAsset->id", Console::FG_GREEN);
                                             $imageId = $newAsset->id;
                                         } else {
-                                            $forceImage = true;
                                             $errors = array_values($newAsset->getFirstErrors());
                                             if (isset($errors[0])) {
                                                 $this->stdout(PHP_EOL . 'Error on extracting image from file');
                                             }
                                         }
-                                    } else {
-                                        $forceImage = true;
-                                        $this->stdout(PHP_EOL . "    - No image extracted from file. default is using", Console::FG_GREEN);
+                                    } elseif ($imageOption == 'default-if-not-metadata') {
+                                        $useDefaultImage = true;
+                                        $this->stdout(PHP_EOL . "    - No image extracted from file. default image is used", Console::FG_GREEN);
                                     }
                                 }
 
-                                if ($forceImage && isset($importSetting['imageOnImport']) && is_array($importSetting['imageOnImport'])) {
-                                    foreach ($importSetting['imageOnImport'] as $defaultElementImg) {
+                                if (
+                                    ($useDefaultImage || $imageOption == 'only-default')
+                                    && isset($importSetting['defaultImage']) && is_array($importSetting['defaultImage'])
+                                ) {
+                                    foreach ($importSetting['defaultImage'] as $defaultElementImg) {
                                         $elementImg = \craft\elements\Asset::find()
                                             ->id($defaultElementImg)
                                             ->one();
                                         if ($elementImg) {
+                                            $this->stdout(PHP_EOL . "    - Default Image is used", Console::FG_GREEN);
                                             $imageId = $elementImg->id;
                                         }
                                     }
                                 }
 
-                                if ($imageId) {
+                                if ($imageOption) {
                                     if (!$imageFieldContainer) {
                                         $imageFieldHandle = $imageField->handle;
-                                        if (get_class($imageField) == 'craft\fields\Assets') {
-                                            $checkImage = $element->{$imageFieldHandle}->one();
-                                        } else {
-                                            $checkImage = $element->{$imageFieldHandle};
-                                        }
-                                        if (!$this->previewMetadata && ($this->overwriteImage || !$checkImage)) {
-                                            $this->stdout(PHP_EOL . "    - Image set", Console::FG_GREEN);
-                                            $element->{$imageFieldHandle} = [$imageId];
+                                        $oldValue = $element->{$imageFieldHandle}->one();
+                                        if (!$this->previewMetadata && (!$oldValue || $this->overwriteImage) && ($imageId || $this->allowEmptyMetaValue)) {
+                                            if ($this->overwriteImage) {
+                                                $this->stdout(PHP_EOL . "    - Image is overwritten. old values: $oldValue", Console::FG_GREEN);
+                                            } else {
+                                                $this->stdout(PHP_EOL . "    - Image is saved", Console::FG_GREEN);
+                                            }
+                                            if ($imageId) {
+                                                $element->{$imageFieldHandle} = [$imageId];
+                                            } else {
+                                                $element->{$imageFieldHandle} = [];
+                                            }
+                                        } elseif (!$this->previewMetadata && $oldValue && !$this->overwriteImage) {
+                                            $this->stdout(PHP_EOL . "    - Overwriting of the image is not allowed", Console::FG_YELLOW);
+                                        } elseif (!$this->previewMetadata && !$imageId && !$this->allowEmptyMetaValue) {
+                                            $this->stdout(PHP_EOL . "    - Image is empty and empty value is not allowed", Console::FG_YELLOW);
                                         }
                                     } else {
                                         /** @var string|null $container0Type */
                                         $container0Type = null;
                                         /** @var string|null $container0Handle */
                                         $container0Handle = null;
-                                        /** @var string|null $container1Type */
-                                        $container1Type = null;
                                         /** @var string|null $container1Handle */
                                         $container1Handle = null;
                                         $fieldContainers = explode('|', $imageFieldContainer);
@@ -486,22 +650,57 @@ class ResaveController extends Controller
                                                 $$containerTypeVar = $container[1];
                                             }
                                         }
-
-                                        if ($container0Handle && $container1Handle) {
-                                            if ($container0Type == 'Matrix' && $container1Type == 'BlockType') {
-                                                $field = Craft::$app->fields->getFieldByHandle($container0Handle);
-                                                $existingMatrixQuery = $element->getFieldValue($container0Handle);
-                                                $serializedMatrix = $field->serializeValue($existingMatrixQuery, $element);
-
-                                                $sortOrder = array_keys($serializedMatrix);
-                                                //
-                                                if (isset($blockId) && isset($serializedMatrix[$blockId]['fields'][$imageField->handle])) {
-                                                    $serializedMatrix[$blockId]['fields'][$imageField->handle][] = $imageId;
-                                                    $element->setFieldValue($container0Handle, $serializedMatrix);
+                                        $itemBlockType = null;
+                                        if ($container0Handle) {
+                                            if ($container0Type && ($container0Type === 'SuperTable')) {
+                                                $superTableField = Craft::$app->fields->getFieldByHandle($container0Handle);
+                                                $blockTypes = SuperTable::$plugin->getService()->getBlockTypesByFieldId($superTableField->id);
+                                                $blockType = $blockTypes[0];
+                                                $itemBlockType = $blockType->id;
+                                            } elseif ($container0Type) {
+                                                $itemBlockType = $container1Handle;
+                                            }
+                                            $field = Craft::$app->fields->getFieldByHandle($container0Handle);
+                                            $existingMatrixQuery = $element->getFieldValue($container0Handle);
+                                            $serializedMatrix = $field->serializeValue($existingMatrixQuery, $element);
+                                            $sortOrder = array_keys($serializedMatrix);
+                                            $oldValue = null;
+                                            if (isset($serializedMatrix[$imgBlockId]['fields'][$imageField->handle])) {
+                                                $oldValue = $serializedMatrix[$imgBlockId]['fields'][$imageField->handle];
+                                                $oldValue = $oldValue[0];
+                                            }
+                                            //
+                                            if (!$this->previewMetadata && ($this->overwriteImage || !$oldValue) && ($this->allowEmptyMetaValue || $imageId)) {
+                                                if ($this->overwriteImage) {
+                                                    $this->stdout(PHP_EOL . "    - Image is overwritten. old values: $oldValue - new value: $imageId", Console::FG_GREEN);
+                                                } else {
+                                                    $this->stdout(PHP_EOL . "    - Image is saved - new value: $imageId", Console::FG_GREEN);
+                                                }
+                                                if (isset($imgBlockId) && isset($serializedMatrix[$imgBlockId]['fields'][$imageField->handle])) {
+                                                    if ($imageId) {
+                                                        $serializedMatrix[$imgBlockId]['fields'][$imageField->handle] = [];
+                                                        $serializedMatrix[$imgBlockId]['fields'][$imageField->handle][] = $imageId;
+                                                        $element->setFieldValue($container0Handle, [
+                                                            'sortOrder' => $sortOrder,
+                                                            'blocks' => $serializedMatrix,
+                                                        ]);
+                                                    } else {
+                                                        $serializedMatrix[$imgBlockId]['fields'][$imageField->handle] = [];
+                                                        $element->setFieldValue($container0Handle, $serializedMatrix);
+                                                    }
+                                                } elseif (isset($blockId) && isset($serializedMatrix[$blockId]['fields'][$imageField->handle])) {
+                                                    if ($imageId) {
+                                                        $serializedMatrix[$blockId]['fields'][$imageField->handle] = [];
+                                                        $serializedMatrix[$blockId]['fields'][$imageField->handle][] = $imageId;
+                                                        $element->setFieldValue($container0Handle, $serializedMatrix);
+                                                    } else {
+                                                        $serializedMatrix[$blockId]['fields'][$imageField->handle] = [];
+                                                        $element->setFieldValue($container0Handle, $serializedMatrix);
+                                                    }
                                                 } else {
                                                     $sortOrder[] = 'new:1';
                                                     $newBlock = [
-                                                        'type' => $container1Handle,
+                                                        'type' => $itemBlockType,
                                                         'fields' => [
                                                             $imageField->handle => [$imageId],
                                                         ],
@@ -512,45 +711,36 @@ class ResaveController extends Controller
                                                         'blocks' => $serializedMatrix,
                                                     ]);
                                                 }
-                                            } elseif ($container0Type == 'SuperTable') {
-                                                $field = Craft::$app->fields->getFieldByHandle($container0Handle);
-                                                $existingStQuery = $element->getFieldValue($container0Handle);
-                                                $serializedSt = $field->serializeValue($existingStQuery, $element);
-
-                                                $sortOrder = array_keys($serializedSt);
-                                                //
-                                                if (isset($blockId) && isset($serializedSt[$blockId]['fields'][$imageField->handle])) {
-                                                    $serializedSt[$blockId]['fields'][$imageField->handle][] = $imageId;
-                                                    $element->setFieldValue($container0Handle, $serializedSt);
-                                                } else {
-                                                    $sortOrder[] = 'new:1';
-                                                    $newBlock = [
-                                                        'type' => $container1Handle,
-                                                        'fields' => [
-                                                            $imageField->handle => [$imageId],
-                                                        ],
-                                                    ];
-                                                    $serializedSt['new:1'] = $newBlock;
-                                                    $element->setFieldValue($container0Handle, [
-                                                        'sortOrder' => $sortOrder,
-                                                        'blocks' => $serializedSt,
-                                                    ]);
-                                                }
                                             }
+                                            $field = Craft::$app->fields->getFieldByHandle($container0Handle);
+                                            $existingMatrixQuery = $element->getFieldValue($container0Handle);
+                                            $serializedMatrix = $field->serializeValue($existingMatrixQuery, $element);
                                         }
                                     }
                                 } else {
-                                    $this->stdout(PHP_EOL . "    - No Image", Console::FG_GREEN);
+                                    $this->stdout(PHP_EOL . "    - Image import option is not specified", Console::FG_YELLOW);
                                 }
+                            } elseif (!$this->previewMetadata && !$imageField) {
+                                $this->stdout(PHP_EOL . "    - Image field is not specified", Console::FG_YELLOW);
+                            } elseif (!$this->previewMetadata && get_class($imageField) != 'craft\fields\Assets') {
+                                $this->stdout(PHP_EOL . "    - Image field is not an asset field", Console::FG_YELLOW);
                             }
                         }
+                    } else {
+                        $this->stdout(PHP_EOL . "    - Main asset field is not specified", Console::FG_YELLOW);
                     }
+                } else {
+                    $this->stdout(PHP_EOL . "    - Main asset field is not specified", Console::FG_YELLOW);
                 }
 
                 $this->stdout(PHP_EOL);
 
-                if ($this->set && (!$this->ifEmpty || $this->_isSetAttributeEmpty($element))) {
-                    $element->{$this->set} = $to($element);
+                try {
+                    if (isset($this->set) && (!$this->ifEmpty || ElementHelper::isAttributeEmpty($element, $this->set))) {
+                        $element->{$this->set} = $to($element);
+                    }
+                } catch (Throwable $e) {
+                    throw new InvalidElementException($element, $e->getMessage());
                 }
             }
         };
@@ -573,73 +763,12 @@ class ResaveController extends Controller
         $elementsService->on(Elements::EVENT_BEFORE_RESAVE_ELEMENT, $beforeCallback);
         $elementsService->on(Elements::EVENT_AFTER_RESAVE_ELEMENT, $afterCallback);
 
-        $elementsService->resaveElements($query, true, !$this->revisions, $this->updateSearchIndex);
+        $elementsService->resaveElements($query, true, !$this->revisions, $this->updateSearchIndex, $this->touch);
 
         $elementsService->off(Elements::EVENT_BEFORE_RESAVE_ELEMENT, $beforeCallback);
         $elementsService->off(Elements::EVENT_AFTER_RESAVE_ELEMENT, $afterCallback);
 
         $this->stdout("Done resaving $elementsText." . PHP_EOL . PHP_EOL, Console::FG_YELLOW);
         return $fail ? ExitCode::UNSPECIFIED_ERROR : ExitCode::OK;
-    }
-
-    /**
-     * Returns [[to]] normalized to a callable.
-     *
-     * @return callable
-     */
-    private function _normalizeTo(): callable
-    {
-        // empty
-        if ($this->to === ':empty:') {
-            return function() {
-                return null;
-            };
-        }
-
-        // object template
-        if (str_starts_with($this->to, '=')) {
-            $template = substr($this->to, 1);
-            $view = Craft::$app->getView();
-            return function(ElementInterface $element) use ($template, $view) {
-                return $view->renderObjectTemplate($template, $element);
-            };
-        }
-
-        // PHP arrow function
-        if (preg_match('/^fn\s*\(\s*\$(\w+)\s*\)\s*=>\s*(.+)/', $this->to, $match)) {
-            $var = $match[1];
-            $php = sprintf('return %s;', StringHelper::removeLeft(rtrim($match[2], ';'), 'return '));
-            return function(ElementInterface $element) use ($var, $php) {
-                $$var = $element;
-                return eval($php);
-            };
-        }
-
-        // attribute name
-        return function(ElementInterface $element) {
-            return $element->{$this->to};
-        };
-    }
-
-    /**
-     * Returns whether the [[set]] attribute on the given element is empty.
-     *
-     * @param ElementInterface $element
-     * @return bool
-     */
-    private function _isSetAttributeEmpty(ElementInterface $element): bool
-    {
-        // See if we're setting a custom field
-        if ($fieldLayout = $element->getFieldLayout()) {
-            foreach ($fieldLayout->getTabs() as $tab) {
-                foreach ($tab->elements as $layoutElement) {
-                    if ($layoutElement instanceof CustomField && $layoutElement->attribute() === $this->set) {
-                        return $layoutElement->getField()->isValueEmpty($element->getFieldValue($this->set), $element);
-                    }
-                }
-            }
-        }
-
-        return empty($element->{$this->set});
     }
 }

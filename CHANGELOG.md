@@ -26,6 +26,7 @@
 - Each podcast has its heading in users permission page
 - Admin users can grant more specific permissions to users
 - Episode title, duration, number and pubDate are not overwritten when fetching metadata if they are not empty
+- Refactored console ResaveController to add new options and support core 'set' option
 - Fixed route for episodes
 - Fixed a bug where changing lightswitch inputs on the sidebar of the episode edit page, creates unwanted drafts
 - Fixed permission issues where non-admin users were not able to access some plugin actions
