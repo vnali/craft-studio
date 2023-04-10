@@ -275,10 +275,10 @@ class GeneralHelper
             } elseif ($container0Type == 'SuperTable') {
                 $superTableField = Craft::$app->fields->getFieldByHandle($container0Handle);
                 if ($superTableField) {
-                    $blocks = SuperTable::$plugin->service->getBlockTypesByFieldId($superTableField->uid);
+                    $blocks = SuperTable::$plugin->service->getBlockTypesByFieldId($superTableField->id);
                     if (isset($blocks[0])) {
                         $fieldLayout = $blocks[0]->getFieldLayout();
-                        $superTableFields = $fieldLayout->fields;
+                        $superTableFields = $fieldLayout->getCustomFields();
                         foreach ($superTableFields as $key => $fieldItem) {
                             if ($container1Type == 'Table') {
                                 if (get_class($fieldItem) == 'craft\fields\Table' && $fieldItem->handle == $container1Handle) {
@@ -375,6 +375,8 @@ class GeneralHelper
             $container0Handle = null;
             /** @var string|null $container1Type */
             $container1Type = null;
+            /** @var string|null $container1Handle */
+            $container1Handle = null;
 
             $fieldContainers = explode('|', $fieldContainer);
             foreach ($fieldContainers as $key => $fieldContainer) {
@@ -390,12 +392,12 @@ class GeneralHelper
             }
 
             if ($container0Handle) {
-                if ($container0Type == 'Matrix' && $container1Type == 'BlockType') {
+                if ($container0Type == 'Matrix' && $container1Type == 'BlockType' && $container1Handle) {
                     if (isset($element->{$container0Handle})) {
                         $elementMatrixQuery = $element->{$container0Handle};
                         $elementMatrixBlocks = $elementMatrixQuery->all();
                         foreach ($elementMatrixBlocks as $key => $elementMatrixBlock) {
-                            if (isset($elementMatrixBlock->{$fieldHandle})) {
+                            if ($elementMatrixBlock->type->handle == $container1Handle && isset($elementMatrixBlock->{$fieldHandle})) {
                                 $matrixBlockField = $elementMatrixBlock->{$fieldHandle};
                                 if (is_object($matrixBlockField) && get_class($matrixBlockField) == 'craft\elements\db\AssetQuery') {
                                     $elementItem = $matrixBlockField->all();
@@ -598,17 +600,6 @@ class GeneralHelper
         return array($categoryGroup, $categoryField);
     }
 
-    public static function getElementYearField($item, $mapping)
-    {
-        $yearFieldUid = null;
-        $yearField = null;
-        if (isset($mapping[$item . 'Year']['field']) && $mapping[$item . 'Year']['field']) {
-            $yearFieldUid = $mapping[$item . 'Year']['field'];
-            $yearField = Craft::$app->fields->getFieldByUid($yearFieldUid);
-        }
-        return array($yearField);
-    }
-
     public static function getElementPubDateField($item, $mapping)
     {
         $postDateFieldUid = null;
@@ -707,55 +698,38 @@ class GeneralHelper
                     }
                 }
 
-                if ($container0Handle && $container1Handle) {
-                    if ($container0Type == 'Matrix' && $container1Type == 'BlockType') {
-                        $field = Craft::$app->fields->getFieldByHandle($container0Handle);
-                        $existingMatrixQuery = $element->getFieldValue($container0Handle);
-                        $serializedMatrix = $field->serializeValue($existingMatrixQuery, $element);
-
-                        $sortOrder = array_keys($serializedMatrix);
-                        //
-                        if (isset($blockId) && isset($serializedMatrix[$blockId]['fields'][$fileField->handle])) {
-                            $serializedMatrix[$blockId]['fields'][$fileField->handle][] = $fileId;
-                            $element->setFieldValue($container0Handle, $serializedMatrix);
-                        } else {
-                            $sortOrder[] = 'new:1';
-                            $newBlock = [
-                                'type' => $container1Handle,
-                                'fields' => [
-                                    $fileField->handle => [$fileId],
-                                ],
-                            ];
-                            $serializedMatrix['new:1'] = $newBlock;
-                            $element->setFieldValue($container0Handle, [
-                                'sortOrder' => $sortOrder,
-                                'blocks' => $serializedMatrix,
-                            ]);
-                        }
-                    } elseif ($container0Type == 'SuperTable') {
-                        $field = Craft::$app->fields->getFieldByHandle($container0Handle);
-                        $existingStQuery = $element->getFieldValue($container0Handle);
-                        $serializedSt = $field->serializeValue($existingStQuery, $element);
-
-                        $sortOrder = array_keys($serializedSt);
-                        //
-                        if (isset($blockId) && isset($serializedSt[$blockId]['fields'][$fileField->handle])) {
-                            $serializedSt[$blockId]['fields'][$fileField->handle][] = $fileId;
-                            $element->setFieldValue($container0Handle, $serializedSt);
-                        } else {
-                            $sortOrder[] = 'new:1';
-                            $newBlock = [
-                                'type' => $container1Handle,
-                                'fields' => [
-                                    $fileField->handle => [$fileId],
-                                ],
-                            ];
-                            $serializedSt['new:1'] = $newBlock;
-                            $element->setFieldValue($container0Handle, [
-                                'sortOrder' => $sortOrder,
-                                'blocks' => $serializedSt,
-                            ]);
-                        }
+                $itemBlockType = null;
+                if ($container0Handle) {
+                    if ($container0Type && ($container0Type === 'SuperTable')) {
+                        $superTableField = Craft::$app->fields->getFieldByHandle($container0Handle);
+                        $blockTypes = SuperTable::$plugin->getService()->getBlockTypesByFieldId($superTableField->id);
+                        $blockType = $blockTypes[0];
+                        $itemBlockType = $blockType->id;
+                    } elseif ($container0Type) {
+                        $itemBlockType = $container1Handle;
+                    }
+                    $field = Craft::$app->fields->getFieldByHandle($container0Handle);
+                    $existingMatrixQuery = $element->getFieldValue($container0Handle);
+                    $serializedMatrix = $field->serializeValue($existingMatrixQuery, $element);
+                    $sortOrder = array_keys($serializedMatrix);
+                    //
+                    if (isset($blockId) && isset($serializedMatrix[$blockId]['fields'][$fileField->handle])) {
+                        $serializedMatrix[$blockId]['fields'][$fileField->handle] = [];
+                        $serializedMatrix[$blockId]['fields'][$fileField->handle][] = $fileId;
+                        $element->setFieldValue($container0Handle, $serializedMatrix);
+                    } else {
+                        $sortOrder[] = 'new:1';
+                        $newBlock = [
+                            'type' => $itemBlockType,
+                            'fields' => [
+                                $fileField->handle => [$fileId],
+                            ],
+                        ];
+                        $serializedMatrix['new:1'] = $newBlock;
+                        $element->setFieldValue($container0Handle, [
+                            'sortOrder' => $sortOrder,
+                            'blocks' => $serializedMatrix,
+                        ]);
                     }
                 }
             }
@@ -856,7 +830,7 @@ class GeneralHelper
             }
         }
 
-        if ((!$keywordIds && $itemImportOptions == 'default-if-not-meta') || $itemImportOptions == 'only-default' || $itemImportOptions == 'meta-and-default') {
+        if ((!$keywordIds && $itemImportOptions == 'default-if-not-metadata') || $itemImportOptions == 'only-default' || $itemImportOptions == 'metadata-and-default') {
             $defaultKeywords = $defaultKeywordsList;
         }
 

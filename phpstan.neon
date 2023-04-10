@@ -10,4 +10,5 @@ parameters:
     -   '#Access to property \$handle on an unknown class verbb\\supertable\\fields\\SuperTableField#'
     -   '#Access to property \$id on an unknown class verbb\\supertable\\fields\\SuperTableField.#'
     -   '#Access to property \$name on an unknown class verbb\\supertable\\fields\\SuperTableField.#'
+    -   '#Access to an undefined property verbb\\supertable\\SuperTable::\$service.#'
     reportUnmatchedIgnoredErrors: false
