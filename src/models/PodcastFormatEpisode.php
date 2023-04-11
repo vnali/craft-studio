@@ -110,6 +110,16 @@ class PodcastFormatEpisode extends Model
                     'craft\fields\Url' => 'URL',
                 ],
             ],
+            'episodeSubtitle' => [
+                'label' => 'Subtitle field',
+                'handle' => 'episodeSubtitle',
+                'convertTo' => [
+                    '' => 'select one',
+                    'craft\fields\PlainText' => 'plain text',
+                    'craft\ckeditor\Field' => 'ckeditor',
+                    'craft\redactor\Field' => 'redactor',
+                ],
+            ],
             'episodeSummary' => [
                 'label' => 'Summary field',
                 'handle' => 'episodeSummary',

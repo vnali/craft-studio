@@ -493,9 +493,11 @@ class PodcastsController extends Controller
                     $imageUrl = $episode->{$imageFieldHandle};
                 } elseif (get_class($imageField) == 'craft\fields\Assets') {
                     $imageFieldHandle = $imageField->handle;
-                    $episodeImage = $episode->$imageFieldHandle->one();
-                    if ($episodeImage) {
-                        $imageUrl = $episodeImage->url;
+                    if ($episode->$imageFieldHandle) {
+                        $episodeImage = $episode->$imageFieldHandle->one();
+                        if ($episodeImage) {
+                            $imageUrl = $episodeImage->url;
+                        }
                     }
                 }
                 if (isset($imageUrl)) {
@@ -520,6 +522,14 @@ class PodcastsController extends Controller
                 }
                 $xmlEpisodeExplicit = $xml->createElement("itunes:explicit", $episodeExplicit);
                 $xmlItem->appendChild($xmlEpisodeExplicit);
+            }
+
+            // Episode itunes:subtitle
+            $subtitleField = GeneralHelper::getElementSubtitleField('episode', $episodeMapping);
+            if ($subtitleField) {
+                $subtitleFieldHandle = $subtitleField->handle;
+                $xmlEpisodeSubtitle = $xml->createElement("itunes:subtitle", htmlspecialchars($episode->{$subtitleFieldHandle}, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlItem->appendChild($xmlEpisodeSubtitle);
             }
 
             // Episode itunes:summary

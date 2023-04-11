@@ -18,6 +18,7 @@
 - Now each podcast has two settings pages (general settings, episode settings)
 - Episode summary and description can be different now
 - Added basic support for pubDate on podcast RSS
+- Added support for fetching itunes:subtitle from RSS
 - podcasts and episodes records are now removing when their related elements are removed
 - Improved fetch from RSS via CURL 
 - Improved fetch from RSS progress notifications

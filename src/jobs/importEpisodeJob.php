@@ -113,6 +113,15 @@ class importEpisodeJob extends BaseJob
                                 $itemElement->{$summaryFieldHandle} = $summary;
                             }
                             break;
+                        case 'subtitle':
+                            $crawler = new Crawler($domElement);
+                            $subtitle = $crawler->filter('subtitle')->html();
+                            $subtitleField = GeneralHelper::getElementSubtitleField('episode', $mapping);
+                            if ($subtitleField) {
+                                $subtitleFieldHandle = $subtitleField->handle;
+                                $itemElement->{$subtitleFieldHandle} = $subtitle;
+                            }
+                            break;
                         case 'description':
                             $crawler = new Crawler($domElement);
                             $description = $crawler->html();

@@ -611,6 +611,17 @@ class GeneralHelper
         return array($postDateField);
     }
 
+    public static function getElementSubtitleField($item, $mapping)
+    {
+        $subtitleField = null;
+        $subtitleFieldUid = null;
+        if (isset($mapping[$item . 'Subtitle']['field']) && $mapping[$item . 'Subtitle']['field']) {
+            $subtitleFieldUid = $mapping[$item . 'Subtitle']['field'];
+            $subtitleField = Craft::$app->fields->getFieldByUid($subtitleFieldUid);
+        }
+        return $subtitleField;
+    }
+
     public static function getElementSummaryField($item, $mapping)
     {
         $summaryField = null;
