@@ -6,8 +6,13 @@
 
 {% block content %}
     {% import "_includes/forms" as forms %}
+
+    <div class="studio-info">
+        <span class="info"></span> &nbsp; 
+        {{ 'Import sample episode fields to a podcast format'|t('studio') }}
+    </div>
+
 	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-    	Import sample episode fields
 		{{ redirectInput('studio/settings/podcast-formats') }}
 		{{ csrfInput() }}
         {{ forms.selectField({
@@ -22,3 +27,4 @@
 		</p>
 	</form>
 {% endblock %}
+{% do view.registerAssetBundle("vnali\\studio\\assets\\StudioCssAsset") %}

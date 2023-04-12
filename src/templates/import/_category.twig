@@ -8,9 +8,11 @@
 
 	{% import "_includes/forms" as forms %}
 
-    <p>
-        Import default podcast categories to entries or category groups
-    </p>
+    <div class="studio-info">
+        <span class="info"></span> &nbsp; 
+        {{ 'Import default podcast categories to a empty section/entry type or category group'|t('studio') }}
+    </div>
+        
 	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
 		{{ csrfInput() }}
 		{{ forms.selectField({
@@ -20,7 +22,7 @@
             options: categories,  
         }) }}
 
-        ----------------
+        ------ {{ 'Or'|t('studio') }} ------
 
         {{ forms.selectField({
             label: 'Section'|t('app'),
@@ -70,3 +72,4 @@
         });
     {% endjs %}
 {% endblock %}
+{% do view.registerAssetBundle("vnali\\studio\\assets\\StudioCssAsset") %}
