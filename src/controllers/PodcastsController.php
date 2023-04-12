@@ -199,12 +199,20 @@ class PodcastsController extends Controller
      * Generate Podcast's RSS
      *
      * @param integer $podcastId
+     * @param string|null $site
      * @return Response
      */
-    public function actionRss(int $podcastId): Response
+    public function actionRss(int $podcastId, ?string $site = null): Response
     {
-        $currentSite = Craft::$app->sites->getCurrentSite();
-        $siteId = $currentSite->id;
+        if ($site) {
+            $site = Craft::$app->sites->getSiteByHandle($site);
+        }
+
+        // If site is not passed or not found use default site
+        if (!$site) {
+            $site = Craft::$app->sites->getCurrentSite();
+        }
+        $siteId = $site->id;
 
         /** @var PodcastElement|null $podcast */
         $podcast = PodcastElement::find()->id($podcastId)->status(null)->siteId($siteId)->one();

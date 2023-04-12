@@ -28,6 +28,7 @@
 - Admin users can grant more specific permissions to users
 - Episode title, duration, number and pubDate are not overwritten when fetching metadata if they are not empty
 - Refactored console ResaveController to add new options and support core 'set' option
+- Changed podcast RSS URL to use site handle instead of site Id
 - Fixed route for episodes
 - Fixed a bug where changing lightswitch inputs on the sidebar of the episode edit page, creates unwanted drafts
 - Fixed permission issues where non-admin users were not able to access some plugin actions
@@ -35,6 +36,8 @@
 - Fixed a bug where a deleted podcast format with same handle was used in podcast creation
 - Fixed a bug where trashed items won't show up correctly on podcast and episode index page
 - Fixed an error on element index pages on plugin reinstall where template cache try to get old elements
+- Fixed an error where podcast RSS label was wrong for multi-site set up
+- Fixed a bug where RSS always used current site instead of requested site
 - Removed getPodcastBySlug()
 - Dropped Craft 4.3 support
 

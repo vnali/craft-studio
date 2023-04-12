@@ -287,14 +287,19 @@ class Podcast extends Element
                 $elementId = $this->id;
                 if (!$this->getIsDraft()) {
                     $record = PodcastGeneralSettingsRecord::find()->where(['podcastId' => $this->id])->one();
+                    if (Craft::$app->getIsMultiSite() && count($this->getSupportedSites()) > 1) {
+                        $enabled = $this->getEnabledForSite();
+                    } else {
+                        $enabled = $this->enabled;
+                    }
                     /** @var PodcastGeneralSettingsRecord|null $record */
-                    if ($this->enabled && $record && $record->publishRSS) {
+                    if ($enabled && $record && $record->publishRSS) {
                         $RSSLabel = Craft::t('studio', 'View');
                     } else {
                         $RSSLabel = Craft::t('studio', 'Preview');
                     }
                 }
-                return "<a href='/podcasts/rss?podcastId=" . $elementId . "&siteId=" . $this->siteId . "'>" . $RSSLabel . "</a>";
+                return "<a href='/podcasts/rss?podcastId=" . $elementId . "&site=" . $this->getSite()->handle . "'>" . $RSSLabel . "</a>";
             case 'dateCreated':
                 $date = $this->dateCreated;
                 return $date->format('Y-m-d H:i:s');
