@@ -262,6 +262,9 @@ class Install extends Migration
             foreach ($elements as $element) {
                 $elementsService->deleteElement($element);
             }
+
+            // To prevent errors on podcast/episode index page on plugin reinstall because of template cache
+            Craft::$app->getElements()->invalidateCachesForElementType($elementType);
         }
     }
 
