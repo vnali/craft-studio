@@ -933,7 +933,7 @@ class Podcast extends Element
     protected static function defineTableAttributes(): array
     {
         $attributes = [
-            'uploader' => ['label' => Craft::t('app', 'Uploader')],
+            'uploader' => ['label' => Craft::t('studio', 'Creator')],
             'link' => ['label' => Craft::t('studio', 'link')],
             'RSS' => ['label' => Craft::t('studio', 'RSS')],
             'slug' => ['label' => Craft::t('studio', 'Slug')],
