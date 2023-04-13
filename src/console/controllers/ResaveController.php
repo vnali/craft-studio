@@ -110,29 +110,33 @@ class ResaveController extends Controller
 
     public ?string $set = null;
 
+    public string|array|null $propagateTo = null;
+
+    public ?bool $setEnabledForSite = null;
+
     public ?string $to = null;
 
     public bool $ifEmpty = false;
 
-    public bool $metadata = false;
+    public ?bool $metadata = null;
 
-    public bool $imageMetadata = false;
+    public ?bool $imageMetadata = null;
 
-    public bool $allowEmptyMetaValue = false;
+    public ?bool $allowEmptyMetaValue = null;
 
-    public bool $overwriteDuration = false;
+    public ?bool $overwriteDuration = null;
 
-    public bool $overwriteGenre = false;
+    public ?bool $overwriteGenre = null;
 
-    public bool $overwriteImage = false;
+    public ?bool $overwriteImage = null;
 
-    public bool $overwriteNumber = false;
+    public ?bool $overwriteNumber = null;
 
-    public bool $overwritePubDate = false;
+    public ?bool $overwritePubDate = null;
 
-    public bool $overwriteTitle = false;
+    public ?bool $overwriteTitle = null;
 
-    public bool $previewMetadata = false;
+    public ?bool $previewMetadata = null;
 
     /**
      * @inheritdoc
@@ -154,7 +158,6 @@ class ResaveController extends Controller
         switch ($actionID) {
             case 'episodes':
                 $options[] = 'allowEmptyMetaValue';
-                $options[] = 'drafts';
                 $options[] = 'metadata';
                 $options[] = 'imageMetadata';
                 $options[] = 'overwriteDuration';
@@ -164,8 +167,15 @@ class ResaveController extends Controller
                 $options[] = 'overwritePubDate';
                 $options[] = 'overwriteTitle';
                 $options[] = 'previewMetadata';
+                $options[] = 'drafts';
                 $options[] = 'provisionalDrafts';
                 $options[] = 'revisions';
+                $options[] = 'propagateTo';
+                $options[] = 'setEnabledForSite';
+                break;
+            case 'podcasts':
+                $options[] = 'propagateTo';
+                $options[] = 'setEnabledForSite';
                 break;
         }
 
@@ -183,6 +193,40 @@ class ResaveController extends Controller
     {
         if (!parent::beforeAction($action)) {
             return false;
+        }
+
+        if (isset($this->propagateTo)) {
+            $siteHandles = array_filter(StringHelper::split($this->propagateTo));
+            $this->propagateTo = [];
+            $sitesService = Craft::$app->getSites();
+            foreach ($siteHandles as $siteHandle) {
+                $site = $sitesService->getSiteByHandle($siteHandle, true);
+                if (!$site) {
+                    $this->stderr("Invalid site handle: $siteHandle" . PHP_EOL, Console::FG_RED);
+                    return false;
+                }
+                $this->propagateTo[] = $site->id;
+            }
+
+            if (isset($this->set)) {
+                $this->stderr('--propagate-to can’t be coupled with --set.' . PHP_EOL, Console::FG_RED);
+                return false;
+            }
+
+            if (isset($this->previewMetadata)) {
+                $this->stderr('--previewMetadata can’t be coupled with --previewMetadata.' . PHP_EOL, Console::FG_RED);
+                return false;
+            }
+
+            if (isset($this->metadata)) {
+                $this->stderr('--metadata can’t be coupled with --metadata.' . PHP_EOL, Console::FG_RED);
+                return false;
+            }
+
+            if (isset($this->imageMetadata)) {
+                $this->stderr('--imageMetadata can’t be coupled with --imageMetadata.' . PHP_EOL, Console::FG_RED);
+                return false;
+            }
         }
 
         if (isset($this->set) && !isset($this->to)) {
@@ -340,8 +384,9 @@ class ResaveController extends Controller
 
         $to = isset($this->set) ? self::normalizeTo($this->to) : null;
 
+        $label = isset($this->propagateTo) ? 'Propagating' : 'Resaving';
         $elementsText = $count === 1 ? $elementType::lowerDisplayName() : $elementType::pluralLowerDisplayName();
-        $this->stdout("Resaving $count $elementsText ..." . PHP_EOL, Console::FG_YELLOW);
+        $this->stdout("$label $count $elementsText ..." . PHP_EOL, Console::FG_YELLOW);
 
         $elementsService = Craft::$app->getElements();
         $fail = false;
@@ -350,6 +395,7 @@ class ResaveController extends Controller
             if ($e->query === $query) {
                 $setting = null;
                 $importSetting = null;
+                $label = isset($this->propagateTo) ? 'Propagating' : 'Resaving';
                 $element = $e->element;
                 if ($elementItem == 'episode') {
                     // Currently resave only happen for episode
@@ -363,7 +409,7 @@ class ResaveController extends Controller
                         $importSetting = json_decode($setting->settings, true);
                     }
                 }
-                $this->stdout("    - [$e->position/$count] Resaving $element ($element->id) ... ");
+                $this->stdout("    - [$e->position/$count] $label $element ($element->id) ... ");
 
                 // Checking meta on resave
                 $fieldHandle = null;
@@ -516,7 +562,7 @@ class ResaveController extends Controller
                             } else {
                                 $this->stdout(PHP_EOL . "    - Year is not available in metadata", Console::FG_YELLOW);
                             }
-                            if (isset($pubDateField)) {
+                            if (isset($pubDateField) && isset($importSetting['pubDateOption'])) {
                                 $pubDateOption = $importSetting['pubDateOption'];
                                 if ($pubDateOption == 'only-metadata' || $pubDateOption == 'default-if-not-metadata') {
                                     $defaultPubDate = $importSetting['defaultPubDate'];
@@ -735,12 +781,26 @@ class ResaveController extends Controller
 
                 $this->stdout(PHP_EOL);
 
-                try {
-                    if (isset($this->set) && (!$this->ifEmpty || ElementHelper::isAttributeEmpty($element, $this->set))) {
-                        $element->{$this->set} = $to($element);
+                if (isset($this->propagateTo)) {
+                    // Set the full array for all sites, so the propagated element gets the right status
+                    $siteStatuses = ElementHelper::siteStatusesForElement($element);
+                    foreach ($this->propagateTo as $siteId) {
+                        $siteStatuses[$siteId] = $this->setEnabledForSite ?? $siteStatuses[$siteId] ?? $element->getEnabledForSite();
                     }
-                } catch (Throwable $e) {
-                    throw new InvalidElementException($element, $e->getMessage());
+                    $element->setEnabledForSite($siteStatuses);
+                } else {
+                    if (isset($this->setEnabledForSite)) {
+                        // Just set it for this site
+                        $element->setEnabledForSite($this->setEnabledForSite);
+                    }
+
+                    try {
+                        if (isset($this->set) && (!$this->ifEmpty || ElementHelper::isAttributeEmpty($element, $this->set))) {
+                            $element->{$this->set} = $to($element);
+                        }
+                    } catch (Throwable $e) {
+                        throw new InvalidElementException($element, $e->getMessage());
+                    }
                 }
             }
         };
@@ -760,15 +820,23 @@ class ResaveController extends Controller
             }
         };
 
-        $elementsService->on(Elements::EVENT_BEFORE_RESAVE_ELEMENT, $beforeCallback);
-        $elementsService->on(Elements::EVENT_AFTER_RESAVE_ELEMENT, $afterCallback);
+        if (isset($this->propagateTo)) {
+            $elementsService->on(Elements::EVENT_BEFORE_PROPAGATE_ELEMENT, $beforeCallback);
+            $elementsService->on(Elements::EVENT_AFTER_PROPAGATE_ELEMENT, $afterCallback);
+            $elementsService->propagateElements($query, $this->propagateTo, true);
+            $elementsService->off(Elements::EVENT_BEFORE_PROPAGATE_ELEMENT, $beforeCallback);
+            $elementsService->off(Elements::EVENT_AFTER_PROPAGATE_ELEMENT, $afterCallback);
+        } else {
+            $elementsService->on(Elements::EVENT_BEFORE_RESAVE_ELEMENT, $beforeCallback);
+            $elementsService->on(Elements::EVENT_AFTER_RESAVE_ELEMENT, $afterCallback);
+            $elementsService->resaveElements($query, true, !$this->revisions, $this->updateSearchIndex, $this->touch);
+            $elementsService->off(Elements::EVENT_BEFORE_RESAVE_ELEMENT, $beforeCallback);
+            $elementsService->off(Elements::EVENT_AFTER_RESAVE_ELEMENT, $afterCallback);
+        }
 
-        $elementsService->resaveElements($query, true, !$this->revisions, $this->updateSearchIndex, $this->touch);
+        $label = isset($this->propagateTo) ? 'propagating' : 'resaving';
 
-        $elementsService->off(Elements::EVENT_BEFORE_RESAVE_ELEMENT, $beforeCallback);
-        $elementsService->off(Elements::EVENT_AFTER_RESAVE_ELEMENT, $afterCallback);
-
-        $this->stdout("Done resaving $elementsText." . PHP_EOL . PHP_EOL, Console::FG_YELLOW);
+        $this->stdout("Done $label $elementsText." . PHP_EOL . PHP_EOL, Console::FG_YELLOW);
         return $fail ? ExitCode::UNSPECIFIED_ERROR : ExitCode::OK;
     }
 }
