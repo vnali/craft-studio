@@ -41,6 +41,7 @@
 - Fixed an error where podcast RSS label was wrong for multi-site set up
 - Fixed a bug where RSS always used current site instead of requested site
 - Fixed a bug where only podcast for the default site was displayed on the permission list
+- Fixed defineSources for episode for multi-site
 - Removed getPodcastBySlug()
 - Dropped Craft 4.3 support
 

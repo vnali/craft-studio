@@ -823,7 +823,7 @@ class Episode extends Element
     {
         $criteria = [];
         $podcastCriteria = [];
-        $podcasts = Podcast::find()->status(null)->all();
+        $podcasts = Podcast::find()->status(null)->site('*')->all();
         $episodeIds = [];
         $user = Craft::$app->getUser()->getIdentity();
         foreach ($podcasts as $podcast) {
@@ -832,7 +832,7 @@ class Episode extends Element
             if (
                 Craft::$app->user->checkPermission('studio-viewPodcastEpisodes-' . $podcast->uid)
             ) {
-                $episodes = Episode::find()->podcastId($podcast->id)->status(null)->trashed(null)->all();
+                $episodes = Episode::find()->podcastId($podcast->id)->siteId($podcast->siteId)->status(null)->trashed(null)->all();
                 foreach ($episodes as $episode) {
                     if ($episode->uploaderId === $user->id || $user->can('studio-viewOtherUserEpisodes-' . $podcast->uid)) {
                         $episodeIds[] = $episode->id;
@@ -841,54 +841,49 @@ class Episode extends Element
                 }
                 // Now if the user can view other user's drafts, show all drafts for that podcast too
                 if (Craft::$app->user->checkPermission('studio-viewOtherUserDraftEpisodes-' . $podcast->uid)) {
-                    $drafts = Episode::find()->podcastId($podcast->id)->status(null)->drafts()->trashed(null)->all();
+                    $drafts = Episode::find()->podcastId($podcast->id)->siteId($podcast->siteId)->status(null)->drafts()->trashed(null)->all();
                     foreach ($drafts as $draft) {
                         $episodeIds[] = $draft->id;
                         $podcastEpisodeIds[] = $draft->id;
                     }
                 } else {
                     // otherwise only show created drafts by this user on podcast index page
-                    $drafts = Episode::find()->podcastId($podcast->id)->status(null)->drafts()->draftCreator(Craft::$app->user->identity)->trashed(null)->all();
+                    $drafts = Episode::find()->podcastId($podcast->id)->siteId($podcast->siteId)->status(null)->drafts()->draftCreator(Craft::$app->user->identity)->trashed(null)->all();
                     foreach ($drafts as $draft) {
                         $episodeIds[] = $draft->id;
                         $podcastEpisodeIds[] = $draft->id;
                     }
                 }
             }
-            $podcastCriteria[$podcast->id] = $podcastEpisodeIds;
+            $podcastCriteria[$podcast->id][$podcast->siteId] = $podcastEpisodeIds;
         }
+
+        $sources = [];
         $criteria = [
             'id' => $episodeIds,
         ];
-
-        $sources = [
-            [
-                'key' => '*',
-                'label' => Craft::t('studio', 'All Episodes'),
-                'defaultSort' => ['dateCreated', 'desc'],
-                'hasThumbs' => true,
-                'criteria' => $criteria,
-            ],
-            [
-                'heading' => Craft::t('studio', 'Podcasts'),
-            ],
+        $sources[] = [
+            'key' => '*',
+            'label' => Craft::t('studio', 'All Episodes'),
+            'defaultSort' => ['dateCreated', 'desc'],
+            'hasThumbs' => true,
+            'criteria' => $criteria,
         ];
 
         $podcasts = Studio::$plugin->podcasts->getAllPodcastsAllSites();
-
         foreach ($podcasts as $podcast) {
             if (
                 Craft::$app->user->checkPermission('studio-viewPodcastEpisodes-' . $podcast->uid)
             ) {
                 $sources[] = [
-                    'key' => 'podcast:' . $podcast->uid,
+                    'key' => 'podcast:' . $podcast->uid . $podcast->siteId,
                     'label' => $podcast->title,
                     'data' => [
                         'handle' => $podcast->id . '-' . $podcast->slug,
                     ],
                     'sites' => [$podcast->siteId],
                     'criteria' => [
-                        'id' => $podcastCriteria[$podcast->id],
+                        'id' => $podcastCriteria[$podcast->id][$podcast->siteId],
                     ],
                 ];
             }
