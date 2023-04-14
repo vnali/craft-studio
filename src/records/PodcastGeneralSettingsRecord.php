@@ -11,6 +11,7 @@ use craft\db\ActiveRecord;
  * Podcast general setting record.
  *
  * @property int $podcastId
+* @property int $siteId
  * @property bool $publishRSS
  * @property bool $allowAllToSeeRSS
  */

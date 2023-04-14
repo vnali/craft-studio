@@ -286,7 +286,7 @@ class Podcast extends Element
                 $RSSLabel = '';
                 $elementId = $this->id;
                 if (!$this->getIsDraft()) {
-                    $record = PodcastGeneralSettingsRecord::find()->where(['podcastId' => $this->id])->one();
+                    $record = PodcastGeneralSettingsRecord::find()->where(['podcastId' => $this->id, 'siteId' => $this->siteId])->one();
                     if (Craft::$app->getIsMultiSite() && count($this->getSupportedSites()) > 1) {
                         $enabled = $this->getEnabledForSite();
                     } else {

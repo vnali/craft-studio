@@ -216,7 +216,7 @@ class PodcastsController extends Controller
 
         /** @var PodcastElement|null $podcast */
         $podcast = PodcastElement::find()->id($podcastId)->status(null)->siteId($siteId)->one();
-        $generalSettings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId);
+        $generalSettings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId, $siteId);
         $userSession = Craft::$app->getUser();
         $currentUser = $userSession->getIdentity();
 
@@ -634,23 +634,28 @@ class PodcastsController extends Controller
      * Generate general setting's template for podcast
      *
      * @param int $podcastId
+     * @param int $siteId
      * @param PodcastGeneralSettings $settings
      * @return Response
      */
-    public function actionPodcastGeneralSettings(int $podcastId, PodcastGeneralSettings $settings = null): Response
+    public function actionPodcastGeneralSettings(int $podcastId, int $siteId, PodcastGeneralSettings $settings = null): Response
     {
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
             throw new NotFoundHttpException('invalid podcast id');
         }
         $this->requirePermission('studio-editPodcastGeneralSettings-' . $podcast->uid);
 
         if ($settings === null) {
-            $settings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId);
+            $settings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId, $siteId);
         }
+
+        $site = Craft::$app->sites->getSiteById($siteId);
 
         $variables['podcastId'] = $podcastId;
         $variables['settings'] = $settings;
+        $variables['podcast'] = $podcast;
+        $variables['site'] = $site;
 
         return $this->renderTemplate(
             'studio/podcasts/_generalSettings',
@@ -786,8 +791,9 @@ class PodcastsController extends Controller
     {
         $this->requirePostRequest();
         $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
+        $siteId = Craft::$app->getRequest()->getBodyParam('siteId');
         if ($podcastId) {
-            $settings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId);
+            $settings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId, $siteId);
         } else {
             throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
         }
@@ -800,6 +806,7 @@ class PodcastsController extends Controller
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $settings->publishRSS = Craft::$app->getRequest()->getBodyParam('publishRSS', $settings->publishRSS);
         $settings->allowAllToSeeRSS = Craft::$app->getRequest()->getBodyParam('allowAllToSeeRSS', $settings->allowAllToSeeRSS);
+        $settings->siteId = Craft::$app->getRequest()->getBodyParam('siteId');
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'Couldn’t save podcast general settings.'));
@@ -819,11 +826,13 @@ class PodcastsController extends Controller
         Db::upsert('{{%studio_podcast_general_settings}}', [
             'userId' => $userId,
             'podcastId' => $podcastId,
+            'siteId' => $siteId,
             'publishRSS' => $settings->publishRSS,
             'allowAllToSeeRSS' => $settings->allowAllToSeeRSS,
         ], [
             'publishRSS' => $settings->publishRSS,
             'allowAllToSeeRSS' => $settings->allowAllToSeeRSS,
+            'siteId' => $siteId,
         ]);
 
         Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast general settings saved'));

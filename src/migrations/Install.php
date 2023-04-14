@@ -183,6 +183,7 @@ class Install extends Migration
             $this->createTable('{{%studio_podcast_general_settings}}', [
                 'id' => $this->primaryKey(),
                 'podcastId' => $this->integer()->unique(),
+                'siteId' => $this->integer(),
                 'publishRSS' => $this->boolean()->defaultValue(false),
                 'allowAllToSeeRSS' => $this->boolean()->defaultValue(false),
                 'userId' => $this->integer(),
@@ -191,8 +192,11 @@ class Install extends Migration
                 'uid' => $this->uid(),
             ]);
 
+            // Create podcastId,siteId unique
+            $this->createIndex(null, '{{%studio_podcast_general_settings}}', ['podcastId', 'siteId'], true);
             $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'podcastId', '{{%studio_podcast}}', 'id', 'SET NULL', 'CASCADE');
             $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'siteId', '{{%sites}}', 'id', 'CASCADE', 'CASCADE');
         }
 
         // Create settings table for episode import

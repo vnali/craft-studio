@@ -50,7 +50,8 @@ class PodcastGeneralSettings extends ElementAction
             return true;
         },
         activate: \$selectedItems => {
-            window.open('podcasts/podcast-general-settings?podcastId=' + \$selectedItems.find('.element').data('id'), '_self');
+            window.open('podcasts/podcast-general-settings?podcastId=' + \$selectedItems.find('.element').data('id') + '&siteId=' +
+            \$selectedItems.find('.element').data('siteId') , '_self');
         },
     });
 })();

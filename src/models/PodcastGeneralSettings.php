@@ -6,6 +6,7 @@
 namespace vnali\studio\models;
 
 use craft\base\Model;
+use craft\validators\SiteIdValidator;
 use vnali\studio\elements\Podcast;
 
 class PodcastGeneralSettings extends Model
@@ -13,6 +14,7 @@ class PodcastGeneralSettings extends Model
     public ?bool $allowAllToSeeRSS = null;
     public ?bool $publishRSS = null;
     public int $podcastId;
+    public int $siteId;
 
     public function rules(): array
     {
@@ -25,6 +27,7 @@ class PodcastGeneralSettings extends Model
             }
         }, 'skipOnEmpty' => true];
         $rules[] = [['publishRSS', 'allowAllToSeeRSS'], 'in', 'range' => [0, 1]];
+        $rules[] = [['siteId'], SiteIdValidator::class];
         return $rules;
     }
 }

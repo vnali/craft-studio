@@ -1,6 +1,9 @@
 {% extends 'studio/_layouts/index.twig' %}
 
-{% set title = 'General settings'|t('studio') %}
+{% set title = 'General settings for {name} - {site} site'|t('studio', params = {
+  name: podcast.title,
+  site: site.name
+}) %}
 
 {% set crumbs = [] %}
 
@@ -15,6 +18,8 @@
 		{{ hiddenInput('podcastId', podcastId) }}
 
 		<input type="hidden" name="action" value="studio/podcasts/general-settings-save">
+
+        <input type="hidden" name="siteId" value={{ site.id }}>
 
 		{{ forms.lightswitchField({
             label: 'Publish RSS'|t('studio'),

@@ -222,18 +222,20 @@ class podcastsService extends Component
      * Get general settings for a podcast
      *
      * @param int $podcastId
+     * @param int $siteId
      * @return PodcastGeneralSettings
      */
-    public function getPodcastGeneralSettings(int $podcastId): PodcastGeneralSettings
+    public function getPodcastGeneralSettings(int $podcastId, int $siteId): PodcastGeneralSettings
     {
         $podcastGeneralSettings = new PodcastGeneralSettings();
         $record = PodcastGeneralSettingsRecord::find()
-            ->where(['podcastId' => $podcastId])
+            ->where(['podcastId' => $podcastId, 'siteId' => $siteId])
             ->one();
         if ($record) {
             $podcastGeneralSettings = new PodcastGeneralSettings();
             /** @var PodcastGeneralSettingsRecord $record */
             $podcastGeneralSettings->podcastId = $record->podcastId;
+            $podcastGeneralSettings->siteId = $record->siteId;
             $podcastGeneralSettings->publishRSS = $record->publishRSS;
             $podcastGeneralSettings->allowAllToSeeRSS = $record->allowAllToSeeRSS;
         }
