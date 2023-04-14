@@ -227,6 +227,7 @@ Studio.EpisodeIndex = Craft.BaseElementIndex.extend({
                     });
                     slideout.on('submit', () => {
                         // Make sure the right podcast is selected
+                        // TODO: append siteId to podcastSourceKey to be compatible with episode defineSources key
                         const podcastSourceKey = `podcast:${podcast.uid}`;
 
                         if (this.sourceKey !== podcastSourceKey) {
