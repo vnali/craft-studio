@@ -1,6 +1,8 @@
 {% extends 'studio/_layouts/index.twig' %}
 
-{% set title = 'Episode settings'|t('studio') %}
+{% set title = 'Episode settings for {name}'|t('studio', params = {
+  name: podcast.title,
+}) %}
 
 {% set crumbs = [] %}
 

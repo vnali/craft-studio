@@ -667,12 +667,13 @@ class PodcastsController extends Controller
      * Generate episode setting's template for podcast
      *
      * @param int $podcastId
+     * @param int $siteId
      * @param PodcastEpisodeSettings $settings
      * @return Response
      */
-    public function actionPodcastEpisodeSettings(int $podcastId, PodcastEpisodeSettings $settings = null): Response
+    public function actionPodcastEpisodeSettings(int $podcastId, int $siteId, PodcastEpisodeSettings $settings = null): Response
     {
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
             throw new NotFoundHttpException('invalid podcast id');
         }
@@ -732,7 +733,7 @@ class PodcastsController extends Controller
             $volume['label'] = $volumeItem->name;
             $variables['volumes'][] = $volume;
         }
-
+        
         $variables['settings'] = $settings;
         $variables['podcasts'] = [];
         $variables['podcastId'] = $podcastId;
@@ -775,6 +776,10 @@ class PodcastsController extends Controller
             ['value' => 'only-default', 'label' => Craft::t('studio', 'Use only default pubDate')],
             ['value' => 'default-if-not-metadata', 'label' => Craft::t('studio', 'Use default pubDate only if metadata is not available')],
         ];
+
+        $site = Craft::$app->sites->getSiteById($siteId);
+        $variables['podcast'] = $podcast;
+        $variables['site'] = $site;
 
         return $this->renderTemplate(
             'studio/podcasts/_episodeSettings',

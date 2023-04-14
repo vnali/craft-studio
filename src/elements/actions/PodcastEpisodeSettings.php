@@ -50,7 +50,8 @@ class PodcastEpisodeSettings extends ElementAction
             return true;
         },
         activate: \$selectedItems => {
-            window.open('podcasts/podcast-episode-settings?podcastId=' + \$selectedItems.find('.element').data('id'), '_self');
+            window.open('podcasts/podcast-episode-settings?podcastId=' + \$selectedItems.find('.element').data('id') + '&siteId=' +
+            \$selectedItems.find('.element').data('siteId'), '_self');
         },
     });
 })();
