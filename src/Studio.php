@@ -602,7 +602,7 @@ class Studio extends Plugin
             UserPermissions::EVENT_REGISTER_PERMISSIONS,
             function(RegisterUserPermissionsEvent $event) {
                 $podcastPermissions = [];
-                $podcasts = PodcastElement::find()->status(null)->all();
+                $podcasts = PodcastElement::find()->status(null)->siteId('*')->unique()->all();
                 $permissions = [
                     'studio-managePodcasts' => [
                         'label' => Craft::t('studio', 'Manage Podcasts'),
