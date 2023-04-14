@@ -1,6 +1,8 @@
 {% extends 'studio/_layouts/index.twig' %}
 
-{% set title = 'Setting for Importing episodes by asset index'|t('studio') %}
+{% set title = 'Setting for Importing episodes to {name} by asset index'|t('studio', params = {
+  name: podcast.title,
+}) %}
 
 {% set crumbs = [] %}
 
@@ -23,7 +25,8 @@
             options: volumes,
             values: settings.volumes ?? null,
             required: false,
-            tip: 'After saving this form, Go to Asset indexes utility to index volume and import assets/episodes'
+            tip: 'After saving this form, Go to Asset indexes utility to index volume and import assets/episodes',
+            errors: settings.getErrors('volumes'),
         }) }}
 
         {{ forms.lightswitchField({
@@ -37,12 +40,21 @@
             on: enable is defined ? enable
         }) }}
 
+        {{ forms.multiSelectField({
+            label: 'sites'|t('studio'),
+            id: 'siteIds',
+            name: 'siteIds',
+            options: sites,
+            values: settings.siteIds ?? null,
+            errors: settings.getErrors('siteIds'),
+        }) }}
+
 		<input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
 
 	</form>
 {% endblock %}
 {% js %}
-$('#volumes').selectize({
+$('#volumes, #siteIds').selectize({
         plugins: ['remove_button'],
         dropdownParent: 'body'
     });

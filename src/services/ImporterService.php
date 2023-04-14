@@ -182,14 +182,17 @@ class ImporterService extends Component
         // Set site status for episode
         $siteId = null;
         $siteStatus = [];
-        foreach ($sitesSettings as $key => $siteSetting) {
-            if (!$siteId) {
-                $siteId = $key;
+        // $siteStatus[$key] = $siteSetting[$item . 'EnabledByDefault'];
+        // To Prevent unwanted content on RSS or site, we force disabled status to be checked by admin first
+        // Also if we use enabled status by default, there is a chance that doesn't save due to validation error like required rules
+        foreach ($sitesSettings as $key => $siteSettings) {
+            if (in_array($key, $importSetting['siteIds'])) {
+                if (!$siteId) {
+                    $siteId = $key;
+                }
+                //$siteStatus[$key] = $siteSettings['episodeEnabledByDefault'];
+                $siteStatus[$key] = false;
             }
-            //$siteStatus[$key] = $siteSetting[$item . 'EnabledByDefault'];
-            // To Prevent unwanted content on RSS or site, we force disabled status to be checked by admin first
-            // also if we use enabled status by default, there is a chance that doesn't save due to validation error like required rules
-            $siteStatus[$key] = false;
         }
         if (!$siteId) {
             Craft::warning("not any site is enabled for $item");

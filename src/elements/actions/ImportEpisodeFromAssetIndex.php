@@ -50,7 +50,8 @@ class ImportEpisodeFromAssetIndex extends ElementAction
             return true;
         },
         activate: \$selectedItems => {
-            window.open('episodes/import-from-asset-index?podcastId=' + \$selectedItems.find('.element').data('id'), '_self');
+            window.open('episodes/import-from-asset-index?podcastId=' + \$selectedItems.find('.element').data('id') + 
+            '&siteId=' + \$selectedItems.find('.element').data('siteId'), '_self');
         },
     });
 })();

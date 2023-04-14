@@ -33,6 +33,8 @@ class importEpisodeJob extends BaseJob
 
     public int $total;
 
+    public array $siteIds;
+
     /**
      * @inheritdoc
      */
@@ -243,15 +245,15 @@ class importEpisodeJob extends BaseJob
                 $siteId = null;
                 $siteStatus = [];
                 foreach ($sitesSettings as $key => $siteSettings) {
-                    if (!$siteId) {
-                        $siteId = $key;
+                    if (in_array($key, $this->siteIds)) {
+                        if (!$siteId) {
+                            $siteId = $key;
+                        }
+                        // Set status to 0 to allow authors to review imported episodes
+                        $siteStatus[$key] = 0;
                     }
-                    $siteStatus[$key] = $siteSettings['episodeEnabledByDefault'];
                 }
 
-                if (!$siteId) {
-                    Craft::warning("there is no site enabled for $item");
-                }
 
                 $itemElement->siteId = $siteId;
                 $itemElement->setEnabledForSite($siteStatus);

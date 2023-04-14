@@ -112,7 +112,7 @@ class EpisodesController extends Controller
 
         $episode = new EpisodeElement();
         $episode->podcastId = $podcast->id;
-        $podcast->siteId = $site->id;
+        $episode->siteId = $site->id;
 
         // Make sure the user is allowed to create this episode
         $user = Craft::$app->getUser()->getIdentity();
@@ -194,8 +194,8 @@ class EpisodesController extends Controller
         $settings->ignoreImageAsset = Craft::$app->getRequest()->getBodyParam('ignoreImageAsset');
         $limit = Craft::$app->getRequest()->getBodyParam('limit');
         $settings->limit = $limit ? $limit : null;
+        $settings->siteIds = Craft::$app->getRequest()->getBodyParam('siteIds');
         if (!$settings->validate()) {
-            Craft::$app->getSession()->setError(Craft::t('studio', 'Couldn’t save podcast import settings.'));
 
             /** @var UrlManager $urlManager */
             $urlManager = Craft::$app->getUrlManager();
@@ -242,6 +242,7 @@ class EpisodesController extends Controller
         /** @var Queue $queue */
         $queue = Craft::$app->getQueue();
         // Add sync job to queue
+
         $queue->push(
             new importEpisodeJob(
                 [
@@ -251,6 +252,7 @@ class EpisodesController extends Controller
                     'limit' => $settings->limit ?? $total,
                     'ignoreMainAsset' => $settings->ignoreMainAsset,
                     'ignoreImageAsset' => $settings->ignoreImageAsset,
+                    'siteIds' => $settings->siteIds,
                 ]
             )
         );
@@ -267,12 +269,13 @@ class EpisodesController extends Controller
      * Generate Import template From RSS
      *
      * @param int $podcastId
+     * @param int $siteId
      * @param mixed $settings
      * @return Response
      */
-    public function actionImportFromRss(int $podcastId, $settings = null): Response
+    public function actionImportFromRss(int $podcastId, int $siteId, $settings = null): Response
     {
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
             throw new NotFoundHttpException('invalid podcast id');
         }
@@ -285,6 +288,25 @@ class EpisodesController extends Controller
         }
         $variables['settings'] = $settings;
 
+        $podcastFormat = $podcast->getPodcastFormat();
+        $sitesSettings = $podcastFormat->getSiteSettings();
+        $items = [];
+        foreach ($sitesSettings as $siteSettings) {
+            $currentUser = Craft::$app->getUser()->getIdentity();
+            // Allow only sites that user has access
+            if ($currentUser->can('editSite:' . $siteSettings->siteId)) {
+                $item = [];
+                $site = Craft::$app->sites->getSiteById($siteSettings->siteId);
+                $item['label'] = $site->name;
+                $item['value'] = $site->id;
+                $items[] = $item;
+            }
+        }
+        $variables['sites'] = $items;
+
+        $variables['podcastId'] = $podcastId;
+        $variables['settings'] = $settings;
+        $variables['podcast'] = $podcast;
         return $this->renderTemplate(
             'studio/episodes/_importFromRSS',
             $variables
@@ -295,12 +317,13 @@ class EpisodesController extends Controller
      * Generate Import template from asset index
      *
      * @param int $podcastId
+     * @param int $siteId
      * @param mixed $settings
      * @return Response
      */
-    public function actionImportFromAssetIndex(int $podcastId, $settings = null): Response
+    public function actionImportFromAssetIndex(int $podcastId, int $siteId, $settings = null): Response
     {
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
             throw new NotFoundHttpException('invalid podcast id');
         }
@@ -326,6 +349,23 @@ class EpisodesController extends Controller
         $variables['settings'] = $settings;
 
         $variables['enable'] = $settings->enable;
+
+        $podcastFormat = $podcast->getPodcastFormat();
+        $sitesSettings = $podcastFormat->getSiteSettings();
+        $items = [];
+        foreach ($sitesSettings as $siteSettings) {
+            $currentUser = Craft::$app->getUser()->getIdentity();
+            // Allow only sites that user has access
+            if ($currentUser->can('editSite:' . $siteSettings->siteId)) {
+                $item = [];
+                $site = Craft::$app->sites->getSiteById($siteSettings->siteId);
+                $item['label'] = $site->name;
+                $item['value'] = $site->id;
+                $items[] = $item;
+            }
+        }
+        $variables['sites'] = $items;
+        $variables['podcast'] = $podcast;
 
         return $this->renderTemplate(
             'studio/episodes/_importFromAssetIndex',
@@ -357,6 +397,7 @@ class EpisodesController extends Controller
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $settings->volumes = Craft::$app->getRequest()->getBodyParam('volumes', $settings->volumes);
         $settings->enable = Craft::$app->getRequest()->getBodyParam('enable', $settings->enable);
+        $settings->siteIds = Craft::$app->getRequest()->getBodyParam('siteIds', $settings->siteIds);
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'Couldn’t save podcast import settings.'));

@@ -1,6 +1,8 @@
 {% extends 'studio/_layouts/index.twig' %}
 
-{% set title = 'Import from RSS'|t('studio') %}
+{% set title = 'Import from RSS to {name}'|t('studio', params = {
+  name: podcast.title,
+}) %}
 
 {% set crumbs = [] %}
 
@@ -54,9 +56,25 @@
             value: 1,
         }) }}
 
+        {{ forms.multiSelectField({
+            label: 'sites'|t('studio'),
+            id: 'siteIds',
+            name: 'siteIds',
+            options: sites,
+            values: settings.siteIds,
+            errors: settings.getErrors('siteIds'),
+        }) }}
+
 		<hr>
 
 		<input type="submit" class="btn submit" value="{{ 'Import'|t('studio') }}">
 
 	</form>
 {% endblock %}
+
+{% js %}
+$('#siteIds').selectize({
+    plugins: ['remove_button'],
+    dropdownParent: 'body'
+});
+{% endjs %}
