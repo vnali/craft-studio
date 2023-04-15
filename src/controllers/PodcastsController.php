@@ -837,7 +837,6 @@ class PodcastsController extends Controller
         ], [
             'publishRSS' => $settings->publishRSS,
             'allowAllToSeeRSS' => $settings->allowAllToSeeRSS,
-            'siteId' => $siteId,
         ]);
 
         Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast general settings saved'));

@@ -21,7 +21,7 @@ class m230304_195434_podcast_general_settings_table extends Migration
         if (!$this->tableExists('{{%studio_podcast_general_settings}}')) {
             $this->createTable('{{%studio_podcast_general_settings}}', [
                 'id' => $this->primaryKey(),
-                'podcastId' => $this->integer()->unique(),
+                'podcastId' => $this->integer(),
                 'publishRSS' => $this->boolean()->defaultValue(false),
                 'allowAllToSeeRSS' => $this->boolean()->defaultValue(false),
                 'userId' => $this->integer(),
