@@ -30,7 +30,7 @@ class m230304_195434_podcast_general_settings_table extends Migration
                 'uid' => $this->uid(),
             ]);
 
-            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'podcastId', '{{%studio_podcast}}', 'id', 'SET NULL', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'podcastId', '{{%studio_podcast}}', 'id', 'CASCADE', 'CASCADE');
             $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
         }
         Craft::$app->db->schema->refresh();
