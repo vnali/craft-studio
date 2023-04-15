@@ -8,18 +8,19 @@ namespace vnali\studio\records;
 use craft\db\ActiveRecord;
 
 /**
- * Podcast episode setting record.
+ * Podcast asset indexes setting record.
  *
  * @property int $id
  * @property int $podcastId
  * @property string $settings
+ * @property bool $enable
  * @property string $uid
  * @property int $userId
  */
-class PodcastEpisodeSettingsRecord extends ActiveRecord
+class PodcastAssetIndexesSettingsRecord extends ActiveRecord
 {
     public static function tableName(): string
     {
-        return '{{%studio_podcast_episode_settings}}';
+        return '{{%studio_podcast_assetIndexes_settings}}';
     }
 }

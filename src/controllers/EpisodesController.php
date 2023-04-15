@@ -330,7 +330,7 @@ class EpisodesController extends Controller
         $this->requirePermission('studio-importEpisodeByAssetIndex-' . $podcast->uid);
 
         if ($settings === null) {
-            $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId);
+            $settings = Studio::$plugin->podcasts->getPodcastAssetIndexesSettings($podcastId);
         }
 
         $variables['podcastId'] = $podcastId;
@@ -383,7 +383,7 @@ class EpisodesController extends Controller
         $this->requirePostRequest();
         $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         if ($podcastId) {
-            $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId);
+            $settings = Studio::$plugin->podcasts->getPodcastAssetIndexesSettings($podcastId);
         } else {
             throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
         }
@@ -393,7 +393,6 @@ class EpisodesController extends Controller
         }
         $this->requirePermission('studio-importEpisodeByAssetIndex-' . $podcast->uid);
 
-        $settings->setScenario('import');
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $settings->volumes = Craft::$app->getRequest()->getBodyParam('volumes', $settings->volumes);
         $settings->enable = Craft::$app->getRequest()->getBodyParam('enable', $settings->enable);
@@ -414,7 +413,7 @@ class EpisodesController extends Controller
         // Save it
         $user = Craft::$app->getUser()->getIdentity();
         $userId = $user->id;
-        Db::upsert('{{%studio_podcast_episode_settings}}', [
+        Db::upsert('{{%studio_podcast_assetIndexes_settings}}', [
             'userId' => $userId,
             'podcastId' => $podcastId,
             'settings' => json_encode($settings),

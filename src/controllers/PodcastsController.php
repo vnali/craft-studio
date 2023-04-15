@@ -865,7 +865,6 @@ class PodcastsController extends Controller
         }
         $this->requirePermission('studio-editPodcastEpisodeSettings-' . $podcast->uid);
 
-        $settings->setScenario('import');
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $settings->defaultGenres = Craft::$app->getRequest()->getBodyParam('defaultGenres', $settings->defaultGenres);
         $settings->genreImportOption = Craft::$app->getRequest()->getBodyParam('genreImportOption', $settings->genreImportOption);

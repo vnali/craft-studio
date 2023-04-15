@@ -205,7 +205,6 @@ class Install extends Migration
                 'id' => $this->primaryKey(),
                 'podcastId' => $this->integer()->unique(),
                 'settings' => $this->text(),
-                'enable' => $this->boolean()->defaultValue(false),
                 'userId' => $this->integer(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
@@ -214,6 +213,23 @@ class Install extends Migration
 
             $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', 'podcastId', '{{%studio_podcast}}', 'id', 'SET NULL', 'CASCADE');
             $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
+        }
+
+        // Create settings table for asset indexes
+        if (!$this->tableExists('{{%studio_podcast_assetIndexes_settings}}')) {
+            $this->createTable('{{%studio_podcast_assetIndexes_settings}}', [
+                'id' => $this->primaryKey(),
+                'podcastId' => $this->integer()->unique(),
+                'settings' => $this->text(),
+                'enable' => $this->boolean()->defaultValue(false),
+                'userId' => $this->integer(),
+                'dateCreated' => $this->dateTime()->notNull(),
+                'dateUpdated' => $this->dateTime()->notNull(),
+                'uid' => $this->uid(),
+            ]);
+
+            $this->addForeignKey(null, '{{%studio_podcast_assetIndexes_settings}}', 'podcastId', '{{%studio_podcast}}', 'id', 'CASCADE', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_podcast_assetIndexes_settings}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
         }
     }
 
@@ -228,6 +244,7 @@ class Install extends Migration
         $this->dropTableIfExists('{{%studio_podcastFormat_episode}}');
         $this->dropTableIfExists('{{%studio_podcast_general_settings}}');
         $this->dropTableIfExists('{{%studio_podcast_episode_settings}}');
+        $this->dropTableIfExists('{{%studio_podcast_assetIndexes_settings}}');
         $this->dropTableIfExists('{{%studio_i18n}}');
         $this->dropTableIfExists('{{%studio_episode}}');
         $this->dropTableIfExists('{{%studio_podcast}}');

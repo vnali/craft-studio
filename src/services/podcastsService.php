@@ -14,8 +14,10 @@ use craft\models\FieldLayout;
 
 use vnali\studio\elements\db\PodcastQuery;
 use vnali\studio\elements\Podcast as PodcastElement;
+use vnali\studio\models\PodcastAssetIndexesSettings;
 use vnali\studio\models\PodcastEpisodeSettings;
 use vnali\studio\models\PodcastGeneralSettings;
+use vnali\studio\records\PodcastAssetIndexesSettingsRecord;
 use vnali\studio\records\PodcastEpisodeSettingsRecord;
 use vnali\studio\records\PodcastGeneralSettingsRecord;
 use vnali\studio\Studio;
@@ -216,6 +218,34 @@ class podcastsService extends Component
             }
         }
         return $episodeImportSettings;
+    }
+
+    /**
+     * Get asset indexes settings for a podcast
+     *
+     * @param int $podcastId
+     * @return PodcastAssetIndexesSettings
+     */
+    public function getPodcastAssetIndexesSettings(int $podcastId): PodcastAssetIndexesSettings
+    {
+        $record = PodcastAssetIndexesSettingsRecord::find()
+            ->where(['podcastId' => $podcastId])
+            ->one();
+        if (!$record) {
+            $podcastAssetIndexesSettings = new PodcastAssetIndexesSettings();
+        } else {
+            /** @var PodcastAssetIndexesSettingsRecord $record */
+            $settings = $record->settings;
+            $settings = json_decode($settings, true);
+            $podcastAssetIndexesSettings = new PodcastAssetIndexesSettings();
+            foreach ($settings as $key => $setting) {
+                // Check if we still have this record property also on model
+                if (property_exists($podcastAssetIndexesSettings, $key)) {
+                    $podcastAssetIndexesSettings->$key = $setting;
+                }
+            }
+        }
+        return $podcastAssetIndexesSettings;
     }
 
     /**

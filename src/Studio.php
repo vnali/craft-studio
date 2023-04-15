@@ -56,7 +56,7 @@ use vnali\studio\gql\queries\PodcastQuery;
 use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\helpers\ProjectConfigData;
 use vnali\studio\models\Settings;
-use vnali\studio\records\PodcastEpisodeSettingsRecord;
+use vnali\studio\records\PodcastAssetIndexesSettingsRecord;
 use vnali\studio\records\PodcastFormatEpisodeRecord;
 use vnali\studio\records\PodcastFormatRecord;
 use vnali\studio\services\episodesService;
@@ -330,9 +330,9 @@ class Studio extends Plugin
                     ) {
                         Craft::info($element->kind . 'kind:');
                         $found = false;
-                        $importSettings = PodcastEpisodeSettingsRecord::find()->where(['enable' => 1])->all();
+                        $importSettings = PodcastAssetIndexesSettingsRecord::find()->where(['enable' => 1])->all();
                         // Check which podcast setting allows for importing episodes.
-                        /** @var PodcastEpisodeSettingsRecord $importSetting */
+                        /** @var PodcastAssetIndexesSettingsRecord $importSetting */
                         foreach ($importSettings as $importSetting) {
                             $importSetting = json_decode($importSetting->settings, true);
                             if (isset($importSetting['volumes']) && is_array($importSetting['volumes']) && in_array($element->volumeId, $importSetting['volumes'])) {
