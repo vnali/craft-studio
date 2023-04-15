@@ -8,6 +8,8 @@ namespace vnali\studio\models;
 
 use Craft;
 use craft\base\Model;
+use craft\db\Table;
+use craft\helpers\Db;
 use craft\validators\SiteIdValidator;
 
 class ImportEpisodeRSS extends Model
@@ -50,7 +52,8 @@ class ImportEpisodeRSS extends Model
             // Allow only sites that user has access
             if (is_array($this->$attribute)) {
                 foreach ($this->$attribute as $key => $siteId) {
-                    if (!$currentUser->can('editSite:' . $siteId)) {
+                    $siteUid = Db::uidById(Table::SITES, $siteId);
+                    if (!$currentUser->can('editSite:' . $siteUid)) {
                         $this->addError($attribute, 'The user can not access site');
                         break;
                     }
