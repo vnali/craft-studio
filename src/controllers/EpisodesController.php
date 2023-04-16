@@ -8,6 +8,7 @@ namespace vnali\studio\controllers;
 
 use Craft;
 use craft\base\Element;
+use craft\db\Table;
 use craft\helpers\Cp;
 use craft\helpers\Db;
 use craft\helpers\ElementHelper;
@@ -28,6 +29,7 @@ use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
+use yii\web\ServerErrorHttpException;
 
 class EpisodesController extends Controller
 {
@@ -195,6 +197,9 @@ class EpisodesController extends Controller
         $limit = Craft::$app->getRequest()->getBodyParam('limit');
         $settings->limit = $limit ? $limit : null;
         $settings->siteIds = Craft::$app->getRequest()->getBodyParam('siteIds');
+        if (!is_array($settings->siteIds)) {
+            $settings->siteIds = [$settings->siteIds];
+        }
         if (!$settings->validate()) {
 
             /** @var UrlManager $urlManager */
@@ -291,16 +296,23 @@ class EpisodesController extends Controller
         $podcastFormat = $podcast->getPodcastFormat();
         $sitesSettings = $podcastFormat->getSiteSettings();
         $items = [];
+        $currentUser = Craft::$app->getUser()->getIdentity();
         foreach ($sitesSettings as $siteSettings) {
-            $currentUser = Craft::$app->getUser()->getIdentity();
             // Allow only sites that user has access
-            if ($currentUser->can('editSite:' . $siteSettings->siteId)) {
+            $siteUid = Db::uidById(Table::SITES, $siteSettings->siteId);
+            if (Craft::$app->getIsMultiSite() && !$currentUser->can('editSite:' . $siteUid)) {
+                continue;
+            }
+            $site = Craft::$app->sites->getSiteById($siteSettings->siteId);
+            if ($site) {
                 $item = [];
-                $site = Craft::$app->sites->getSiteById($siteSettings->siteId);
                 $item['label'] = $site->name;
                 $item['value'] = $site->id;
                 $items[] = $item;
             }
+        }
+        if (Craft::$app->getIsMultiSite() && !$items) {
+            throw new ServerErrorHttpException('User have no access to any sites');
         }
         $variables['sites'] = $items;
 
@@ -353,16 +365,23 @@ class EpisodesController extends Controller
         $podcastFormat = $podcast->getPodcastFormat();
         $sitesSettings = $podcastFormat->getSiteSettings();
         $items = [];
+        $currentUser = Craft::$app->getUser()->getIdentity();
         foreach ($sitesSettings as $siteSettings) {
-            $currentUser = Craft::$app->getUser()->getIdentity();
             // Allow only sites that user has access
-            if ($currentUser->can('editSite:' . $siteSettings->siteId)) {
+            $siteUid = Db::uidById(Table::SITES, $siteSettings->siteId);
+            if (Craft::$app->getIsMultiSite() && !$currentUser->can('editSite:' . $siteUid)) {
+                continue;
+            }
+            $site = Craft::$app->sites->getSiteById($siteSettings->siteId);
+            if ($site) {
                 $item = [];
-                $site = Craft::$app->sites->getSiteById($siteSettings->siteId);
                 $item['label'] = $site->name;
                 $item['value'] = $site->id;
                 $items[] = $item;
             }
+        }
+        if (Craft::$app->getIsMultiSite() && !$items) {
+            throw new ServerErrorHttpException('User have no access to any any sites');
         }
         $variables['sites'] = $items;
         $variables['podcast'] = $podcast;
@@ -397,7 +416,9 @@ class EpisodesController extends Controller
         $settings->volumes = Craft::$app->getRequest()->getBodyParam('volumes', $settings->volumes);
         $settings->enable = Craft::$app->getRequest()->getBodyParam('enable', $settings->enable);
         $settings->siteIds = Craft::$app->getRequest()->getBodyParam('siteIds', $settings->siteIds);
-
+        if (!is_array($settings->siteIds)) {
+            $settings->siteIds = [$settings->siteIds];
+        }
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'Couldn’t save podcast import settings.'));
 

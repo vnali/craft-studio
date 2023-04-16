@@ -40,6 +40,7 @@
             on: enable is defined ? enable
         }) }}
 
+        {% if sites|length > 1 %}
         {{ forms.multiSelectField({
             label: 'sites'|t('studio'),
             id: 'siteIds',
@@ -48,6 +49,9 @@
             values: settings.siteIds ?? null,
             errors: settings.getErrors('siteIds'),
         }) }}
+        {% else %}
+            {{ hiddenInput('siteIds', sites[0]['value']) }}
+        {% endif %}
 
 		<input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
 
