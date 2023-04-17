@@ -36,9 +36,10 @@ class ImporterService extends Component
      * @param ElementInterface $element
      * @param string $item
      * @param array $importSetting
+     * @param array $siteIds siteIds to propagate the element
      * @return void
      */
-    public function importByAssetIndex(ElementInterface $element, string $item, array $importSetting): void
+    public function importByAssetIndex(ElementInterface $element, string $item, array $importSetting, array $siteIds): void
     {
         // PHP Stan fix
         if (!$element instanceof Asset) {
@@ -186,7 +187,7 @@ class ImporterService extends Component
         // To Prevent unwanted content on RSS or site, we force disabled status to be checked by admin first
         // Also if we use enabled status by default, there is a chance that doesn't save due to validation error like required rules
         foreach ($sitesSettings as $key => $siteSettings) {
-            if (in_array($key, $importSetting['siteIds'])) {
+            if (in_array($key, $siteIds)) {
                 if (!$siteId) {
                     $siteId = $key;
                 }

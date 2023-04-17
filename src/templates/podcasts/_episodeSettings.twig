@@ -1,7 +1,8 @@
 {% extends 'studio/_layouts/index.twig' %}
 
-{% set title = 'Episode settings for {name}'|t('studio', params = {
+{% set title = 'Episode settings for {name} - {site} site'|t('studio', params = {
   name: podcast.title,
+  site: site.name
 }) %}
 
 {% set crumbs = [] %}
@@ -22,6 +23,8 @@
 		{{ csrfInput() }}
 
 		{{ hiddenInput('podcastId', podcastId) }}
+
+        {{ hiddenInput('siteId', site.id) }}
 
 		<input type="hidden" name="action" value="studio/podcasts/episode-settings-save">
 

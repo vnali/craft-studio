@@ -203,7 +203,8 @@ class Install extends Migration
         if (!$this->tableExists('{{%studio_podcast_episode_settings}}')) {
             $this->createTable('{{%studio_podcast_episode_settings}}', [
                 'id' => $this->primaryKey(),
-                'podcastId' => $this->integer()->unique(),
+                'podcastId' => $this->integer(),
+                'siteId' => $this->integer(),
                 'settings' => $this->text(),
                 'userId' => $this->integer(),
                 'dateCreated' => $this->dateTime()->notNull(),
@@ -211,8 +212,10 @@ class Install extends Migration
                 'uid' => $this->uid(),
             ]);
 
+            $this->createIndex(null, '{{%studio_podcast_episode_settings}}', ['podcastId', 'siteId'], true);
             $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', 'podcastId', '{{%studio_podcast}}', 'id', 'SET NULL', 'CASCADE');
             $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', 'siteId', '{{%sites}}', 'id', 'CASCADE', 'CASCADE');
         }
 
         // Create settings table for asset indexes

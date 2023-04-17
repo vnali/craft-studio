@@ -404,9 +404,11 @@ class ResaveController extends Controller
                     $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
                     $mapping = json_decode($podcastFormatEpisode->mapping, true);
                     /** @var PodcastEpisodeSettingsRecord|null $setting */
-                    $setting = PodcastEpisodeSettingsRecord::find()->where(['podcastId' => $element->podcastId])->one();
+                    $setting = PodcastEpisodeSettingsRecord::find()->where(['podcastId' => $element->podcastId, 'siteId' => $element->siteId])->one();
                     if ($setting) {
                         $importSetting = json_decode($setting->settings, true);
+                    } else {
+                        $this->stdout("import setting was not defined for podcast $element->podcastId siteId: $element->siteId");
                     }
                 }
                 $this->stdout("    - [$e->position/$count] $label $element ($element->id) ... ");

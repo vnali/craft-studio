@@ -196,12 +196,13 @@ class podcastsService extends Component
      * Get episode settings for a podcast
      *
      * @param int $podcastId
+     * @param int $siteId
      * @return PodcastEpisodeSettings
      */
-    public function getPodcastEpisodeSettings(int $podcastId): PodcastEpisodeSettings
+    public function getPodcastEpisodeSettings(int $podcastId, int $siteId): PodcastEpisodeSettings
     {
         $record = PodcastEpisodeSettingsRecord::find()
-            ->where(['podcastId' => $podcastId])
+            ->where(['podcastId' => $podcastId, 'siteId' => $siteId])
             ->one();
         if (!$record) {
             $episodeImportSettings = new PodcastEpisodeSettings();

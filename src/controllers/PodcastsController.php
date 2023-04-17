@@ -9,6 +9,7 @@ namespace vnali\studio\controllers;
 use Craft;
 use craft\base\Element;
 use craft\base\LocalFsInterface;
+use craft\db\Table;
 use craft\fields\Categories;
 use craft\fields\Entries;
 use craft\fields\Tags;
@@ -679,8 +680,14 @@ class PodcastsController extends Controller
         }
         $this->requirePermission('studio-editPodcastEpisodeSettings-' . $podcast->uid);
 
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        $siteUid = Db::uidById(Table::SITES, $siteId);
+        if (Craft::$app->getIsMultiSite() && !$currentUser->can('editSite:' . $siteUid)) {
+            throw new ServerErrorHttpException('User have no access to this site');
+        }
+
         if ($settings === null) {
-            $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId);
+            $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId, $siteId);
         }
         $settings->defaultPubDate = DateTimeHelper::toDateTime($settings->defaultPubDate);
         $podcastFormat = $podcast->getPodcastFormat();
@@ -733,7 +740,7 @@ class PodcastsController extends Controller
             $volume['label'] = $volumeItem->name;
             $variables['volumes'][] = $volume;
         }
-        
+
         $variables['settings'] = $settings;
         $variables['podcasts'] = [];
         $variables['podcastId'] = $podcastId;
@@ -853,8 +860,9 @@ class PodcastsController extends Controller
     {
         $this->requirePostRequest();
         $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
+        $siteId = Craft::$app->getRequest()->getBodyParam('siteId');
         if ($podcastId) {
-            $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId);
+            $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId, $siteId);
         } else {
             throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
         }
@@ -872,7 +880,7 @@ class PodcastsController extends Controller
         $settings->imageOption = Craft::$app->getRequest()->getBodyParam('imageOption', $settings->imageOption);
         $settings->defaultPubDate = Craft::$app->getRequest()->getBodyParam('defaultPubDate', $settings->defaultPubDate);
         $settings->pubDateOption = Craft::$app->getRequest()->getBodyParam('pubDateOption', $settings->pubDateOption);
-
+        $settings->siteId = $siteId;
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'Couldn’t save podcast import settings.'));
 
@@ -888,9 +896,11 @@ class PodcastsController extends Controller
         // Save it
         $user = Craft::$app->getUser()->getIdentity();
         $userId = $user->id;
+
         Db::upsert('{{%studio_podcast_episode_settings}}', [
             'userId' => $userId,
             'podcastId' => $podcastId,
+            'siteId' => $settings->siteId,
             'settings' => json_encode($settings),
         ], [
             'settings' => json_encode($settings),

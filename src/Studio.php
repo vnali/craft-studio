@@ -57,6 +57,7 @@ use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\helpers\ProjectConfigData;
 use vnali\studio\models\Settings;
 use vnali\studio\records\PodcastAssetIndexesSettingsRecord;
+use vnali\studio\records\PodcastEpisodeSettingsRecord;
 use vnali\studio\records\PodcastFormatEpisodeRecord;
 use vnali\studio\records\PodcastFormatRecord;
 use vnali\studio\services\episodesService;
@@ -330,16 +331,22 @@ class Studio extends Plugin
                     ) {
                         Craft::info($element->kind . 'kind:');
                         $found = false;
-                        $importSettings = PodcastAssetIndexesSettingsRecord::find()->where(['enable' => 1])->all();
+                        $assetIndexesSettings = PodcastAssetIndexesSettingsRecord::find()->where(['enable' => 1])->all();
                         // Check which podcast setting allows for importing episodes.
-                        /** @var PodcastAssetIndexesSettingsRecord $importSetting */
-                        foreach ($importSettings as $importSetting) {
-                            $importSetting = json_decode($importSetting->settings, true);
-                            if (isset($importSetting['volumes']) && is_array($importSetting['volumes']) && in_array($element->volumeId, $importSetting['volumes'])) {
-                                Craft::info('Importing episode via asset index');
-                                // TODO: don't let create episode if user can't have access to the volume
-                                Studio::$plugin->importer->ImportByAssetIndex($element, 'episode', $importSetting);
+                        /** @var PodcastAssetIndexesSettingsRecord $assetIndexesSetting */
+                        foreach ($assetIndexesSettings as $assetIndexesSetting) {
+                            $assetIndexesSetting = json_decode($assetIndexesSetting->settings, true);
+                            if (isset($assetIndexesSetting['volumes']) && is_array($assetIndexesSetting['volumes']) && in_array($element->volumeId, $assetIndexesSetting['volumes'])) {
+                                Craft::info('Importing episode via asset indexes utility');
                                 $found = true;
+                                /** @var PodcastEpisodeSettingsRecord|null $importSetting */
+                                $importSetting = PodcastEpisodeSettingsRecord::find()->where(['podcastId' => $assetIndexesSetting['podcastId'], 'siteId' => $assetIndexesSetting['siteIds'][0]])->one();
+                                if ($importSetting) {
+                                    $importSetting = json_decode($importSetting->settings, true);
+                                    Studio::$plugin->importer->ImportByAssetIndex($element, 'episode', $importSetting, $assetIndexesSetting['siteIds']);
+                                } else {
+                                    Craft::info("Import setting was not defined for podcastId: $assetIndexesSetting[podcastId] siteId: $assetIndexesSetting[siteIds][0]");
+                                }
                                 break;
                             }
                         }
