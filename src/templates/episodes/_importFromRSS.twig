@@ -11,7 +11,7 @@
 	{% import "_includes/forms" as forms %}
 
 	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-		{{ redirectInput('studio/podcasts/index') }}
+		{{ redirectInput('studio/podcasts/index?site=' ~ site.handle) }}
 		{{ csrfInput() }}
 
 		{{ hiddenInput('podcastId', podcastId) }}
@@ -22,6 +22,7 @@
             label: 'URL'|t('studio'),
             id: 'rssURL',
             name: 'rssURL',
+            value: settings.rssURL,
             required: true,
             errors: settings.getErrors('rssURL'),
             tip: 'After saving this form, import begins and you can check import process on left buttom of CP'
@@ -31,6 +32,7 @@
             label: 'limit'|t('studio'),
             id: 'limit',
             name: 'limit',
+            value: settings.limit,
             required: false,
             errors: settings.getErrors('limit'),
             tip: 'Limit number of items that should fetch from RSS',
@@ -42,6 +44,7 @@
             label: "Don't import episode's main asset"|t('studio'),
             id: 'ignoreMainAsset',
             name: 'ignoreMainAsset',
+            on: settings.ignoreMainAsset,
             required: false,
             errors: settings.getErrors('ignoreMainAsset'),
             value: 1,
@@ -51,6 +54,7 @@
             label: "Don't import episode's image asset"|t('studio'),
             id: 'ignoreImageAsset',
             name: 'ignoreImageAsset',
+            on: settings.ignoreImageAsset,
             required: false,
             errors: settings.getErrors('ignoreImageAsset'),
             value: 1,

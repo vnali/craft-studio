@@ -12,7 +12,7 @@
 	{% import "_includes/forms" as forms %}
 
 	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-		{{ redirectInput('studio/podcasts/index') }}
+		{{ redirectInput('studio/podcasts/index?site=' ~ site.handle) }}
 		{{ csrfInput() }}
 
 		{{ hiddenInput('podcastId', podcastId) }}

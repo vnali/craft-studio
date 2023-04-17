@@ -15,9 +15,9 @@ use craft\validators\SiteIdValidator;
 class ImportEpisodeRSS extends Model
 {
     /**
-     * @var string RSS URL
+     * @var string|null RSS URL
      */
-    public string $rssURL;
+    public ?string $rssURL = null;
 
     /**
      * @var int|null limit
@@ -35,17 +35,17 @@ class ImportEpisodeRSS extends Model
     public bool $ignoreImageAsset = false;
 
     /**
-     * @var int[]|string|null SiteIds
+     * @var int[]|string|null siteIds
      */
     public array|string|null $siteIds = null;
 
     public function rules(): array
     {
         $rules = parent::rules();
-        $rules[] = [['rssURL'], 'required', 'on' => 'import'];
-        $rules[] = [['rssURL'], 'url', 'on' => 'import'];
-        $rules[] = [['limit'], 'integer', 'min' => 1, 'on' => 'import'];
-        $rules[] = [['ignoreMainAsset', 'ignoreImageAsset'], 'in', 'range' => [0, 1], 'on' => 'import'];
+        $rules[] = [['rssURL'], 'required'];
+        $rules[] = [['rssURL'], 'url'];
+        $rules[] = [['limit'], 'integer', 'min' => 1];
+        $rules[] = [['ignoreMainAsset', 'ignoreImageAsset'], 'in', 'range' => [0, 1]];
         $rules[] = [['siteIds'], 'each', 'rule' => [SiteIdValidator::class]];
         $rules[] = [['siteIds'], function($attribute, $params, $validator) {
             $currentUser = Craft::$app->getUser()->getIdentity();
@@ -61,7 +61,7 @@ class ImportEpisodeRSS extends Model
             } elseif (!$this->$attribute) {
                 $this->addError($attribute, 'The sites should be specified');
             }
-        }, 'skipOnEmpty' => false, 'on' => 'import'];
+        }, 'skipOnEmpty' => false];
         return $rules;
     }
 }

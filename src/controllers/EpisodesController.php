@@ -190,18 +190,16 @@ class EpisodesController extends Controller
         $this->requirePermission('studio-importEpisodeByRSS-' . $podcast->uid);
 
         $settings = new ImportEpisodeRSS();
-        $settings->setScenario('import');
         $settings->rssURL = Craft::$app->getRequest()->getBodyParam('rssURL');
         $settings->ignoreMainAsset = Craft::$app->getRequest()->getBodyParam('ignoreMainAsset');
         $settings->ignoreImageAsset = Craft::$app->getRequest()->getBodyParam('ignoreImageAsset');
         $limit = Craft::$app->getRequest()->getBodyParam('limit');
         $settings->limit = $limit ? $limit : null;
         $settings->siteIds = Craft::$app->getRequest()->getBodyParam('siteIds');
-        if (!is_array($settings->siteIds)) {
+        if ($settings->siteIds && !is_array($settings->siteIds)) {
             $settings->siteIds = [$settings->siteIds];
         }
         if (!$settings->validate()) {
-
             /** @var UrlManager $urlManager */
             $urlManager = Craft::$app->getUrlManager();
             $urlManager->setRouteParams([
@@ -225,16 +223,26 @@ class EpisodesController extends Controller
         curl_close($ch);
         if (!$httpCode || $httpCode != 200) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'problem reaching site.'));
-            $this->redirect('studio/episodes/import-from-rss?podcastId=' . $podcastId);
-            return false;
+            /** @var UrlManager $urlManager */
+            $urlManager = Craft::$app->getUrlManager();
+            $urlManager->setRouteParams([
+                'settings' => $settings,
+            ]);
+
+            return null;
         }
 
         $crawler = new Crawler($content);
         $total = $crawler->filter('rss channel item')->count();
         if ($crawler->filter('rss channel item')->count() == 0) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'No item found'));
-            $this->redirect('studio/episodes/import-from-rss?podcastId=' . $podcastId);
-            return false;
+            /** @var UrlManager $urlManager */
+            $urlManager = Craft::$app->getUrlManager();
+            $urlManager->setRouteParams([
+                'settings' => $settings,
+            ]);
+
+            return null;
         }
 
         $items = [];
@@ -319,6 +327,10 @@ class EpisodesController extends Controller
         $variables['podcastId'] = $podcastId;
         $variables['settings'] = $settings;
         $variables['podcast'] = $podcast;
+
+        $site = Craft::$app->sites->getSiteById($siteId);
+        $variables['site'] = $site;
+        
         return $this->renderTemplate(
             'studio/episodes/_importFromRSS',
             $variables
@@ -386,6 +398,9 @@ class EpisodesController extends Controller
         $variables['sites'] = $items;
         $variables['podcast'] = $podcast;
 
+        $site = Craft::$app->sites->getSiteById($siteId);
+        $variables['site'] = $site;
+
         return $this->renderTemplate(
             'studio/episodes/_importFromAssetIndex',
             $variables
@@ -416,7 +431,7 @@ class EpisodesController extends Controller
         $settings->volumes = Craft::$app->getRequest()->getBodyParam('volumes', $settings->volumes);
         $settings->enable = Craft::$app->getRequest()->getBodyParam('enable', $settings->enable);
         $settings->siteIds = Craft::$app->getRequest()->getBodyParam('siteIds', $settings->siteIds);
-        if (!is_array($settings->siteIds)) {
+        if ($settings->siteIds && !is_array($settings->siteIds)) {
             $settings->siteIds = [$settings->siteIds];
         }
         if (!$settings->validate()) {
