@@ -139,6 +139,7 @@ Studio.EpisodeIndex = Craft.BaseElementIndex.extend({
                     const anchorRole =
                         this.settings.context === 'index' ? 'link' : 'button';
                     if (
+                        podcast.name[this.siteId] &&  // Check if the podcast is propagated to this site
                         (this.settings.context === 'index' &&
                             $.inArray(this.siteId, podcast.sites) !== -1) ||
                         (this.settings.context !== 'index' && podcast !== selectedPodcast)

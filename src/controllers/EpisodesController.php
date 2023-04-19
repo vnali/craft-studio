@@ -75,11 +75,6 @@ class EpisodesController extends Controller
             $podcastHandle = $this->request->getRequiredBodyParam('podcastHandle');
         }
 
-        $podcast = Studio::$plugin->podcasts->getPodcastByHandle($podcastHandle);
-        if (!$podcast) {
-            throw new BadRequestHttpException("Invalid podcast handle: $podcastHandle");
-        }
-
         $sitesService = Craft::$app->getSites();
         $siteId = $this->request->getBodyParam('siteId');
 
@@ -93,6 +88,11 @@ class EpisodesController extends Controller
             if (!$site) {
                 throw new ForbiddenHttpException('User not authorized to edit content in any sites.');
             }
+        }
+
+        $podcast = Studio::$plugin->podcasts->getPodcastByHandle($podcastHandle, $site->id);
+        if (!$podcast) {
+            throw new BadRequestHttpException("Invalid podcast handle: $podcastHandle for site  $site->name");
         }
 
         // get sites that user has access and podcast format available for it

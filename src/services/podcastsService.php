@@ -59,13 +59,14 @@ class podcastsService extends Component
      * Get podcast by handle. podcast handle is in this format {podcastId}-{podcastSlug}.
      *
      * @param string $podcastHandle
+     * @param int $siteId
      * @return PodcastElement|null
      */
-    public function getPodcastByHandle(string $podcastHandle): ?PodcastElement
+    public function getPodcastByHandle(string $podcastHandle, int $siteId): ?PodcastElement
     {
         $podcastHandleParts = explode('-', $podcastHandle);
         /** @var PodcastElement|null $podcast; */
-        $podcast = PodcastElement::find()->status(null)->where(['studio_podcast.id' => $podcastHandleParts[0]])->one();
+        $podcast = PodcastElement::find()->siteId($siteId)->status(null)->where(['studio_podcast.id' => $podcastHandleParts[0]])->one();
         return $podcast;
     }
 
