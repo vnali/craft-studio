@@ -164,7 +164,7 @@ Studio.PodcastIndex = Craft.BaseElementIndex.extend({
                         $.inArray(this.siteId, podcastFormat.sites) === -1) {
                         // Remove the old button, if there is one
                         if (this.$newPodcastBtnGroup) {
-                            //this.$newPodcastBtnGroup.remove();
+                            this.$newPodcastBtnGroup.remove();
                         }
                     }
                 }
