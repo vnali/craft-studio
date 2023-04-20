@@ -300,7 +300,6 @@ class PodcastsController extends Controller
         }
 
         // Podcast Language
-        $site = Craft::$app->getSites()->getCurrentSite();
         $siteLanguage = $site->language;
         $podcastLanguage = $xml->createElement("language", $siteLanguage);
         $xmlChannel->appendChild($podcastLanguage);
