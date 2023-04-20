@@ -699,7 +699,7 @@ class Studio extends Plugin
                         'label' => Craft::t('studio', 'Create episodes', [
                             'name' => $podcast->title,
                         ]),
-                        'info' => Craft::t('studio', 'Includes saving an episode as published. For publishing other user draft episodes, user also need save other user drafts permission'),
+                        'info' => Craft::t('studio', 'Includes saving an episode as published. For publishing other user draft episodes, user also need save other user drafts and save other user episodes permission'),
                     ];
                     $nestedViewEpisodes['studio-createDraftEpisodes-' . $podcast->uid] = [
                         'label' => Craft::t('studio', 'Create draft episodes', [
