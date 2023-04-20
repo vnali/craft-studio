@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) vnali
  */
@@ -85,6 +86,8 @@ JS;
             $podcastFormatRecords = PodcastFormatSitesRecord::find()->where(['podcastFormatId' => $podcastFormat->id])->all();
             // Maybe checking edit site before pushing site to siteIds
             $siteIds = ArrayHelper::getColumn($podcastFormatRecords, 'siteId');
+            $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
+            $siteIds = array_intersect($siteIds, $editableSiteIds);
             if (
                 $currentUser->can("studio-managePodcasts") || $currentUser->can("studio-createDraftNewPodcasts")
             ) {
@@ -116,7 +119,7 @@ JS;
         foreach ($podcasts as $podcast) {
             $podcastFormatSiteRecords = PodcastFormatSitesRecord::find()->where(['podcastFormatId' => $podcast->podcastFormatId])->all();
             $siteIds = ArrayHelper::getColumn($podcastFormatSiteRecords, 'siteId');
-            
+
             // Get podcast titles for all available sites
             $names = [];
             foreach ($siteIds as $siteId) {
