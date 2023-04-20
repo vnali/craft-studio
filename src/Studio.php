@@ -534,7 +534,7 @@ class Studio extends Plugin
         if (Craft::$app->getUser()->checkPermission('studio-managePodcasts') || Craft::$app->getUser()->checkPermission('studio-createDraftNewPodcasts')) {
             $hasAccess = true;
         } else {
-            $podcasts = PodcastElement::find()->status(null)->all();
+            $podcasts = PodcastElement::find()->status(null)->siteId('*')->unique()->all();
             foreach ($podcasts as $key => $podcast) {
                 if (Craft::$app->getUser()->checkPermission('studio-viewPodcast-' . $podcast->uid)) {
                     $hasAccess = true;
@@ -554,7 +554,7 @@ class Studio extends Plugin
         if (Craft::$app->getUser()->checkPermission('studio-manageEpisodes')) {
             $hasAccess = true;
         } else {
-            $podcasts = PodcastElement::find()->status(null)->all();
+            $podcasts = PodcastElement::find()->status(null)->siteId('*')->unique()->all();
             foreach ($podcasts as $podcast) {
                 if (Craft::$app->getUser()->checkPermission('studio-viewPodcastEpisodes-' . $podcast->uid)) {
                     $hasAccess = true;

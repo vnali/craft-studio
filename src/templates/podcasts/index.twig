@@ -1,4 +1,4 @@
-{% set podcasts = craft.podcasts.status(null).all %}
+{% set podcasts = craft.podcasts.status(null).siteId('*').unique().all %}
 {% set canAccess = false %}
 
 {% if currentUser.can('studio-managePodcasts') or currentUser.can('studio-createDraftNewPodcasts') %}
