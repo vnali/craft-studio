@@ -296,6 +296,7 @@ class Studio extends Plugin
                     $event->fields[] = [
                         'class' => TextField::class,
                         'attribute' => 'podcastLink',
+                        'requirable' => true,
                         'mandatory' => false,
                         'label' => Craft::t('studio', 'Podcast link'),
                         'translatable' => $podcastNativeFieldSettings['podcastLink']['translatable'] ?? false,
