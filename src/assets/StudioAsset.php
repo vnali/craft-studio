@@ -114,7 +114,7 @@ JS;
         $currentUser = $userSession->getIdentity();
         $availablePodcasts = [];
 
-        $podcasts = Podcast::find()->status(null)->orderBy('dateCreated asc')->all();
+        $podcasts = Podcast::find()->status(null)->siteId('*')->unique()->orderBy('dateCreated asc')->all();
         /** @var Podcast $podcast */
         foreach ($podcasts as $podcast) {
             $podcastFormatSiteRecords = PodcastFormatSitesRecord::find()->where(['podcastFormatId' => $podcast->podcastFormatId])->all();

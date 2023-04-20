@@ -49,6 +49,7 @@
 - Fixed a bug where podcast language on rss was created based on Craft current site and not requested site
 - Fixed a bug where defineSource only check podcast in current site id
 - Fixed a bug where plugin sidebar navigation and podcast/episode element indexes page only checked current site access
+- Fixed a bug where a podcast which was not available for current site, was not displayed when create an episode
 - Removed getPodcastBySlug()
 - Dropped Craft 4.3 support
 
