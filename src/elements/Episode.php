@@ -483,7 +483,7 @@ class Episode extends Element
 
     public function getPodcast(): Podcast|null
     {
-        $podcast = Studio::$plugin->podcasts->getPodcastById($this->podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($this->podcastId, $this->siteId);
         if ($podcast) {
             return $podcast;
         } else {
