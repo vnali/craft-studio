@@ -23,20 +23,6 @@
                     {{ 'Podcast Formats'|t('studio') }}
                 </a>
             </li>
-            {% if craft.app.config.general.devMode %}
-            <li>
-                <a class="{{ segment3 == 'podcast-fields' ? 'sel' }}" href="{{ url('studio/import/podcast-fields') }}">
-                    {{ 'Import Podcast fields'|t('studio') }}
-                </a>
-            </li>
-            {% endif %}
-            {% if craft.app.config.general.devMode %}
-            <li>
-                <a class="{{ segment3 == 'episode-fields' ? 'sel' }}" href="{{ url('studio/import/episode-fields') }}">
-                    {{ 'Import Episode fields'|t('studio') }}
-                </a>
-            </li>
-            {% endif %}
         </ul>
     </nav>
 
