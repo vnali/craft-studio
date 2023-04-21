@@ -584,7 +584,7 @@ class ResaveController extends Controller
                                 /** @var Episode $element */
                                 if (!$this->previewMetadata && (!$element->{$pubDateField->handle} || $this->overwritePubDate) && ($pubDate || $this->allowEmptyMetaValue)) {
                                     if ($this->overwritePubDate) {
-                                        $this->stdout(PHP_EOL . "    - Pub date is overwritten. Old value: " . $element->episodeNumber, Console::FG_GREEN);
+                                        $this->stdout(PHP_EOL . "    - Pub date is overwritten. Old value: " . $element->{$pubDateField->handle}->format('D, d M Y H:i:s T'), Console::FG_GREEN);
                                     } else {
                                         $this->stdout(PHP_EOL . "    - Pub date is saved", Console::FG_GREEN);
                                     }
