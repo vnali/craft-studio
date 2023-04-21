@@ -135,6 +135,8 @@ Studio.EpisodeIndex = Craft.BaseElementIndex.extend({
                 }).appendTo(this.$newEpisodeBtnGroup);
                 const $ul = $('<ul/>').appendTo($menuContainer);
 
+                var isAvailableForSite = false;
+
                 for (const podcast of this.availablePodcasts) {
                     const anchorRole =
                         this.settings.context === 'index' ? 'link' : 'button';
@@ -144,6 +146,7 @@ Studio.EpisodeIndex = Craft.BaseElementIndex.extend({
                             $.inArray(this.siteId, podcast.sites) !== -1) ||
                         (this.settings.context !== 'index' && podcast !== selectedPodcast)
                     ) {
+                        isAvailableForSite = true;
                         const $li = $('<li/>').appendTo($ul);
                         const $a = $('<a/>', {
                             role: anchorRole === 'button' ? 'button' : null,
@@ -169,13 +172,15 @@ Studio.EpisodeIndex = Craft.BaseElementIndex.extend({
                         }
                     } else if (this.settings.context === 'index' &&
                         $.inArray(this.siteId, podcast.sites) === -1) {
-                        // Remove the old button, if there is one
-                        if (this.$newEpisodeBtnGroup) {
-                            this.$newEpisodeBtnGroup.remove();
-                        }
                     }
                 }
-
+                // We check all podcasts for this site. 
+                // If there is no any podcast for this site, then we remove the button
+                if (!isAvailableForSite) {
+                    if (this.$newEpisodeBtnGroup) {
+                        this.$newEpisodeBtnGroup.remove();
+                    }
+                }
                 new Garnish.DisclosureMenu($menuBtn);
             }
         }
@@ -214,7 +219,7 @@ Studio.EpisodeIndex = Craft.BaseElementIndex.extend({
                 podcastHandle: podcast.handle,
             },
         })
-            .then(({data}) => {
+            .then(({ data }) => {
                 if (this.settings.context === 'index') {
                     document.location.href = Craft.getUrl(data.cpEditUrl, { fresh: 1 });
                 } else {

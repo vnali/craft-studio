@@ -137,12 +137,12 @@ JS;
                     'handle' => $podcast->id . '-' . $podcast->slug,
                     'id' => (int)$podcast->id,
                     'name' => $names,
-                    'sites' => $siteIds,
+                    'sites' => array_keys($names),
                     'uid' => $podcast->uid,
                 ];
             }
         }
-
+        //craft::dd($availablePodcasts);
         return $availablePodcasts;
     }
 }
