@@ -47,8 +47,7 @@ class PodcastAssetIndexesSettings extends Model
             if (is_array($this->$attribute)) {
                 foreach ($this->$attribute as $key => $volumeId) {
                     $volume = Craft::$app->volumes->getVolumeById($volumeId);
-                    // TODO: view volume should be enough in this step
-                    if (!$currentUser->can('saveAssets:' . $volume->uid)) {
+                    if (!$currentUser->can('viewAssets:' . $volume->uid)) {
                         $this->addError($attribute, 'The user can not access the volume');
                         break;
                     }

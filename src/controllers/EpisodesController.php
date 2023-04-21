@@ -365,7 +365,7 @@ class EpisodesController extends Controller
         foreach (Craft::$app->volumes->getAllVolumes() as $volumeItem) {
             $currentUser = Craft::$app->getUser()->getIdentity();
             // Allow only volumes that user has access
-            if ($currentUser->can('saveAssets:' . $volumeItem->uid)) {
+            if ($currentUser->can('viewAssets:' . $volumeItem->uid)) {
                 $volume['value'] = $volumeItem->id;
                 $volume['label'] = $volumeItem->name;
                 $variables['volumes'][] = $volume;
