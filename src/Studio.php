@@ -757,7 +757,7 @@ class Studio extends Plugin
                     ];
                     // Permission for set settings to import episodes from Asset index utility
                     $nestedViewEpisodes['studio-importEpisodeByAssetIndex-' . $podcast->uid] = [
-                        'label' => Craft::t('studio', 'Import episodes by Asset index'),
+                        'label' => Craft::t('studio', 'Set Import episodes by Asset indexes setting'),
                     ];
                     $podcastPermissions['studio-viewPodcastEpisodes-' . $podcast->uid] = [
                         'label' => Craft::t('studio', 'View episodes'),
