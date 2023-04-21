@@ -15,6 +15,7 @@
 		{{ csrfInput() }}
 
 		{{ hiddenInput('podcastId', podcastId) }}
+        {{ hiddenInput('siteId', site.id) }}
 
 		<input type="hidden" name="action" value="studio/episodes/import-job">
 

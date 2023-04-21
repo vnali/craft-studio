@@ -183,9 +183,10 @@ class EpisodesController extends Controller
     {
         $this->requirePostRequest();
         $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        $siteId = Craft::$app->getRequest()->getBodyParam('siteId');
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
-            throw new NotFoundHttpException('invalid podcast id');
+            throw new NotFoundHttpException('Invalid podcast id');
         }
         $this->requirePermission('studio-importEpisodeByRSS-' . $podcast->uid);
 
@@ -266,6 +267,7 @@ class EpisodesController extends Controller
                     'ignoreMainAsset' => $settings->ignoreMainAsset,
                     'ignoreImageAsset' => $settings->ignoreImageAsset,
                     'siteIds' => $settings->siteIds,
+                    'siteId' => $siteId,
                 ]
             )
         );
@@ -290,7 +292,7 @@ class EpisodesController extends Controller
     {
         $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
-            throw new NotFoundHttpException('invalid podcast id');
+            throw new NotFoundHttpException('Invalid podcast id');
         }
         $this->requirePermission('studio-importEpisodeByRSS-' . $podcast->uid);
 
@@ -349,7 +351,7 @@ class EpisodesController extends Controller
     {
         $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
-            throw new NotFoundHttpException('invalid podcast id');
+            throw new NotFoundHttpException('Invalid podcast id');
         }
         $this->requirePermission('studio-importEpisodeByAssetIndex-' . $podcast->uid);
 
@@ -415,15 +417,16 @@ class EpisodesController extends Controller
     public function actionSaveImportFromAssetIndex(): Response|null|false
     {
         $this->requirePostRequest();
+        $siteId = Craft::$app->getRequest()->getBodyParam('siteId');
         $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         if ($podcastId) {
             $settings = Studio::$plugin->podcasts->getPodcastAssetIndexesSettings($podcastId);
         } else {
             throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
         }
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
-            throw new NotFoundHttpException('invalid podcast id');
+            throw new NotFoundHttpException('Invalid podcast id');
         }
         $this->requirePermission('studio-importEpisodeByAssetIndex-' . $podcast->uid);
 

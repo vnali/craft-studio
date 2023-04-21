@@ -35,12 +35,14 @@ class importEpisodeJob extends BaseJob
 
     public array $siteIds;
 
+    public int $siteId;
+
     /**
      * @inheritdoc
      */
     public function execute($queue): void
     {
-        $podcast = Studio::$plugin->podcasts->getPodcastById($this->podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($this->podcastId, $this->siteId);
         $podcastFormat = $podcast->getPodcastFormat();
         $sitesSettings = $podcastFormat->getSiteSettings();
         $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();

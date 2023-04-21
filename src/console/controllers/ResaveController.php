@@ -400,7 +400,7 @@ class ResaveController extends Controller
                 if ($elementItem == 'episode') {
                     // Currently resave only happen for episode
                     /** @var Episode $element */
-                    $podcast = Studio::$plugin->podcasts->getPodcastById($element->podcastId);
+                    $podcast = Studio::$plugin->podcasts->getPodcastById($element->podcastId, $element->siteId);
                     $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
                     $mapping = json_decode($podcastFormatEpisode->mapping, true);
                     /** @var PodcastEpisodeSettingsRecord|null $setting */

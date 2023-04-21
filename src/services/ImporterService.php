@@ -21,10 +21,10 @@ use InvalidArgumentException;
 use verbb\supertable\SuperTable;
 
 use vnali\studio\elements\Episode as EpisodeElement;
+use vnali\studio\elements\Podcast;
 use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\helpers\Id3;
 use vnali\studio\helpers\Time;
-use vnali\studio\Studio as StudioPlugin;
 
 use yii\web\BadRequestHttpException;
 
@@ -48,7 +48,8 @@ class ImporterService extends Component
 
         if ($item == 'episode') {
             $podcastId = $importSetting['podcastId'];
-            $podcast = StudioPlugin::$plugin->podcasts->getPodcastById($podcastId);
+            $podcast = Podcast::find()->id($podcastId)->siteId('*')->one();
+            /** @var Podcast|null $podcast */
             $podcastFormat = $podcast->getPodcastFormat();
             $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
             $itemElement = new EpisodeElement();

@@ -10,7 +10,6 @@ use craft\base\Model;
 use craft\db\Table;
 use craft\helpers\Db;
 use craft\validators\SiteIdValidator;
-use vnali\studio\elements\Podcast;
 
 class PodcastAssetIndexesSettings extends Model
 {
@@ -25,13 +24,6 @@ class PodcastAssetIndexesSettings extends Model
     public function rules(): array
     {
         $rules = parent::rules();
-        $rules[] = [['podcastId'], 'required'];
-        $rules[] = [['podcastId'], function($attribute, $params, $validator) {
-            $podcast = Podcast::find()->status(null)->where(['studio_podcast.id' => $this->podcastId])->one();
-            if (!$podcast) {
-                $this->addError($attribute, 'The podcast is not valid');
-            }
-        }, 'skipOnEmpty' => true];
         $rules[] = [['enable'], 'in', 'range' => [0, 1]];
         $rules[] = [['siteIds'], 'each', 'rule' => [SiteIdValidator::class]];
         $rules[] = [['siteIds'], function($attribute, $params, $validator) {
@@ -54,7 +46,9 @@ class PodcastAssetIndexesSettings extends Model
             // Allow only sites that user has access
             if (is_array($this->$attribute)) {
                 foreach ($this->$attribute as $key => $volumeId) {
-                    if (!$currentUser->can('saveAssets:' . $volumeId)) {
+                    $volume = Craft::$app->volumes->getVolumeById($volumeId);
+                    // TODO: view volume should be enough in this step
+                    if (!$currentUser->can('saveAssets:' . $volume->uid)) {
                         $this->addError($attribute, 'The user can not access the volume');
                         break;
                     }

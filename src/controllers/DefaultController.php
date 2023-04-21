@@ -87,7 +87,7 @@ class DefaultController extends Controller
 
         if ($item == 'episode') {
             $element = Studio::$plugin->episodes->getEpisodeById($elementId, $site->id);
-            $podcast = Studio::$plugin->podcasts->getPodcastById($element->podcastId);
+            $podcast = Studio::$plugin->podcasts->getPodcastById($element->podcastId, $site->id);
             $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
             $episodeMapping = json_decode($podcastFormatEpisode->mapping, true);
         } else {

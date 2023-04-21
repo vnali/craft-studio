@@ -808,7 +808,7 @@ class PodcastsController extends Controller
         } else {
             throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
         }
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
             throw new NotFoundHttpException('invalid podcast id');
         }
@@ -858,14 +858,14 @@ class PodcastsController extends Controller
     public function actionEpisodeSettingsSave(): Response|null|false
     {
         $this->requirePostRequest();
-        $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $siteId = Craft::$app->getRequest()->getBodyParam('siteId');
+        $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         if ($podcastId) {
             $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId, $siteId);
         } else {
             throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
         }
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId);
+        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
             throw new NotFoundHttpException('invalid podcast id');
         }
