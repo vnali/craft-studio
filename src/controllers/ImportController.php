@@ -645,7 +645,8 @@ class ImportController extends Controller
 
         $episodeFields['studioEpisodeImage'] = $episodeImageField;
 
-        // Create episode tag
+        // TODO: we should replace this with entry field
+        // Create a tag field for episode keywords
         $episodeTagField = Craft::$app->fields->getFieldByHandle('studioEpisodeTag');
         if (!$episodeTagField) {
             $episodeTagField = new \craft\fields\Tags([
