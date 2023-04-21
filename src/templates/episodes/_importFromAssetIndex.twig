@@ -51,8 +51,11 @@
             errors: settings.getErrors('siteIds'),
         }) }}
         {% else %}
+            <b>Site:</b> {{ sites[0]['label'] }}
             {{ hiddenInput('siteIds', sites[0]['value']) }}
         {% endif %}
+
+        <hr>
 
 		<input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
 
