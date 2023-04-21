@@ -71,7 +71,8 @@
             errors: settings.getErrors('siteIds'),
         }) }}
         {% else %}
-            <b>Site:</b> {{ sites[0]['label'] }}
+            <div><b>{{ 'Site'|t('studio') }}</b></div> 
+            {{ sites[0]['label']|t('app') }}
             {{ hiddenInput('siteIds', sites[0]['value']) }}
         {% endif %}
 
