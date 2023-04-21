@@ -129,6 +129,7 @@ Studio.PodcastIndex = Craft.BaseElementIndex.extend({
                 }).appendTo(this.$newPodcastBtnGroup);
                 const $ul = $('<ul/>').appendTo($menuContainer);
 
+                var isAvailableForSite = false;
                 for (const podcastFormat of this.availablePodcastFormats) {
                     const anchorRole =
                         this.settings.context === 'index' ? 'link' : 'button';
@@ -137,6 +138,7 @@ Studio.PodcastIndex = Craft.BaseElementIndex.extend({
                             $.inArray(this.siteId, podcastFormat.sites) !== -1) ||
                         (this.settings.context !== 'index' && podcastFormat !== selectedPodcastFormat)
                     ) {
+                        isAvailableForSite = true;
                         const $li = $('<li/>').appendTo($ul);
                         const $a = $('<a/>', {
                             role: anchorRole === 'button' ? 'button' : null,
@@ -160,15 +162,15 @@ Studio.PodcastIndex = Craft.BaseElementIndex.extend({
                                 }
                             });
                         }
-                    } else if (this.settings.context === 'index' &&
-                        $.inArray(this.siteId, podcastFormat.sites) === -1) {
-                        // Remove the old button, if there is one
-                        if (this.$newPodcastBtnGroup) {
-                            this.$newPodcastBtnGroup.remove();
-                        }
                     }
                 }
-
+                // We check all podcast formats for this site. 
+                // If there is no any podcast format for this site, then we remove the button
+                if (!isAvailableForSite) {
+                    if (this.$newPodcastBtnGroup) {
+                        this.$newPodcastBtnGroup.remove();
+                    }
+                }
                 new Garnish.DisclosureMenu($menuBtn);
             }
         }
@@ -208,7 +210,7 @@ Studio.PodcastIndex = Craft.BaseElementIndex.extend({
                 podcastFormat: podcastFormat.handle,
             },
         })
-            .then(({data}) => {
+            .then(({ data }) => {
                 if (this.settings.context === 'index') {
                     document.location.href = Craft.getUrl(data.cpEditUrl, { fresh: 1 });
                 } else {
