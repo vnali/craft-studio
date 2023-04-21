@@ -184,11 +184,21 @@ class EpisodesController extends Controller
         $this->requirePostRequest();
         $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $siteId = Craft::$app->getRequest()->getBodyParam('siteId');
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
-        if (!$podcast) {
-            throw new NotFoundHttpException('Invalid podcast id');
+        $siteIds = Craft::$app->getRequest()->getBodyParam('siteIds');
+        if (!is_array($siteIds)) {
+            $siteIds = [$siteIds];
         }
-        $this->requirePermission('studio-importEpisodeByRSS-' . $podcast->uid);
+        // A validation check for passed podcastId and siteIds
+        $podcast = null;
+        foreach ($siteIds as $siteId) {
+            $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
+            if (!$podcast) {
+                throw new NotFoundHttpException('Invalid podcast id');
+            }
+        }
+        if ($podcast) {
+            $this->requirePermission('studio-importEpisodeByRSS-' . $podcast->uid);
+        }
 
         $settings = new ImportEpisodeRSS();
         $settings->rssURL = Craft::$app->getRequest()->getBodyParam('rssURL');
@@ -196,10 +206,7 @@ class EpisodesController extends Controller
         $settings->ignoreImageAsset = Craft::$app->getRequest()->getBodyParam('ignoreImageAsset');
         $limit = Craft::$app->getRequest()->getBodyParam('limit');
         $settings->limit = $limit ? $limit : null;
-        $settings->siteIds = Craft::$app->getRequest()->getBodyParam('siteIds');
-        if ($settings->siteIds && !is_array($settings->siteIds)) {
-            $settings->siteIds = [$settings->siteIds];
-        }
+        $settings->siteIds = $siteIds;
         if (!$settings->validate()) {
             /** @var UrlManager $urlManager */
             $urlManager = Craft::$app->getUrlManager();
@@ -303,17 +310,16 @@ class EpisodesController extends Controller
         }
         $variables['settings'] = $settings;
 
-        $podcastFormat = $podcast->getPodcastFormat();
-        $sitesSettings = $podcastFormat->getSiteSettings();
+        $propagatedSites = Podcast::find()->status(null)->id($podcast->id)->site('*')->select('elements_sites.siteId')->column();
         $items = [];
         $currentUser = Craft::$app->getUser()->getIdentity();
-        foreach ($sitesSettings as $siteSettings) {
+        foreach ($propagatedSites as $siteId) {
             // Allow only sites that user has access
-            $siteUid = Db::uidById(Table::SITES, $siteSettings->siteId);
+            $siteUid = Db::uidById(Table::SITES, $siteId);
             if (Craft::$app->getIsMultiSite() && !$currentUser->can('editSite:' . $siteUid)) {
                 continue;
             }
-            $site = Craft::$app->sites->getSiteById($siteSettings->siteId);
+            $site = Craft::$app->sites->getSiteById($siteId);
             if ($site) {
                 $item = [];
                 $item['label'] = $site->name;
@@ -332,7 +338,7 @@ class EpisodesController extends Controller
 
         $site = Craft::$app->sites->getSiteById($siteId);
         $variables['site'] = $site;
-        
+
         return $this->renderTemplate(
             'studio/episodes/_importFromRSS',
             $variables
@@ -375,18 +381,16 @@ class EpisodesController extends Controller
         $variables['settings'] = $settings;
 
         $variables['enable'] = $settings->enable;
-
-        $podcastFormat = $podcast->getPodcastFormat();
-        $sitesSettings = $podcastFormat->getSiteSettings();
+        $propagatedSites = Podcast::find()->status(null)->id($podcast->id)->site('*')->select('elements_sites.siteId')->column();
         $items = [];
         $currentUser = Craft::$app->getUser()->getIdentity();
-        foreach ($sitesSettings as $siteSettings) {
+        foreach ($propagatedSites as $siteId) {
             // Allow only sites that user has access
-            $siteUid = Db::uidById(Table::SITES, $siteSettings->siteId);
+            $siteUid = Db::uidById(Table::SITES, $siteId);
             if (Craft::$app->getIsMultiSite() && !$currentUser->can('editSite:' . $siteUid)) {
                 continue;
             }
-            $site = Craft::$app->sites->getSiteById($siteSettings->siteId);
+            $site = Craft::$app->sites->getSiteById($siteId);
             if ($site) {
                 $item = [];
                 $item['label'] = $site->name;
@@ -417,26 +421,34 @@ class EpisodesController extends Controller
     public function actionSaveImportFromAssetIndex(): Response|null|false
     {
         $this->requirePostRequest();
-        $siteId = Craft::$app->getRequest()->getBodyParam('siteId');
         $podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
+        $siteIds = Craft::$app->getRequest()->getBodyParam('siteIds');
+        if (!is_array($siteIds)) {
+            $siteIds = [$siteIds];
+        }
+        $podcast = null;
+        // A validation check for passed podcastId and siteIds
+        foreach ($siteIds as $siteId) {
+            $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
+            if (!$podcast) {
+                throw new NotFoundHttpException('Invalid podcast id');
+            }
+        }
+
+        if ($podcast) {
+            $this->requirePermission('studio-importEpisodeByAssetIndex-' . $podcast->uid);
+        }
+
         if ($podcastId) {
             $settings = Studio::$plugin->podcasts->getPodcastAssetIndexesSettings($podcastId);
         } else {
             throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
         }
-        $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
-        if (!$podcast) {
-            throw new NotFoundHttpException('Invalid podcast id');
-        }
-        $this->requirePermission('studio-importEpisodeByAssetIndex-' . $podcast->uid);
 
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $settings->volumes = Craft::$app->getRequest()->getBodyParam('volumes', $settings->volumes);
         $settings->enable = Craft::$app->getRequest()->getBodyParam('enable', $settings->enable);
-        $settings->siteIds = Craft::$app->getRequest()->getBodyParam('siteIds', $settings->siteIds);
-        if ($settings->siteIds && !is_array($settings->siteIds)) {
-            $settings->siteIds = [$settings->siteIds];
-        }
+        $settings->siteIds = $siteIds;
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'Couldn’t save podcast import settings.'));
 

@@ -52,6 +52,7 @@
 - Fixed a bug where a podcast which was not available for current site, was not displayed when create an episode
 - Fixed a bug where new podcast button was not displayed
 - Fixed a bug where new episode button was not displayed
+- Fixed a bug where it was possible to create episodes via RSS and asset indexes for sites which the podcast was not propagated
 - Removed getPodcastBySlug()
 - Removed getAllPodcastsAllSites()
 - Removed PodcastCondition from episode conditions

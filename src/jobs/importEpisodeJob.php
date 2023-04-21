@@ -43,8 +43,6 @@ class importEpisodeJob extends BaseJob
     public function execute($queue): void
     {
         $podcast = Studio::$plugin->podcasts->getPodcastById($this->podcastId, $this->siteId);
-        $podcastFormat = $podcast->getPodcastFormat();
-        $sitesSettings = $podcastFormat->getSiteSettings();
         $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
         $mapping = json_decode($podcastFormatEpisode->mapping, true);
         $step = 0;
@@ -244,20 +242,18 @@ class importEpisodeJob extends BaseJob
                     }
                 }
 
-                $siteId = null;
+                $firstSiteId = null;
                 $siteStatus = [];
-                foreach ($sitesSettings as $key => $siteSettings) {
-                    if (in_array($key, $this->siteIds)) {
-                        if (!$siteId) {
-                            $siteId = $key;
-                        }
-                        // Set status to 0 to allow authors to review imported episodes
-                        $siteStatus[$key] = 0;
+                foreach ($this->siteIds as $siteId) {
+                    if (!$firstSiteId) {
+                        $firstSiteId = $siteId;
                     }
+                    // Set status to 0 to allow authors to review imported episodes
+                    $siteStatus[$siteId] = 0;
                 }
 
 
-                $itemElement->siteId = $siteId;
+                $itemElement->siteId = $firstSiteId;
                 $itemElement->setEnabledForSite($siteStatus);
                 if (!Craft::$app->getElements()->saveElement($itemElement)) {
                     craft::warning("Creation error" . json_encode($itemElement->getErrors()));
