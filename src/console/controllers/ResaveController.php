@@ -52,7 +52,7 @@ class ResaveController extends Controller
     {
         // empty
         if ($to === ':empty:') {
-            return function() {
+            return function () {
                 return null;
             };
         }
@@ -61,7 +61,7 @@ class ResaveController extends Controller
         if (str_starts_with($to, '=')) {
             $template = substr($to, 1);
             $view = Craft::$app->getView();
-            return function(ElementInterface $element) use ($template, $view) {
+            return function (ElementInterface $element) use ($template, $view) {
                 return $view->renderObjectTemplate($template, $element);
             };
         }
@@ -70,7 +70,7 @@ class ResaveController extends Controller
         if (preg_match('/^fn\s*\(\s*(?:\$(\w+)\s*)?\)\s*=>\s*(.+)/', $to, $match)) {
             $var = $match[1];
             $php = sprintf('return %s;', StringHelper::removeLeft(rtrim($match[2], ';'), 'return '));
-            return function(ElementInterface $element) use ($var, $php) {
+            return function (ElementInterface $element) use ($var, $php) {
                 if ($var) {
                     $$var = $element;
                 }
@@ -79,7 +79,7 @@ class ResaveController extends Controller
         }
 
         // attribute name
-        return static function(ElementInterface $element) use ($to) {
+        return static function (ElementInterface $element) use ($to) {
             return $element->$to;
         };
     }
@@ -193,6 +193,13 @@ class ResaveController extends Controller
     {
         if (!parent::beforeAction($action)) {
             return false;
+        }
+
+        if (isset($this->previewMetadata)) {
+            if (!isset($this->metadata) && !isset($this->imageMetadata)) {
+                $this->stderr('--previewMetadata should be used with --metadata or --imageMetaData.' . PHP_EOL, Console::FG_RED);
+                return false;
+            }
         }
 
         if (isset($this->propagateTo)) {
@@ -391,7 +398,7 @@ class ResaveController extends Controller
         $elementsService = Craft::$app->getElements();
         $fail = false;
 
-        $beforeCallback = function(BatchElementActionEvent $e) use ($query, $count, $to, $elementItem) {
+        $beforeCallback = function (BatchElementActionEvent $e) use ($query, $count, $to, $elementItem) {
             if ($e->query === $query) {
                 $setting = null;
                 $importSetting = null;
@@ -431,7 +438,7 @@ class ResaveController extends Controller
                         $fileInfo = null;
 
                         if ($this->metadata || $this->imageMetadata) {
-                            
+
                             if (!$asset) {
                                 $this->stdout(PHP_EOL . "    - No main Asset" . PHP_EOL, Console::FG_YELLOW);
                                 return ExitCode::OK;
@@ -809,7 +816,7 @@ class ResaveController extends Controller
             }
         };
 
-        $afterCallback = function(BatchElementActionEvent $e) use ($query, &$fail) {
+        $afterCallback = function (BatchElementActionEvent $e) use ($query, &$fail) {
             if ($e->query === $query) {
                 $element = $e->element;
                 if ($e->exception) {
