@@ -15,7 +15,6 @@ class EpisodeCondition extends ElementCondition
     protected function conditionRuleTypes(): array
     {
         return array_merge(parent::conditionRuleTypes(), [
-            PodcastConditionRule::class,
             EpisodeBlockConditionRule::class,
             EpisodeExplicitConditionRule::class,
             EpisodeTypeConditionRule::class,
