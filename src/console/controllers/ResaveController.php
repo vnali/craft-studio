@@ -428,13 +428,15 @@ class ResaveController extends Controller
                         $fieldHandle = $field->handle;
                         list($assetFilename, $assetFilePath, $assetFileUrl, $blockId, $asset) = GeneralHelper::getElementAsset($element, $fieldContainer, $fieldHandle);
 
-                        if (!$asset) {
-                            $this->stdout(PHP_EOL . "    - No main Asset" . PHP_EOL, Console::FG_YELLOW);
-                            return ExitCode::OK;
-                        }
                         $fileInfo = null;
 
                         if ($this->metadata || $this->imageMetadata) {
+                            
+                            if (!$asset) {
+                                $this->stdout(PHP_EOL . "    - No main Asset" . PHP_EOL, Console::FG_YELLOW);
+                                return ExitCode::OK;
+                            }
+
                             $vol = $asset->getVolume();
                             $fs = $vol->getFs();
                             if ($fs instanceof LocalFsInterface) {
