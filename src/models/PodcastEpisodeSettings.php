@@ -15,15 +15,50 @@ use vnali\studio\elements\Podcast;
 
 class PodcastEpisodeSettings extends Model
 {
+    /**
+     * @var bool|null If genre should be checked with current values
+     */
     public ?bool $genreImportCheck = null;
+
+    /**
+     * @var string|null if we should use default or meta genres
+     */
     public ?string $genreImportOption = null;
+
+    /**
+     * @var string|null If we should use default or meta images
+     */
     public ?string $imageOption = null;
+
+    /**
+     * @var int Podcast id to set episode settings for
+     */
     public int $podcastId;
+
+    /**
+     * @var string|null How to use pub date option
+     */
     public ?string $pubDateOption = null;
-    public $defaultGenres = [];
-    public $defaultImage = [];
-    public $defaultPubDate;
-    public $siteId = null;
+
+    /**
+     * @var int[]|string Default genres to be used
+     */
+    public array|string $defaultGenres = [];
+
+    /**
+     * @var int[]|string Default images to be used
+     */
+    public array|string $defaultImage = [];
+
+    /**
+     * @var mixed Default pubDate to be used
+     */
+    public mixed $defaultPubDate = null;
+
+    /**
+     * @var int Site to set episode settings for
+     */
+    public int $siteId;
 
     public function rules(): array
     {

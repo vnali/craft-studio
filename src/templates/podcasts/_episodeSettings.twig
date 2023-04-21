@@ -44,7 +44,7 @@
         }) }}
 
         {{ forms.selectField({
-            label: 'Image field options'|t('studio'),
+            label: 'How to set image field'|t('studio'),
             id: 'imageOption',
             name: 'imageOption',
             options: imageOptions,
@@ -65,7 +65,7 @@
         }) }}
 
         {{ forms.selectField({
-            label: 'pub Date field options'|t('studio'),
+            label: 'How to set pubDate field'|t('studio'),
             id: 'pubDateOption',
             name: 'pubDateOption',
             options: pubDateOptions,
@@ -86,7 +86,7 @@
         }) }}
 
 		{{ forms.selectField({
-            label: 'When to use default episode genre'|t('studio'),
+            label: 'How to set episode genre field'|t('studio'),
             id: 'genreImportOption',
             name: 'genreImportOption',
             options: genreImportOptions,
@@ -96,7 +96,7 @@
         }) }}
 
 		{{ forms.lightswitchField({
-            label: 'Ignore genres in meta if not available in list'|t('studio'),
+            label: 'Ignore genres in meta if not available in current values'|t('studio'),
             id: 'genreImportCheck',
             name: 'genreImportCheck',
             required: false,

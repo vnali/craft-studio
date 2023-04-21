@@ -13,11 +13,23 @@ use craft\validators\SiteIdValidator;
 
 class PodcastAssetIndexesSettings extends Model
 {
-    public ?bool $enable = null;
-    public int $podcastId;
-    public $volumes = [];
     /**
-     * @var int[]|string|null SiteIds
+     * @var bool|null If this setting for the podcast is checked when asset indexes happen
+     */
+    public ?bool $enable = null;
+
+    /**
+     * @var integer Podcast Id to add indexed assets
+     */
+    public int $podcastId;
+
+    /**
+     * @var int[]|string Volumes to index assets for importing episodes
+     */
+    public array|string $volumes = [];
+
+    /**
+     * @var int[]|string|null Site Ids to save/propagate to
      */
     public array|string|null $siteIds = null;
 

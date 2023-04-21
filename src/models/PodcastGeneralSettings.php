@@ -11,9 +11,24 @@ use vnali\studio\elements\Podcast;
 
 class PodcastGeneralSettings extends Model
 {
+    /**
+     * @var bool|null If podcast RSS should be available for all without checking permission
+     */
     public ?bool $allowAllToSeeRSS = null;
+
+    /**
+     * @var bool|null If podcast RSS should be published
+     */
     public ?bool $publishRSS = null;
+
+    /**
+     * @var int Podcast Id to set general settings for
+     */
     public int $podcastId;
+
+    /**
+     * @var int Site id to set general settings for
+     */
     public int $siteId;
 
     public function rules(): array
