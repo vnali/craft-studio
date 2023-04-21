@@ -569,7 +569,7 @@ class ResaveController extends Controller
                             list($pubDateField) = GeneralHelper::getElementPubDateField($elementItem, $mapping);
                             $pubDate = Id3::getYear($fileInfo);
                             if ($pubDate) {
-                                $this->stdout(PHP_EOL . "    - Year in metadata", Console::FG_GREEN);
+                                $this->stdout(PHP_EOL . "    - Year in metadata $pubDate", Console::FG_GREEN);
                             } else {
                                 $this->stdout(PHP_EOL . "    - Year is not available in metadata", Console::FG_YELLOW);
                             }
@@ -654,6 +654,7 @@ class ResaveController extends Controller
                                 }
 
                                 if (
+                                    !$this->previewMetadata &&
                                     ($useDefaultImage || $imageOption == 'only-default')
                                     && isset($importSetting['defaultImage']) && is_array($importSetting['defaultImage'])
                                 ) {
