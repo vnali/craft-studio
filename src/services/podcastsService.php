@@ -83,28 +83,16 @@ class podcastsService extends Component
 
     /**
      * Get all podcasts.
-     *
+     * @param mixed $siteId
      * @return array
      */
-    public function getAllPodcasts(): array
+    public function getAllPodcasts($siteId = null): array
     {
-        $query = (new PodcastQuery(PodcastElement::class))
-            ->status(null)
-            ->orderBy('title');
-        $rows = $query->all();
-        return $rows;
-    }
-
-    /**
-     * Get all podcasts from all sites.
-     *
-     * @return array
-     */
-    public function getAllPodcastsAllSites(): array
-    {
-        $query = (new PodcastQuery(PodcastElement::class))
-            ->siteId('*')
-            ->status(null)
+        $query = (new PodcastQuery(PodcastElement::class));
+        if ($siteId) {
+            $query = $query->siteId($siteId);
+        }
+        $query->status(null)
             ->orderBy('title');
         $rows = $query->all();
         return $rows;

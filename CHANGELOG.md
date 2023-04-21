@@ -51,6 +51,7 @@
 - Fixed a bug where plugin sidebar navigation and podcast/episode element indexes page only checked current site access
 - Fixed a bug where a podcast which was not available for current site, was not displayed when create an episode
 - Removed getPodcastBySlug()
+- Removed getAllPodcastsAllSites()
 - Dropped Craft 4.3 support
 
 ## 0.1.0 - 2023-03-02

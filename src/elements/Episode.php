@@ -871,7 +871,7 @@ class Episode extends Element
             'criteria' => $criteria,
         ];
 
-        $podcasts = Studio::$plugin->podcasts->getAllPodcastsAllSites();
+        $podcasts = Studio::$plugin->podcasts->getAllPodcasts('*');
         foreach ($podcasts as $podcast) {
             if (
                 Craft::$app->user->checkPermission('studio-viewPodcastEpisodes-' . $podcast->uid)
