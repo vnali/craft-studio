@@ -142,7 +142,6 @@ JS;
                 ];
             }
         }
-        //craft::dd($availablePodcasts);
         return $availablePodcasts;
     }
 }
