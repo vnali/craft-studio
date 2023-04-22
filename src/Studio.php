@@ -13,6 +13,7 @@ use craft\elements\Asset;
 use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\DeleteSiteEvent;
 use craft\events\RebuildConfigEvent;
+use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterGqlDirectivesEvent;
 use craft\events\RegisterGqlQueriesEvent;
@@ -34,6 +35,7 @@ use craft\services\ProjectConfig;
 use craft\services\Sites;
 use craft\services\UserPermissions;
 use craft\utilities\AssetIndexes;
+use craft\utilities\ClearCaches;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 
@@ -425,6 +427,32 @@ class Studio extends Plugin
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_DIRECTIVES, function(RegisterGqlDirectivesEvent $event) {
             $event->directives[] = SecToTime::class;
         });
+
+        Event::on(
+            ClearCaches::class,
+            ClearCaches::EVENT_REGISTER_TAG_OPTIONS,
+            function(RegisterCacheOptionsEvent $event) {
+                $event->options = array_merge(
+                    $event->options,
+                    $this->_customAdminCpTagOptions()
+                );
+            }
+        );
+    }
+
+    /**
+     * Returns cache tag used by the plugin
+     *
+     * @return array
+     */
+    private function _customAdminCpTagOptions(): array
+    {
+        return [
+            [
+                'tag' => 'studio-plugin',
+                'label' => Craft::t('studio', 'Studio plugin'),
+            ],
+        ];
     }
 
     /**

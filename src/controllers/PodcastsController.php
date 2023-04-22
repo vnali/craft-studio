@@ -25,7 +25,7 @@ use craft\web\View;
 use DOMDocument;
 
 use vnali\studio\elements\db\EpisodeQuery;
-use vnali\studio\elements\Episode;
+use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\elements\Podcast as PodcastElement;
 use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\helpers\Id3;
@@ -33,7 +33,7 @@ use vnali\studio\models\PodcastEpisodeSettings;
 use vnali\studio\models\PodcastFormat;
 use vnali\studio\models\PodcastGeneralSettings;
 use vnali\studio\Studio;
-
+use yii\caching\TagDependency;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -200,19 +200,12 @@ class PodcastsController extends Controller
      * Generate Podcast's RSS
      *
      * @param integer $podcastId
-     * @param string|null $site
      * @return Response
      */
-    public function actionRss(int $podcastId, ?string $site = null): Response
+    public function actionRss(int $podcastId): Response
     {
-        if ($site) {
-            $site = Craft::$app->sites->getSiteByHandle($site);
-        }
-
-        // If site is not passed or not found use default site
-        if (!$site) {
-            $site = Craft::$app->sites->getCurrentSite();
-        }
+        $cache = Craft::$app->getCache();
+        $site = Craft::$app->sites->getCurrentSite();
         $siteId = $site->id;
 
         /** @var PodcastElement|null $podcast */
@@ -233,395 +226,402 @@ class PodcastsController extends Controller
             $this->requirePermission('studio-viewNotPublishedRSS-' . $podcast->uid);
         }
 
-        $podcastFormat = $podcast->getPodcastFormat();
-        $podcastMapping = json_decode($podcastFormat->mapping, true);
-        $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
-        $episodeMapping = json_decode($podcastFormatEpisode->mapping, true);
-
         if (isset($podcast->podcastRedirectTo) && $podcast->podcastRedirectTo) {
             header("HTTP/1.1 301 Moved Permanently");
             header("Location: " . $podcast->podcastRedirectTo);
             exit();
         }
 
-        $episodeQuery = Episode::find()->siteId($siteId);
-        /** @var EpisodeQuery $episodeQuery */
-        $episodeQuery->podcastId = $podcast->id;
-        /** @var Episode[] $episodes */
-        $episodes = $episodeQuery->all();
+        $variables = [];
+        $rssCacheKey = 'studio-plugin-' . $siteId . '-' . $podcast->id;
+        $variables = $cache->getOrSet($rssCacheKey, function() use ($podcast, $site, $variables) {
+            $podcastFormat = $podcast->getPodcastFormat();
+            $podcastMapping = json_decode($podcastFormat->mapping, true);
+            $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
+            $episodeMapping = json_decode($podcastFormatEpisode->mapping, true);
 
-        // Latest updated date for episodes
-        $lastBuildDate = null;
-        $latestUpdatedEpisode = $episodeQuery->orderBy('dateUpdated desc')->one();
-        if ($latestUpdatedEpisode) {
-            $lastBuildDate = $latestUpdatedEpisode->dateUpdated;
-        }
+            $episodeQuery = EpisodeElement::find()->siteId($site->id);
+            /** @var EpisodeQuery $episodeQuery */
+            $episodeQuery->podcastId = $podcast->id;
+            /** @var EpisodeElement[] $episodes */
+            $episodes = $episodeQuery->all();
 
-        // Create the document.
-        $xml = new DOMDocument("1.0", "UTF-8");
-        $xml->preserveWhiteSpace = false;
-        $xml->formatOutput = true;
-        // Create "RSS" element
-        $rss = $xml->createElement("rss");
-        /** @var \DomElement $rssNode */
-        $rssNode = $xml->appendChild($rss);
-        $rssNode->setAttribute("version", "2.0");
-        $rssNode->setAttribute("xmlns:atom", "http://www.w3.org/2005/Atom");
-        $rssNode->setAttribute("xmlns:itunes", 'http://www.itunes.com/dtds/podcast-1.0.dtd');
-        $rssNode->setAttribute("xmlns:content", 'http://purl.org/rss/1.0/modules/content/');
-
-        $xmlChannel = $xml->createElement("channel");
-        $rssNode->appendChild($xmlChannel);
-        $podcastTitle = $xml->createElement("title", htmlspecialchars($podcast->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-        $xmlChannel->appendChild($podcastTitle);
-        $podcastTitle = $xml->createElement("itunes:title", htmlspecialchars($podcast->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-        $xmlChannel->appendChild($podcastTitle);
-
-        // Compare podcast updated date with latest update date for episodes
-        $podcastUpdate = $podcast->dateUpdated;
-        if ($lastBuildDate < $podcastUpdate) {
-            $lastBuildDate = $podcastUpdate;
-        }
-
-        // Add lastBuildDate and pubDate
-        $lastBuildDate = $lastBuildDate->format('D, d M Y H:i:s T');
-        $pubDate = $xml->createElement("pubDate", $lastBuildDate);
-        $xmlChannel->appendChild($pubDate);
-        $lastBuildDate = $xml->createElement("lastBuildDate", $lastBuildDate);
-        $xmlChannel->appendChild($lastBuildDate);
-
-        // Podcast Link
-        if ($podcast->podcastLink) {
-            $podcastLink = $xml->createElement("link", htmlspecialchars($podcast->podcastLink, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-            $xmlChannel->appendChild($podcastLink);
-        } elseif ($podcast->url) {
-            $podcastLink = $xml->createElement("link", htmlspecialchars($podcast->url, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-            $xmlChannel->appendChild($podcastLink);
-        }
-
-        // Podcast Language
-        $siteLanguage = $site->language;
-        $podcastLanguage = $xml->createElement("language", $siteLanguage);
-        $xmlChannel->appendChild($podcastLanguage);
-
-        // Podcast Image
-        list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField('podcast', $podcastMapping);
-        if ($imageField) {
-            if (get_class($imageField) == 'craft\fields\PlainText') {
-                $imageFieldHandle = $imageField->handle;
-                $imageUrl = $podcast->{$imageFieldHandle};
-            } elseif (get_class($imageField) == 'craft\fields\Assets') {
-                $imageFieldHandle = $imageField->handle;
-                $podcastImage = $podcast->$imageFieldHandle->one();
-                if ($podcastImage) {
-                    $imageUrl = $podcastImage->url;
-                }
-            }
-            if (isset($imageUrl)) {
-                $xmlPodcastImage = $xml->createElement("itunes:image");
-                $xmlPodcastImage->setAttribute("href", htmlspecialchars($imageUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                $xmlChannel->appendChild($xmlPodcastImage);
-            }
-        }
-
-        // Podcast Description
-        $descriptionField = GeneralHelper::getElementDescriptionField('podcast', $podcastMapping);
-        if ($descriptionField) {
-            $descriptionFieldHandle = $descriptionField->handle;
-            $xmlPodcastItunesSummary = $xml->createElement("itunes:summary", htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-            $xmlChannel->appendChild($xmlPodcastItunesSummary);
-            $xmlPodcastDescription = $xml->createElement("description", htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-            $xmlChannel->appendChild($xmlPodcastDescription);
-        }
-
-        // Podcast Category
-        list($categoryGroup, $categoryField) = GeneralHelper::getElementCategoryField('podcast', $podcastMapping);
-        if ($categoryGroup) {
-            if (get_class($categoryField) == Categories::class || get_class($categoryField) == Entries::class) {
-                $categories = $podcast->{$categoryField->handle}->level(1)->all();
-            } else {
-                throw new ServerErrorHttpException('not supported field type' . get_class($categoryField));
-            }
-            foreach ($categories as $category) {
-                $xmlPodcastCategory = $xml->createElement("itunes:category");
-                $xmlPodcastCategory->setAttribute("text", htmlspecialchars($category->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                $xmlChannel->appendChild($xmlPodcastCategory);
-                $subCategories = $podcast->{$categoryField->handle}->descendantOf($category->id)->all();
-                foreach ($subCategories as $subCategory) {
-                    $xmlPodcastSubCategory = $xml->createElement("itunes:category");
-                    $xmlPodcastSubCategory->setAttribute("text", htmlspecialchars($subCategory->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                    $xmlPodcastCategory->appendChild($xmlPodcastSubCategory);
-                }
-            }
-        }
-
-        // Podcast Explicit
-        if (isset($podcast->podcastExplicit)) {
-            if ($podcast->podcastExplicit == '1') {
-                $podcastExplicit = 'yes';
-            } else {
-                $podcastExplicit = 'no';
-            }
-            $xmlPodcastExplicit = $xml->createElement("itunes:explicit", $podcastExplicit);
-            $xmlChannel->appendChild($xmlPodcastExplicit);
-        }
-
-        // Podcast Author
-        if ($podcast->authorName) {
-            $xmlPodcastAuthor = $xml->createElement("itunes:author", htmlspecialchars($podcast->authorName, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-            $xmlChannel->appendChild($xmlPodcastAuthor);
-        }
-
-        // Podcast Owner
-        if ($podcast->ownerName || $podcast->ownerEmail) {
-            $xmlPodcastOwner = $xml->createElement("itunes:owner");
-            $xmlChannel->appendChild($xmlPodcastOwner);
-
-            if ($podcast->ownerName) {
-                $xmlPodcastOwnerName = $xml->createElement("itunes:name", htmlspecialchars($podcast->ownerName, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                $xmlPodcastOwner->appendChild($xmlPodcastOwnerName);
+            // Latest updated date for episodes
+            $lastBuildDate = null;
+            $latestUpdatedEpisode = $episodeQuery->orderBy('dateUpdated desc')->one();
+            if ($latestUpdatedEpisode) {
+                $lastBuildDate = $latestUpdatedEpisode->dateUpdated;
             }
 
-            if ($podcast->ownerEmail) {
-                $xmlPodcastOwnerEmail = $xml->createElement("itunes:email", $podcast->ownerEmail);
-                $xmlPodcastOwner->appendChild($xmlPodcastOwnerEmail);
-            }
-        }
+            // Create the document.
+            $xml = new DOMDocument("1.0", "UTF-8");
+            $xml->preserveWhiteSpace = false;
+            $xml->formatOutput = true;
+            // Create "RSS" element
+            $rss = $xml->createElement("rss");
+            /** @var \DomElement $rssNode */
+            $rssNode = $xml->appendChild($rss);
+            $rssNode->setAttribute("version", "2.0");
+            $rssNode->setAttribute("xmlns:atom", "http://www.w3.org/2005/Atom");
+            $rssNode->setAttribute("xmlns:itunes", 'http://www.itunes.com/dtds/podcast-1.0.dtd');
+            $rssNode->setAttribute("xmlns:content", 'http://purl.org/rss/1.0/modules/content/');
 
-        // Podcast New feed url
-        if (isset($podcast->podcastIsNewFeedUrl) && $podcast->podcastIsNewFeedUrl) {
-            $xmlPodcastNewFeedURL = $xml->createElement("itunes:new-feed-url", htmlspecialchars($site->getBaseUrl() . 'podcasts/rss?podcastId=' . $podcastId . '&siteId=' . $siteId));
-            $xmlChannel->appendChild($xmlPodcastNewFeedURL);
-        }
+            $xmlChannel = $xml->createElement("channel");
+            $rssNode->appendChild($xmlChannel);
+            $podcastTitle = $xml->createElement("title", htmlspecialchars($podcast->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+            $xmlChannel->appendChild($podcastTitle);
+            $podcastTitle = $xml->createElement("itunes:title", htmlspecialchars($podcast->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+            $xmlChannel->appendChild($podcastTitle);
 
-        // Podcast Copyright
-        if ($podcast->copyright) {
-            $xmlPodcastCopyright = $xml->createElement("copyright", htmlspecialchars($podcast->copyright, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-            $xmlChannel->appendChild($xmlPodcastCopyright);
-        }
-
-        // Podcast Block
-        if ($podcast->podcastBlock) {
-            $xmlPodcastBlock = $xml->createElement("itunes:block", 'yes');
-            $xmlChannel->appendChild($xmlPodcastBlock);
-        }
-
-        // Podcast Complete
-        if ($podcast->podcastComplete) {
-            $xmlPodcastComplete = $xml->createElement("itunes:complete", 'yes');
-            $xmlChannel->appendChild($xmlPodcastComplete);
-        }
-
-        // Podcast type
-        if ($podcast->podcastType) {
-            $xmlPodcastType = $xml->createElement("itunes:type", $podcast->podcastType);
-            $xmlChannel->appendChild($xmlPodcastType);
-        }
-
-        $fieldHandle = null;
-        $fieldContainer = null;
-
-        if (isset($episodeMapping['mainAsset']['container'])) {
-            $fieldContainer = $episodeMapping['mainAsset']['container'];
-        }
-        if (isset($episodeMapping['mainAsset']['field'])) {
-            $fieldUid = $episodeMapping['mainAsset']['field'];
-            if ($fieldUid) {
-                $field = Craft::$app->fields->getFieldByUid($fieldUid);
-                if ($field) {
-                    $fieldHandle = $field->handle;
-                } else {
-                    throw new ServerErrorHttpException('episode field is not specified');
-                }
-            }
-        }
-
-        foreach ($episodes as $episode) {
-            $xmlItem = $xml->createElement("item");
-            $xmlTitle = $xml->createElement("title", htmlspecialchars($episode->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-            $xmlItem->appendChild($xmlTitle);
-            list($assetFilename, $assetFilePath, $assetFileUrl, $blockId, $asset) = GeneralHelper::getElementAsset($episode, $fieldContainer, $fieldHandle);
-            $xmlEnclosure = $xml->createElement("enclosure");
-            if ($assetFileUrl && $asset) {
-                $xmlEnclosure->setAttribute("url", htmlspecialchars($assetFileUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                $xmlItem->appendChild($xmlEnclosure);
-
-                $fs = $asset->getVolume()->getFs();
-                if ($fs instanceof LocalFsInterface) {
-                    /** @var Local $fs */
-                    $volumePath = $fs->path;
-                    $path = Craft::getAlias($volumePath . '/' . $asset->getPath());
-                    $type = 'local';
-                } else {
-                    $path = $asset->getUrl();
-                    $type = 'remote';
-                }
-                $fileInfo = Id3::analyze($type, $path);
-
-                // TODO: maybe keep fileinfo in db instead of fetching from file
-                if (isset($fileInfo['filesize'])) {
-                    $fileSize = $fileInfo['filesize'];
-                    $xmlEnclosure->setAttribute("length", $fileSize);
-                }
-                if (isset($fileInfo['mime_type'])) {
-                    $mime_type = $fileInfo['mime_type'];
-                    $xmlEnclosure->setAttribute("type", $mime_type);
-                }
+            // Compare podcast updated date with latest update date for episodes
+            $podcastUpdate = $podcast->dateUpdated;
+            if ($lastBuildDate < $podcastUpdate) {
+                $lastBuildDate = $podcastUpdate;
             }
 
-            // Episode Link
-            if ($episode->url) {
-                $episodeLink = $xml->createElement("link", htmlspecialchars($episode->url, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                $xmlItem->appendChild($episodeLink);
+            // Add lastBuildDate and pubDate
+            $lastBuildDate = $lastBuildDate->format('D, d M Y H:i:s T');
+            $pubDate = $xml->createElement("pubDate", $lastBuildDate);
+            $xmlChannel->appendChild($pubDate);
+            $lastBuildDate = $xml->createElement("lastBuildDate", $lastBuildDate);
+            $xmlChannel->appendChild($lastBuildDate);
+
+            // Podcast Link
+            if ($podcast->podcastLink) {
+                $podcastLink = $xml->createElement("link", htmlspecialchars($podcast->podcastLink, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlChannel->appendChild($podcastLink);
+            } elseif ($podcast->url) {
+                $podcastLink = $xml->createElement("link", htmlspecialchars($podcast->url, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlChannel->appendChild($podcastLink);
             }
 
-            // Episode type
-            if ($episode->episodeType) {
-                $episodeType = $xml->createElement("itunes:episodeType", htmlspecialchars($episode->episodeType, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                $xmlItem->appendChild($episodeType);
-            }
+            // Podcast Language
+            $siteLanguage = $site->language;
+            $podcastLanguage = $xml->createElement("language", $siteLanguage);
+            $xmlChannel->appendChild($podcastLanguage);
 
-            // Episode season
-            if ($episode->episodeSeason) {
-                $episodeSeason = $xml->createElement("itunes:season", (string)$episode->episodeSeason);
-                $xmlItem->appendChild($episodeSeason);
-            }
-
-            // Episode number
-            if ($episode->episodeNumber) {
-                $episodeNumber = $xml->createElement("itunes:episode", (string)$episode->episodeNumber);
-                $xmlItem->appendChild($episodeNumber);
-            }
-
-            // Episode Image
-            list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField('episode', $episodeMapping);
+            // Podcast Image
+            list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField('podcast', $podcastMapping);
             if ($imageField) {
                 if (get_class($imageField) == 'craft\fields\PlainText') {
                     $imageFieldHandle = $imageField->handle;
-                    $imageUrl = $episode->{$imageFieldHandle};
+                    $imageUrl = $podcast->{$imageFieldHandle};
                 } elseif (get_class($imageField) == 'craft\fields\Assets') {
                     $imageFieldHandle = $imageField->handle;
-                    if ($episode->$imageFieldHandle) {
-                        $episodeImage = $episode->$imageFieldHandle->one();
-                        if ($episodeImage) {
-                            $imageUrl = $episodeImage->url;
-                        }
+                    $podcastImage = $podcast->$imageFieldHandle->one();
+                    if ($podcastImage) {
+                        $imageUrl = $podcastImage->url;
                     }
                 }
                 if (isset($imageUrl)) {
-                    $xmlEpisodeImage = $xml->createElement("itunes:image");
-                    $xmlEpisodeImage->setAttribute("href", htmlspecialchars($imageUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                    $xmlItem->appendChild($xmlEpisodeImage);
+                    $xmlPodcastImage = $xml->createElement("itunes:image");
+                    $xmlPodcastImage->setAttribute("href", htmlspecialchars($imageUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlChannel->appendChild($xmlPodcastImage);
                 }
             }
 
-            // Episode block
-            if (isset($episode->episodeBlock) && $episode->episodeBlock == '1') {
-                $xmlEpisodeBlock = $xml->createElement("itunes:block", 'yes');
-                $xmlItem->appendChild($xmlEpisodeBlock);
-            }
-
-            // Episode Explicit
-            if (isset($episode->episodeExplicit)) {
-                if ($episode->episodeExplicit == '1') {
-                    $episodeExplicit = 'yes';
-                } else {
-                    $episodeExplicit = 'no';
-                }
-                $xmlEpisodeExplicit = $xml->createElement("itunes:explicit", $episodeExplicit);
-                $xmlItem->appendChild($xmlEpisodeExplicit);
-            }
-
-            // Episode itunes:subtitle
-            $subtitleField = GeneralHelper::getElementSubtitleField('episode', $episodeMapping);
-            if ($subtitleField) {
-                $subtitleFieldHandle = $subtitleField->handle;
-                $xmlEpisodeSubtitle = $xml->createElement("itunes:subtitle", htmlspecialchars($episode->{$subtitleFieldHandle}, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                $xmlItem->appendChild($xmlEpisodeSubtitle);
-            }
-
-            // Episode itunes:summary
-            $summaryField = GeneralHelper::getElementSummaryField('episode', $episodeMapping);
-            if ($summaryField) {
-                $summaryFieldHandle = $summaryField->handle;
-                $xmlEpisodeSummary = $xml->createElement("itunes:summary");
-                $xmlEpisodeSummary->appendChild($xml->createCDATASection($episode->{$summaryFieldHandle}));
-                $xmlItem->appendChild($xmlEpisodeSummary);
-            }
-
-            // Episode Description
-            $descriptionField = GeneralHelper::getElementDescriptionField('episode', $episodeMapping);
+            // Podcast Description
+            $descriptionField = GeneralHelper::getElementDescriptionField('podcast', $podcastMapping);
             if ($descriptionField) {
                 $descriptionFieldHandle = $descriptionField->handle;
-                $xmlEpisodeDescription = $xml->createElement("description");
-                $xmlEpisodeDescription->appendChild($xml->createCDATASection($episode->{$descriptionFieldHandle}));
-                $xmlItem->appendChild($xmlEpisodeDescription);
+                $xmlPodcastItunesSummary = $xml->createElement("itunes:summary", htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlChannel->appendChild($xmlPodcastItunesSummary);
+                $xmlPodcastDescription = $xml->createElement("description", htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlChannel->appendChild($xmlPodcastDescription);
             }
 
-            // Episode Content encoded
-            $contentEncodedField = GeneralHelper::getElementContentEncodedField('episode', $episodeMapping);
-            if ($contentEncodedField) {
-                $contentEncodedFieldHandle = $contentEncodedField->handle;
-                $xmlEpisodeContentEncoded = $xml->createElement("content:encoded");
-                $xmlEpisodeContentEncoded->appendChild($xml->createCDATASection($episode->{$contentEncodedFieldHandle}));
-                $xmlItem->appendChild($xmlEpisodeContentEncoded);
-            }
-
-            // Episode duration
-            if ($episode->duration) {
-                $episodeDuration = $xml->createElement("itunes:duration", (string)$episode->duration);
-                $xmlItem->appendChild($episodeDuration);
-            }
-
-            // Episode Pub Date
-            $date = null;
-            if (isset($episodeMapping['episodePubDate']['field']) && $episodeMapping['episodePubDate']['field']) {
-                $fieldUid = $episodeMapping['episodePubDate']['field'];
-                $field = Craft::$app->fields->getFieldByUid($fieldUid);
-                if ($field) {
-                    $pubDateFieldHandle = $field->handle;
-                    $date = $episode->{$pubDateFieldHandle};
-                    if ($date) {
-                        $date = $date->format('D, d M Y H:i:s T');
-                        $xmlEpisodePubDate = $xml->createElement("pubDate", $date);
-                        $xmlItem->appendChild($xmlEpisodePubDate);
+            // Podcast Category
+            list($categoryGroup, $categoryField) = GeneralHelper::getElementCategoryField('podcast', $podcastMapping);
+            if ($categoryGroup) {
+                if (get_class($categoryField) == Categories::class || get_class($categoryField) == Entries::class) {
+                    $categories = $podcast->{$categoryField->handle}->level(1)->all();
+                } else {
+                    throw new ServerErrorHttpException('not supported field type' . get_class($categoryField));
+                }
+                foreach ($categories as $category) {
+                    $xmlPodcastCategory = $xml->createElement("itunes:category");
+                    $xmlPodcastCategory->setAttribute("text", htmlspecialchars($category->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlChannel->appendChild($xmlPodcastCategory);
+                    $subCategories = $podcast->{$categoryField->handle}->descendantOf($category->id)->all();
+                    foreach ($subCategories as $subCategory) {
+                        $xmlPodcastSubCategory = $xml->createElement("itunes:category");
+                        $xmlPodcastSubCategory->setAttribute("text", htmlspecialchars($subCategory->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlPodcastCategory->appendChild($xmlPodcastSubCategory);
                     }
                 }
             }
-            if (!isset($episodeMapping['episodePubDate']['field']) || !$episodeMapping['episodePubDate']['field'] || !$date) {
-                $date = $episode->dateCreated;
-                $date = $date->format('D, d M Y H:i:s T');
-                $xmlEpisodePubDate = $xml->createElement("pubDate", $date);
-                $xmlItem->appendChild($xmlEpisodePubDate);
-            }
 
-            // Episode keywords
-            list($keywordField) = GeneralHelper::getElementKeywordsField('episode', $episodeMapping);
-            if ($keywordField) {
-                if (get_class($keywordField) == 'craft\fields\PlainText') {
-                    $keywordFieldHandle = $keywordField->handle;
-                    $keywords = $episode->{$keywordFieldHandle};
+            // Podcast Explicit
+            if (isset($podcast->podcastExplicit)) {
+                if ($podcast->podcastExplicit == '1') {
+                    $podcastExplicit = 'yes';
                 } else {
-                    $keywordFieldHandle = $keywordField->handle;
-                    $keywords = $episode->$keywordFieldHandle->collect();
-                    $keywords = $keywords->pluck('title')->join(', ');
+                    $podcastExplicit = 'no';
                 }
-                if (isset($keywords)) {
-                    $xmlEpisodeKeywords = $xml->createElement("itunes:keywords", htmlspecialchars($keywords, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                    $xmlItem->appendChild($xmlEpisodeKeywords);
+                $xmlPodcastExplicit = $xml->createElement("itunes:explicit", $podcastExplicit);
+                $xmlChannel->appendChild($xmlPodcastExplicit);
+            }
+
+            // Podcast Author
+            if ($podcast->authorName) {
+                $xmlPodcastAuthor = $xml->createElement("itunes:author", htmlspecialchars($podcast->authorName, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlChannel->appendChild($xmlPodcastAuthor);
+            }
+
+            // Podcast Owner
+            if ($podcast->ownerName || $podcast->ownerEmail) {
+                $xmlPodcastOwner = $xml->createElement("itunes:owner");
+                $xmlChannel->appendChild($xmlPodcastOwner);
+
+                if ($podcast->ownerName) {
+                    $xmlPodcastOwnerName = $xml->createElement("itunes:name", htmlspecialchars($podcast->ownerName, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlPodcastOwner->appendChild($xmlPodcastOwnerName);
+                }
+
+                if ($podcast->ownerEmail) {
+                    $xmlPodcastOwnerEmail = $xml->createElement("itunes:email", $podcast->ownerEmail);
+                    $xmlPodcastOwner->appendChild($xmlPodcastOwnerEmail);
                 }
             }
 
-            // Episode GUID
-            if ($episode->episodeGUID) {
-                $xmlEpisodeGUID = $xml->createElement("guid", $episode->episodeGUID);
-                $xmlItem->appendChild($xmlEpisodeGUID);
+            // Podcast New feed url
+            if (isset($podcast->podcastIsNewFeedUrl) && $podcast->podcastIsNewFeedUrl) {
+                $xmlPodcastNewFeedURL = $xml->createElement("itunes:new-feed-url", htmlspecialchars($site->getBaseUrl() . 'podcasts/rss?podcastId=' . $podcast->id));
+                $xmlChannel->appendChild($xmlPodcastNewFeedURL);
             }
 
-            $xmlChannel->appendChild($xmlItem);
-        }
+            // Podcast Copyright
+            if ($podcast->copyright) {
+                $xmlPodcastCopyright = $xml->createElement("copyright", htmlspecialchars($podcast->copyright, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlChannel->appendChild($xmlPodcastCopyright);
+            }
 
-        $variables['xml'] = $xml->saveXML();
+            // Podcast Block
+            if ($podcast->podcastBlock) {
+                $xmlPodcastBlock = $xml->createElement("itunes:block", 'yes');
+                $xmlChannel->appendChild($xmlPodcastBlock);
+            }
+
+            // Podcast Complete
+            if ($podcast->podcastComplete) {
+                $xmlPodcastComplete = $xml->createElement("itunes:complete", 'yes');
+                $xmlChannel->appendChild($xmlPodcastComplete);
+            }
+
+            // Podcast type
+            if ($podcast->podcastType) {
+                $xmlPodcastType = $xml->createElement("itunes:type", $podcast->podcastType);
+                $xmlChannel->appendChild($xmlPodcastType);
+            }
+
+            $fieldHandle = null;
+            $fieldContainer = null;
+
+            if (isset($episodeMapping['mainAsset']['container'])) {
+                $fieldContainer = $episodeMapping['mainAsset']['container'];
+            }
+            if (isset($episodeMapping['mainAsset']['field'])) {
+                $fieldUid = $episodeMapping['mainAsset']['field'];
+                if ($fieldUid) {
+                    $field = Craft::$app->fields->getFieldByUid($fieldUid);
+                    if ($field) {
+                        $fieldHandle = $field->handle;
+                    } else {
+                        throw new ServerErrorHttpException('episode field is not specified');
+                    }
+                }
+            }
+
+            foreach ($episodes as $episode) {
+                $xmlItem = $xml->createElement("item");
+                $xmlTitle = $xml->createElement("title", htmlspecialchars($episode->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                $xmlItem->appendChild($xmlTitle);
+                list($assetFilename, $assetFilePath, $assetFileUrl, $blockId, $asset) = GeneralHelper::getElementAsset($episode, $fieldContainer, $fieldHandle);
+                $xmlEnclosure = $xml->createElement("enclosure");
+                if ($assetFileUrl && $asset) {
+                    $xmlEnclosure->setAttribute("url", htmlspecialchars($assetFileUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlItem->appendChild($xmlEnclosure);
+
+                    $fs = $asset->getVolume()->getFs();
+                    if ($fs instanceof LocalFsInterface) {
+                        /** @var Local $fs */
+                        $volumePath = $fs->path;
+                        $path = Craft::getAlias($volumePath . '/' . $asset->getPath());
+                        $type = 'local';
+                    } else {
+                        $path = $asset->getUrl();
+                        $type = 'remote';
+                    }
+                    $fileInfo = Id3::analyze($type, $path);
+
+                    // TODO: maybe keep fileinfo in db instead of fetching from file
+                    if (isset($fileInfo['filesize'])) {
+                        $fileSize = $fileInfo['filesize'];
+                        $xmlEnclosure->setAttribute("length", $fileSize);
+                    }
+                    if (isset($fileInfo['mime_type'])) {
+                        $mime_type = $fileInfo['mime_type'];
+                        $xmlEnclosure->setAttribute("type", $mime_type);
+                    }
+                }
+
+                // Episode Link
+                if ($episode->url) {
+                    $episodeLink = $xml->createElement("link", htmlspecialchars($episode->url, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlItem->appendChild($episodeLink);
+                }
+
+                // Episode type
+                if ($episode->episodeType) {
+                    $episodeType = $xml->createElement("itunes:episodeType", htmlspecialchars($episode->episodeType, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlItem->appendChild($episodeType);
+                }
+
+                // Episode season
+                if ($episode->episodeSeason) {
+                    $episodeSeason = $xml->createElement("itunes:season", (string)$episode->episodeSeason);
+                    $xmlItem->appendChild($episodeSeason);
+                }
+
+                // Episode number
+                if ($episode->episodeNumber) {
+                    $episodeNumber = $xml->createElement("itunes:episode", (string)$episode->episodeNumber);
+                    $xmlItem->appendChild($episodeNumber);
+                }
+
+                // Episode Image
+                list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField('episode', $episodeMapping);
+                if ($imageField) {
+                    if (get_class($imageField) == 'craft\fields\PlainText') {
+                        $imageFieldHandle = $imageField->handle;
+                        $imageUrl = $episode->{$imageFieldHandle};
+                    } elseif (get_class($imageField) == 'craft\fields\Assets') {
+                        $imageFieldHandle = $imageField->handle;
+                        if ($episode->$imageFieldHandle) {
+                            $episodeImage = $episode->$imageFieldHandle->one();
+                            if ($episodeImage) {
+                                $imageUrl = $episodeImage->url;
+                            } else {
+                                $imageUrl = null;
+                            }
+                        }
+                    }
+                    if (isset($imageUrl)) {
+                        $xmlEpisodeImage = $xml->createElement("itunes:image");
+                        $xmlEpisodeImage->setAttribute("href", htmlspecialchars($imageUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlItem->appendChild($xmlEpisodeImage);
+                    }
+                }
+
+                // Episode block
+                if (isset($episode->episodeBlock) && $episode->episodeBlock == '1') {
+                    $xmlEpisodeBlock = $xml->createElement("itunes:block", 'yes');
+                    $xmlItem->appendChild($xmlEpisodeBlock);
+                }
+
+                // Episode Explicit
+                if (isset($episode->episodeExplicit)) {
+                    if ($episode->episodeExplicit == '1') {
+                        $episodeExplicit = 'yes';
+                    } else {
+                        $episodeExplicit = 'no';
+                    }
+                    $xmlEpisodeExplicit = $xml->createElement("itunes:explicit", $episodeExplicit);
+                    $xmlItem->appendChild($xmlEpisodeExplicit);
+                }
+
+                // Episode itunes:subtitle
+                $subtitleField = GeneralHelper::getElementSubtitleField('episode', $episodeMapping);
+                if ($subtitleField) {
+                    $subtitleFieldHandle = $subtitleField->handle;
+                    $xmlEpisodeSubtitle = $xml->createElement("itunes:subtitle", htmlspecialchars($episode->{$subtitleFieldHandle}, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlItem->appendChild($xmlEpisodeSubtitle);
+                }
+
+                // Episode itunes:summary
+                $summaryField = GeneralHelper::getElementSummaryField('episode', $episodeMapping);
+                if ($summaryField) {
+                    $summaryFieldHandle = $summaryField->handle;
+                    $xmlEpisodeSummary = $xml->createElement("itunes:summary");
+                    $xmlEpisodeSummary->appendChild($xml->createCDATASection($episode->{$summaryFieldHandle}));
+                    $xmlItem->appendChild($xmlEpisodeSummary);
+                }
+
+                // Episode Description
+                $descriptionField = GeneralHelper::getElementDescriptionField('episode', $episodeMapping);
+                if ($descriptionField) {
+                    $descriptionFieldHandle = $descriptionField->handle;
+                    $xmlEpisodeDescription = $xml->createElement("description");
+                    $xmlEpisodeDescription->appendChild($xml->createCDATASection($episode->{$descriptionFieldHandle}));
+                    $xmlItem->appendChild($xmlEpisodeDescription);
+                }
+
+                // Episode Content encoded
+                $contentEncodedField = GeneralHelper::getElementContentEncodedField('episode', $episodeMapping);
+                if ($contentEncodedField) {
+                    $contentEncodedFieldHandle = $contentEncodedField->handle;
+                    $xmlEpisodeContentEncoded = $xml->createElement("content:encoded");
+                    $xmlEpisodeContentEncoded->appendChild($xml->createCDATASection($episode->{$contentEncodedFieldHandle}));
+                    $xmlItem->appendChild($xmlEpisodeContentEncoded);
+                }
+
+                // Episode duration
+                if ($episode->duration) {
+                    $episodeDuration = $xml->createElement("itunes:duration", (string)$episode->duration);
+                    $xmlItem->appendChild($episodeDuration);
+                }
+
+                // Episode Pub Date
+                $date = null;
+                if (isset($episodeMapping['episodePubDate']['field']) && $episodeMapping['episodePubDate']['field']) {
+                    $fieldUid = $episodeMapping['episodePubDate']['field'];
+                    $field = Craft::$app->fields->getFieldByUid($fieldUid);
+                    if ($field) {
+                        $pubDateFieldHandle = $field->handle;
+                        $date = $episode->{$pubDateFieldHandle};
+                        if ($date) {
+                            $date = $date->format('D, d M Y H:i:s T');
+                            $xmlEpisodePubDate = $xml->createElement("pubDate", $date);
+                            $xmlItem->appendChild($xmlEpisodePubDate);
+                        }
+                    }
+                }
+                if (!isset($episodeMapping['episodePubDate']['field']) || !$episodeMapping['episodePubDate']['field'] || !$date) {
+                    $date = $episode->dateCreated;
+                    $date = $date->format('D, d M Y H:i:s T');
+                    $xmlEpisodePubDate = $xml->createElement("pubDate", $date);
+                    $xmlItem->appendChild($xmlEpisodePubDate);
+                }
+
+                // Episode keywords
+                list($keywordField) = GeneralHelper::getElementKeywordsField('episode', $episodeMapping);
+                if ($keywordField) {
+                    if (get_class($keywordField) == 'craft\fields\PlainText') {
+                        $keywordFieldHandle = $keywordField->handle;
+                        $keywords = $episode->{$keywordFieldHandle};
+                    } else {
+                        $keywordFieldHandle = $keywordField->handle;
+                        $keywords = $episode->$keywordFieldHandle->collect();
+                        $keywords = $keywords->pluck('title')->join(', ');
+                    }
+                    if (isset($keywords)) {
+                        $xmlEpisodeKeywords = $xml->createElement("itunes:keywords", htmlspecialchars($keywords, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlItem->appendChild($xmlEpisodeKeywords);
+                    }
+                }
+
+                // Episode GUID
+                if ($episode->episodeGUID) {
+                    $xmlEpisodeGUID = $xml->createElement("guid", $episode->episodeGUID);
+                    $xmlItem->appendChild($xmlEpisodeGUID);
+                }
+
+                $xmlChannel->appendChild($xmlItem);
+            }
+
+            $variables['xml'] = $xml->saveXML();
+            return $variables;
+        }, 0, new TagDependency(['tags' => ['studio-plugin', 'element::' . PodcastElement::class . '::*', 'element::' . EpisodeElement::class . '::*']]));
 
         Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_CP);
         return $this->renderTemplate(
@@ -746,7 +746,7 @@ class PodcastsController extends Controller
 
         if (isset($imageField)) {
             if (get_class($imageField) == 'craft\fields\Assets') {
-                $episode = new Episode();
+                $episode = new EpisodeElement();
                 $folderId = $imageField->resolveDynamicPathToFolderId($episode);
                 if (empty($folderId)) {
                     throw new BadRequestHttpException('The target destination provided for uploading is not valid');

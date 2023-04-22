@@ -34,6 +34,8 @@
 - Changed podcast RSS URL to use site handle instead of site Id
 - Podcast episode settings can be set per site
 - Native podcast link field is requirable now
+- Changed podcast rss url to use site base url
+- Improved podcast RSS page speed by caching
 - Fixed route for episodes
 - Fixed a bug where changing lightswitch inputs on the sidebar of the episode edit page, creates unwanted drafts
 - Fixed permission issues where non-admin users were not able to access some plugin actions
