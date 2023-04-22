@@ -67,13 +67,14 @@ class ImporterService extends Component
 
         $itemFieldId = null;
         $itemFieldContainer = null;
+        $fieldsService = Craft::$app->getFields();
 
         if (isset($mapping['mainAsset']['container'])) {
             $itemFieldContainer = $mapping['mainAsset']['container'];
         }
         if (isset($mapping['mainAsset']['field']) && $mapping['mainAsset']['field']) {
             $itemFieldId = $mapping['mainAsset']['field'];
-            $itemField = Craft::$app->fields->getFieldByUid($itemFieldId);
+            $itemField = $fieldsService->getFieldByUid($itemFieldId);
             if ($itemField) {
                 $itemFieldHandle = $itemField->handle;
             }
@@ -323,7 +324,7 @@ class ImporterService extends Component
         $imgBlockType = null;
         if ($container0Handle || isset($imgContainer0Handle)) {
             if ($container0Type && ($container0Type === 'SuperTable')) {
-                $superTableField = Craft::$app->fields->getFieldByHandle($container0Handle);
+                $superTableField = $fieldsService->getFieldByHandle($container0Handle);
                 $blockTypes = SuperTable::$plugin->getService()->getBlockTypesByFieldId($superTableField->id);
                 $blockType = $blockTypes[0];
                 $itemBlockType = $blockType->id;
@@ -331,7 +332,7 @@ class ImporterService extends Component
                 $itemBlockType = $container1Handle;
             }
             if (isset($imgContainer0Handle) && isset($imgContainer0Type) && ($imgContainer0Type === 'SuperTable')) {
-                $superTableField = Craft::$app->fields->getFieldByHandle($imgContainer0Handle);
+                $superTableField = $fieldsService->getFieldByHandle($imgContainer0Handle);
                 $blockTypes = SuperTable::$plugin->getService()->getBlockTypesByFieldId($superTableField->id);
                 $blockType = $blockTypes[0];
                 $imgBlockType = $blockType->id;

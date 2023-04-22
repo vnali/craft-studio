@@ -58,7 +58,7 @@ class PodcastAssetIndexesSettings extends Model
             // Allow only sites that user has access
             if (is_array($this->$attribute)) {
                 foreach ($this->$attribute as $key => $volumeId) {
-                    $volume = Craft::$app->volumes->getVolumeById($volumeId);
+                    $volume = Craft::$app->getVolumes()->getVolumeById($volumeId);
                     if (!$currentUser->can('viewAssets:' . $volume->uid)) {
                         $this->addError($attribute, 'The user can not access the volume');
                         break;

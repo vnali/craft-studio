@@ -404,6 +404,7 @@ class ResaveController extends Controller
                 $importSetting = null;
                 $label = isset($this->propagateTo) ? 'Propagating' : 'Resaving';
                 $element = $e->element;
+                $fieldsService = Craft::$app->getFields();
                 if ($elementItem == 'episode') {
                     // Currently resave only happen for episode
                     /** @var Episode $element */
@@ -430,7 +431,7 @@ class ResaveController extends Controller
 
                 if (isset($mapping['mainAsset']['field'])) {
                     $fieldUid = $mapping['mainAsset']['field'];
-                    $field = Craft::$app->fields->getFieldByUid($fieldUid);
+                    $field = $fieldsService->getFieldByUid($fieldUid);
                     if ($field) {
                         $fieldHandle = $field->handle;
                         list($assetFilename, $assetFilePath, $assetFileUrl, $blockId, $asset) = GeneralHelper::getElementAsset($element, $fieldContainer, $fieldHandle);
@@ -710,14 +711,14 @@ class ResaveController extends Controller
                                         $itemBlockType = null;
                                         if ($container0Handle) {
                                             if ($container0Type && ($container0Type === 'SuperTable')) {
-                                                $superTableField = Craft::$app->fields->getFieldByHandle($container0Handle);
+                                                $superTableField = $fieldsService->getFieldByHandle($container0Handle);
                                                 $blockTypes = SuperTable::$plugin->getService()->getBlockTypesByFieldId($superTableField->id);
                                                 $blockType = $blockTypes[0];
                                                 $itemBlockType = $blockType->id;
                                             } elseif ($container0Type) {
                                                 $itemBlockType = $container1Handle;
                                             }
-                                            $field = Craft::$app->fields->getFieldByHandle($container0Handle);
+                                            $field = $fieldsService->getFieldByHandle($container0Handle);
                                             $existingMatrixQuery = $element->getFieldValue($container0Handle);
                                             $serializedMatrix = $field->serializeValue($existingMatrixQuery, $element);
                                             $sortOrder = array_keys($serializedMatrix);
@@ -769,7 +770,7 @@ class ResaveController extends Controller
                                                     ]);
                                                 }
                                             }
-                                            $field = Craft::$app->fields->getFieldByHandle($container0Handle);
+                                            $field = $fieldsService->getFieldByHandle($container0Handle);
                                             $existingMatrixQuery = $element->getFieldValue($container0Handle);
                                             $serializedMatrix = $field->serializeValue($existingMatrixQuery, $element);
                                         }

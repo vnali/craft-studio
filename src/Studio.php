@@ -531,12 +531,13 @@ class Studio extends Plugin
 
         // Show Podcast nav item
         $hasAccess = false;
-        if (Craft::$app->getUser()->checkPermission('studio-managePodcasts') || Craft::$app->getUser()->checkPermission('studio-createDraftNewPodcasts')) {
+        $user = Craft::$app->getUser();
+        if ($user->checkPermission('studio-managePodcasts') || $user->checkPermission('studio-createDraftNewPodcasts')) {
             $hasAccess = true;
         } else {
             $podcasts = PodcastElement::find()->status(null)->siteId('*')->unique()->all();
             foreach ($podcasts as $key => $podcast) {
-                if (Craft::$app->getUser()->checkPermission('studio-viewPodcast-' . $podcast->uid)) {
+                if ($user->checkPermission('studio-viewPodcast-' . $podcast->uid)) {
                     $hasAccess = true;
                     break;
                 }
@@ -551,12 +552,12 @@ class Studio extends Plugin
 
         // Show Episodes nav item
         $hasAccess = false;
-        if (Craft::$app->getUser()->checkPermission('studio-manageEpisodes')) {
+        if ($user->checkPermission('studio-manageEpisodes')) {
             $hasAccess = true;
         } else {
             $podcasts = PodcastElement::find()->status(null)->siteId('*')->unique()->all();
             foreach ($podcasts as $podcast) {
-                if (Craft::$app->getUser()->checkPermission('studio-viewPodcastEpisodes-' . $podcast->uid)) {
+                if ($user->checkPermission('studio-viewPodcastEpisodes-' . $podcast->uid)) {
                     $hasAccess = true;
                     break;
                 }
@@ -570,7 +571,7 @@ class Studio extends Plugin
         }
 
         // Import
-        if (Craft::$app->getUser()->checkPermission('studio-importCategory')) {
+        if ($user->checkPermission('studio-importCategory')) {
             $nav['subnav']['import'] = [
                 'label' => Craft::t('studio', 'Import'),
                 'url' => 'studio/import',
@@ -578,7 +579,7 @@ class Studio extends Plugin
         }
 
         // Settings
-        if ($allowAdminChanges && Craft::$app->getUser()->checkPermission('studio-manageSettings')) {
+        if ($allowAdminChanges && $user->checkPermission('studio-manageSettings')) {
             $nav['subnav']['settings'] = [
                 'label' => Craft::t('studio', 'Settings'),
                 'url' => 'studio/settings',
