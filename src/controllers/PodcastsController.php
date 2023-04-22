@@ -8,16 +8,15 @@ namespace vnali\studio\controllers;
 
 use Craft;
 use craft\base\Element;
-use craft\base\LocalFsInterface;
 use craft\db\Table;
 use craft\fields\Categories;
 use craft\fields\Entries;
 use craft\fields\Tags;
-use craft\fs\Local;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\ElementHelper;
+use craft\helpers\FileHelper;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\UrlManager;
@@ -28,7 +27,6 @@ use vnali\studio\elements\db\EpisodeQuery;
 use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\elements\Podcast as PodcastElement;
 use vnali\studio\helpers\GeneralHelper;
-use vnali\studio\helpers\Id3;
 use vnali\studio\models\PodcastEpisodeSettings;
 use vnali\studio\models\PodcastFormat;
 use vnali\studio\models\PodcastGeneralSettings;
@@ -442,27 +440,8 @@ class PodcastsController extends Controller
                     $xmlEnclosure->setAttribute("url", htmlspecialchars($assetFileUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                     $xmlItem->appendChild($xmlEnclosure);
 
-                    $fs = $asset->getVolume()->getFs();
-                    if ($fs instanceof LocalFsInterface) {
-                        /** @var Local $fs */
-                        $volumePath = $fs->path;
-                        $path = Craft::getAlias($volumePath . '/' . $asset->getPath());
-                        $type = 'local';
-                    } else {
-                        $path = $asset->getUrl();
-                        $type = 'remote';
-                    }
-                    $fileInfo = Id3::analyze($type, $path);
-
-                    // TODO: maybe keep fileinfo in db instead of fetching from file
-                    if (isset($fileInfo['filesize'])) {
-                        $fileSize = $fileInfo['filesize'];
-                        $xmlEnclosure->setAttribute("length", $fileSize);
-                    }
-                    if (isset($fileInfo['mime_type'])) {
-                        $mime_type = $fileInfo['mime_type'];
-                        $xmlEnclosure->setAttribute("type", $mime_type);
-                    }
+                    $xmlEnclosure->setAttribute("length", $asset->size);
+                    $xmlEnclosure->setAttribute("type", FileHelper::getMimeTypeByExtension($assetFileUrl));
                 }
 
                 // Episode Link
