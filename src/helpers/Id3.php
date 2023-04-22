@@ -21,30 +21,20 @@ use craft\helpers\Db;
  */
 class Id3
 {
-    public static function getYear($fileInfo, $option = null, $defaultValue = null)
+    public static function getYear(array $fileInfo)
     {
-        $noMetaData = false;
         $year = null;
 
         if (isset($fileInfo['tags']['id3v2']['year'][0])) {
             $year = $fileInfo['tags']['id3v2']['year'][0];
-            $yearLen = strlen($year);
-            if ($yearLen < 4) {
-                $noMetaData = true;
-            } elseif ($yearLen > 4) {
-                $year = substr($year, 0, 4);
-                Craft::warning('year is more than 4: ' . $year);
-                if (!is_numeric($year)) {
-                    $noMetaData = true;
-                    Craft::warning('year is not numeric' . $year . ' we skip it');
-                }
+            if (!is_numeric($year)) {
+                Craft::warning('year is not numeric' . $year . ' we skip it');
             }
-        } else {
-            $noMetaData = true;
-        }
-
-        if ($noMetaData && $option == 'default-if-not-metadata') {
-            $year = $defaultValue;
+            $yearLen = strlen($year);
+            if ($yearLen > 4) {
+                $year = substr($year, 0, 4);
+                Craft::warning('year is more than 4 characters: ' . $year);
+            }
         }
 
         return $year;
@@ -54,17 +44,17 @@ class Id3
     {
         $mimetype = null;
         if (isset($fileInfo['id3v2']['APIC'][0]['data'])) {
-            $cover = $fileInfo['id3v2']['APIC'][0]['data'];
+            $imageData = $fileInfo['id3v2']['APIC'][0]['data'];
         } elseif (isset($fileInfo['id3v2']['PIC'][0]['data'])) {
-            $cover = $fileInfo['id3v2']['PIC'][0]['data'];
+            $imageData = $fileInfo['id3v2']['PIC'][0]['data'];
         } else {
-            $cover = null;
+            $imageData = null;
         }
         if (isset($fileInfo['id3v2']['APIC'][0]['image_mime'])) {
             $mimetype = $fileInfo['id3v2']['APIC'][0]['image_mime'];
         }
         // TODO: other supported formats
-        if (!is_null($cover)) {
+        if (!is_null($imageData)) {
             switch ($mimetype) {
                 case 'image/jpeg':
                     $ext = "jpg";
@@ -76,7 +66,7 @@ class Id3
                     $ext = "jpg";
                     break;
             }
-            return array($cover, $mimetype, $ext);
+            return array($imageData, $mimetype, $ext);
         }
     }
 

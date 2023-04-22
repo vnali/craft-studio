@@ -655,7 +655,7 @@ class GeneralHelper
         return $contentEncodedField;
     }
 
-    public static function UploadFile($content, $contentFile, $fileField, $fieldContainer, $element, $assetFilename, $ext, $blockId = null)
+    public static function UploadFile($content, $contentFile, $fileField, $fieldContainer, $element, $assetFilename, $blockId = null)
     {
         // If there is a fetched content, create a temp file.
         if ($content) {
@@ -678,8 +678,7 @@ class GeneralHelper
         $newAsset->avoidFilenameConflicts = true;
         $newAsset->setScenario(Asset::SCENARIO_CREATE);
         $newAsset->tempFilePath = $contentFile;
-        $assetFilenameArray = explode('.', $assetFilename);
-        $newAsset->filename = $assetFilenameArray[0] . '.' . $ext;
+        $newAsset->filename = $assetFilename;
         $newAsset->newFolderId = $folder->id;
         $newAsset->setVolumeId($folder->volumeId);
 

@@ -172,8 +172,7 @@ class DefaultController extends Controller
             list($pubDateField) = GeneralHelper::getElementPubDateField($item, $episodeMapping);
 
             if (isset($pubDateField)) {
-                $pubDateOption = 'only-metadata';
-                $pubDate = Id3::getYear($fileInfo, $pubDateOption);
+                $pubDate = Id3::getYear($fileInfo);
                 if (!$element->{$pubDateField->handle}) {
                     $element->{$pubDateField->handle} = $pubDate;
                 }
@@ -186,8 +185,11 @@ class DefaultController extends Controller
             // Fetch image with id3tag metadata if image field is specified
             if ($imageField) {
                 list($img, $mime, $ext) = Id3::getImage($fileInfo);
+                // use main asset file name and image extension to create a file name for image
+                $assetFilenameArray = explode('.', $assetFilename);
+                $assetFilename = $assetFilenameArray[0] . '.' . $ext;
                 if ($img) {
-                    $element = GeneralHelper::uploadFile($img, null, $imageField, $imageFieldContainer, $element, $assetFilename, $ext, $blockId);
+                    $element = GeneralHelper::uploadFile($img, null, $imageField, $imageFieldContainer, $element, $assetFilename, $blockId);
                 } else {
                     Craft::$app->getSession()->setError(Craft::t('studio', 'no image extracted from file'));
                 }

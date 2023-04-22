@@ -575,16 +575,17 @@ class ResaveController extends Controller
                             }
                             if (isset($pubDateField) && isset($importSetting['pubDateOption'])) {
                                 $pubDateOption = $importSetting['pubDateOption'];
-                                if ($pubDateOption == 'only-metadata' || $pubDateOption == 'default-if-not-metadata') {
-                                    $defaultPubDate = $importSetting['defaultPubDate'];
-                                    $pubDate = Id3::getYear($fileInfo, $pubDateOption, $defaultPubDate);
-                                } elseif ($pubDateOption == 'only-default') {
+                                if ($pubDateOption == 'only-default' || (!$pubDate && $pubDateOption == 'default-if-not-metadata')) {
                                     $pubDate = $importSetting['defaultPubDate'];
                                 }
                                 /** @var Episode $element */
                                 if (!$this->previewMetadata && (!$element->{$pubDateField->handle} || $this->overwritePubDate) && ($pubDate || $this->allowEmptyMetaValue)) {
                                     if ($this->overwritePubDate) {
-                                        $this->stdout(PHP_EOL . "    - Pub date is overwritten. Old value: " . $element->{$pubDateField->handle}->format('D, d M Y H:i:s T'), Console::FG_GREEN);
+                                        $oldPubDate = '';
+                                        if ($element->{$pubDateField->handle}) {
+                                            $oldPubDate = $element->{$pubDateField->handle}->format('D, d M Y H:i:s T');
+                                        }
+                                        $this->stdout(PHP_EOL . "    - Pub date is overwritten. Old value: " . $oldPubDate, Console::FG_GREEN);
                                     } else {
                                         $this->stdout(PHP_EOL . "    - Pub date is saved", Console::FG_GREEN);
                                     }

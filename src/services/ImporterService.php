@@ -131,15 +131,19 @@ class ImporterService extends Component
         list($pubDateField) = GeneralHelper::getElementPubDateField($item, $mapping);
 
         if (isset($pubDateField)) {
+            $pubDate = null;
             $pubDateOption = $importSetting['pubDateOption'];
-            if ($pubDateOption == 'only-metadata' || $pubDateOption == 'default-if-not-metadata') {
-                $defaultPubDate = $importSetting['defaultPubDate'];
-                $pubDate = Id3::getYear($fileInfo, $pubDateOption, $defaultPubDate);
-                $itemElement->{$pubDateField->handle} = $pubDate;
-            } elseif ($pubDateOption == 'only-default') {
+            if ($pubDateOption == 'only-default') {
                 $pubDate = $importSetting['defaultPubDate'];
-                $itemElement->{$pubDateField->handle} = $pubDate;
+            } elseif ($pubDateOption == 'only-metadata') {
+                $pubDate = Id3::getYear($fileInfo);
+            } elseif ($pubDateOption == 'default-if-not-metadata') {
+                $pubDate = Id3::getYear($fileInfo);
+                if (!$pubDate) {
+                    $pubDate = $importSetting['defaultPubDate'];
+                }
             }
+            $itemElement->{$pubDateField->handle} = $pubDate;
         }
 
         if (isset($fileInfo['tags']['id3v2']['track_number'][0])) {
