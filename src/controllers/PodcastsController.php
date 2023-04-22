@@ -431,6 +431,21 @@ class PodcastsController extends Controller
             }
 
             foreach ($episodes as $episode) {
+                // Episode Pub Date
+                $pubDate = null;
+                if (isset($episodeMapping['episodePubDate']['field']) && $episodeMapping['episodePubDate']['field']) {
+                    $fieldUid = $episodeMapping['episodePubDate']['field'];
+                    $pubDateField = Craft::$app->fields->getFieldByUid($fieldUid);
+                    if ($pubDateField) {
+                        $pubDateFieldHandle = $pubDateField->handle;
+                        $pubDate = $episode->{$pubDateFieldHandle};
+                        $now = new \DateTime('now');
+                        if ($now < $pubDate) {
+                            continue;
+                        }
+                    }
+                }
+
                 $xmlItem = $xml->createElement("item");
                 $xmlTitle = $xml->createElement("title", htmlspecialchars($episode->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                 $xmlItem->appendChild($xmlTitle);
@@ -551,21 +566,12 @@ class PodcastsController extends Controller
                 }
 
                 // Episode Pub Date
-                $date = null;
-                if (isset($episodeMapping['episodePubDate']['field']) && $episodeMapping['episodePubDate']['field']) {
-                    $fieldUid = $episodeMapping['episodePubDate']['field'];
-                    $field = Craft::$app->fields->getFieldByUid($fieldUid);
-                    if ($field) {
-                        $pubDateFieldHandle = $field->handle;
-                        $date = $episode->{$pubDateFieldHandle};
-                        if ($date) {
-                            $date = $date->format('D, d M Y H:i:s T');
-                            $xmlEpisodePubDate = $xml->createElement("pubDate", $date);
-                            $xmlItem->appendChild($xmlEpisodePubDate);
-                        }
-                    }
+                if ($pubDate) {
+                    $date = $pubDate->format('D, d M Y H:i:s T');
+                    $xmlEpisodePubDate = $xml->createElement("pubDate", $date);
+                    $xmlItem->appendChild($xmlEpisodePubDate);
                 }
-                if (!isset($episodeMapping['episodePubDate']['field']) || !$episodeMapping['episodePubDate']['field'] || !$date) {
+                if (!isset($episodeMapping['episodePubDate']['field']) || !$episodeMapping['episodePubDate']['field'] || !$pubDate) {
                     $date = $episode->dateCreated;
                     $date = $date->format('D, d M Y H:i:s T');
                     $xmlEpisodePubDate = $xml->createElement("pubDate", $date);
