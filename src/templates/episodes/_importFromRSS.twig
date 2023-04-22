@@ -69,6 +69,7 @@
             options: sites,
             values: settings.siteIds,
             errors: settings.getErrors('siteIds'),
+            required: true,
         }) }}
         {% else %}
             <div><b>{{ 'Site'|t('studio') }}</b></div> 
