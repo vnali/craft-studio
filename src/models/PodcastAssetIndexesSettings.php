@@ -36,6 +36,7 @@ class PodcastAssetIndexesSettings extends Model
     public function rules(): array
     {
         $rules = parent::rules();
+        $rules[] = [['siteIds', 'volumes'], 'required'];
         $rules[] = [['enable'], 'in', 'range' => [0, 1]];
         $rules[] = [['siteIds'], 'each', 'rule' => [SiteIdValidator::class]];
         $rules[] = [['siteIds'], function($attribute, $params, $validator) {
@@ -49,8 +50,6 @@ class PodcastAssetIndexesSettings extends Model
                         break;
                     }
                 }
-            } elseif (!$this->$attribute) {
-                $this->addError($attribute, 'The sites should be specified');
             }
         }, 'skipOnEmpty' => false];
         $rules[] = [['volumes'], function($attribute, $params, $validator) {
@@ -64,8 +63,6 @@ class PodcastAssetIndexesSettings extends Model
                         break;
                     }
                 }
-            } elseif (!$this->$attribute) {
-                $this->addError($attribute, 'The volumes should be specified');
             }
         }, 'skipOnEmpty' => false];
         return $rules;

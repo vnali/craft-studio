@@ -15,6 +15,7 @@ use Symfony\Component\DomCrawler\Crawler;
 use vnali\studio\elements\Episode;
 use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\Studio;
+use yii\web\NotFoundHttpException;
 
 /**
  * Episode import job
@@ -43,6 +44,9 @@ class importEpisodeJob extends BaseJob
     public function execute($queue): void
     {
         $podcast = Studio::$plugin->podcasts->getPodcastById($this->podcastId, $this->siteId);
+        if (!$podcast) {
+            throw new NotFoundHttpException('Podcast not found');
+        }
         $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
         $mapping = json_decode($podcastFormatEpisode->mapping, true);
         $step = 0;
@@ -159,8 +163,7 @@ class importEpisodeJob extends BaseJob
                             if (!$this->ignoreImageAsset) {
                                 $href = $domElement->getAttribute('href');
                                 $path = parse_url($href, PHP_URL_PATH);
-                                $extension = pathinfo($path, PATHINFO_EXTENSION);
-                                $basename = basename($path);
+                                $basename = pathinfo($path, PATHINFO_BASENAME);
                                 list($imageField, $imageContainer) = GeneralHelper::getElementImageField('episode', $mapping);
                                 if ($imageField) {
                                     if (get_class($imageField) == 'craft\fields\PlainText') {
@@ -185,7 +188,7 @@ class importEpisodeJob extends BaseJob
                                             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
                                             curl_setopt($ch, CURLOPT_HTTPGET, 1);
                                             $content = trim(curl_exec($ch));
-                                            $itemElement = GeneralHelper::uploadFile($content, null, $imageField, $imageContainer, $itemElement, $basename, $extension);
+                                            $itemElement = GeneralHelper::uploadFile($content, null, $imageField, $imageContainer, $itemElement, $basename);
                                         }
                                     }
                                 }
@@ -195,8 +198,7 @@ class importEpisodeJob extends BaseJob
                             if (!$this->ignoreMainAsset) {
                                 $url = $domElement->getAttribute('url');
                                 $path = parse_url($url, PHP_URL_PATH);
-                                $extension = pathinfo($path, PATHINFO_EXTENSION);
-                                $basename = basename($path);
+                                $basename = pathinfo($path, PATHINFO_BASENAME);
                                 $fieldContainer = null;
                                 if (isset($mapping['mainAsset']['container'])) {
                                     $fieldContainer = $mapping['mainAsset']['container'];
@@ -228,7 +230,7 @@ class importEpisodeJob extends BaseJob
                                                     fclose($fp);
                                                     if ($tempFile) {
                                                         craft::info("Content fetched from RSS $url");
-                                                        $itemElement = GeneralHelper::uploadFile(null, $tempFile, $field, $fieldContainer, $itemElement, $basename, $extension);
+                                                        $itemElement = GeneralHelper::uploadFile(null, $tempFile, $field, $fieldContainer, $itemElement, $basename);
                                                     }
                                                 }
                                             }

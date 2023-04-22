@@ -42,7 +42,7 @@ class ImportEpisodeRSS extends Model
     public function rules(): array
     {
         $rules = parent::rules();
-        $rules[] = [['rssURL'], 'required'];
+        $rules[] = [['rssURL', 'siteIds'], 'required'];
         $rules[] = [['rssURL'], 'url'];
         $rules[] = [['limit'], 'integer', 'min' => 1];
         $rules[] = [['ignoreMainAsset', 'ignoreImageAsset'], 'in', 'range' => [0, 1]];
@@ -58,8 +58,6 @@ class ImportEpisodeRSS extends Model
                         break;
                     }
                 }
-            } elseif (!$this->$attribute) {
-                $this->addError($attribute, 'The sites should be specified');
             }
         }, 'skipOnEmpty' => false];
         return $rules;
