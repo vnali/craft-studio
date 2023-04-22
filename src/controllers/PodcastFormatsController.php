@@ -129,13 +129,13 @@ class PodcastFormatsController extends Controller
                 'label' => Craft::t('studio', 'Podcast field layout'),
                 'url' => '#podcast-field-settings',
             ],
-            'episodeFieldSettings' => [
-                'label' => Craft::t('studio', 'Episode field layout'),
-                'url' => '#episode-field-settings',
-            ],
             'podcastMappingSettings' => [
                 'label' => Craft::t('studio', 'Podcast mapping'),
                 'url' => '#podcast-mapping-settings',
+            ],
+            'episodeFieldSettings' => [
+                'label' => Craft::t('studio', 'Episode field layout'),
+                'url' => '#episode-field-settings',
             ],
             'episodeMappingSettings' => [
                 'label' => Craft::t('studio', 'Episode mapping'),
