@@ -416,10 +416,22 @@ class ResaveController extends Controller
                     if ($setting) {
                         $importSetting = json_decode($setting->settings, true);
                     } else {
-                        $this->stdout("import setting was not defined for podcast $element->podcastId siteId: $element->siteId");
+                        $this->stdout("Episode setting was not defined for podcast $element->podcastId siteId: $element->siteId" . PHP_EOL, Console::FG_YELLOW);
                     }
                 }
                 $this->stdout("    - [$e->position/$count] $label $element ($element->id) ... ");
+
+                // Check if podcast is available for the site we want propagate episode to
+                if ($elementItem == 'episode') {
+                    foreach ($this->propagateTo as $propagateToSite) {
+                        /** @var Episode $element */
+                        $podcast = Studio::$plugin->podcasts->getPodcastById($element->podcastId, $propagateToSite);
+                        if (!$podcast) {
+                            $this->stdout(PHP_EOL . "    -Podcast was not available for siteId $propagateToSite" . PHP_EOL, Console::FG_YELLOW);
+                            return ExitCode::OK;
+                        }
+                    }
+                }
 
                 // Checking meta on resave
                 $fieldHandle = null;
@@ -429,7 +441,7 @@ class ResaveController extends Controller
                     $fieldContainer = $mapping['mainAsset']['container'];
                 }
 
-                if (isset($mapping['mainAsset']['field'])) {
+                if (isset($mapping['mainAsset']['field']) && $mapping['mainAsset']['field']) {
                     $fieldUid = $mapping['mainAsset']['field'];
                     $field = $fieldsService->getFieldByUid($fieldUid);
                     if ($field) {
@@ -785,10 +797,10 @@ class ResaveController extends Controller
                                 $this->stdout(PHP_EOL . "    - Image field is not an asset field", Console::FG_YELLOW);
                             }
                         }
-                    } else {
-                        $this->stdout(PHP_EOL . "    - Main asset field is not specified", Console::FG_YELLOW);
+                    } elseif ($this->metadata || $this->imageMetadata) {
+                        $this->stdout(PHP_EOL . "    - Main asset field is not found", Console::FG_YELLOW);
                     }
-                } else {
+                } elseif ($this->metadata || $this->imageMetadata) {
                     $this->stdout(PHP_EOL . "    - Main asset field is not specified", Console::FG_YELLOW);
                 }
 
@@ -832,7 +844,6 @@ class ResaveController extends Controller
                 }
             }
         };
-
         if (isset($this->propagateTo)) {
             $elementsService->on(Elements::EVENT_BEFORE_PROPAGATE_ELEMENT, $beforeCallback);
             $elementsService->on(Elements::EVENT_AFTER_PROPAGATE_ELEMENT, $afterCallback);
