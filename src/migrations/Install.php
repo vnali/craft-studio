@@ -66,8 +66,11 @@ class Install extends Migration
                 'uid' => $this->uid(),
             ]);
 
-            $this->addForeignKey(null, '{{%studio_podcastFormat}}', 'fieldLayoutId', Table::FIELDLAYOUTS, 'id', 'SET NULL', null);
-            $this->addForeignKey(null, '{{%studio_podcastFormat}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
+            $this->createIndex(null, '{{%studio_podcastFormat}}', ['name'], false);
+            $this->createIndex(null, '{{%studio_podcastFormat}}', ['handle'], false);
+
+            $this->addForeignKey(null, '{{%studio_podcastFormat}}', ['fieldLayoutId'], Table::FIELDLAYOUTS, ['id'], 'SET NULL', null);
+            $this->addForeignKey(null, '{{%studio_podcastFormat}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
         }
 
         // Create podcast table
@@ -80,16 +83,15 @@ class Install extends Migration
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid(),
             ]);
-            $this->addForeignKey(null, '{{%studio_podcast}}', 'id', '{{%elements}}', 'id', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_podcast}}', 'uploaderId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_podcast}}', 'podcastFormatId', '{{%studio_podcastFormat}}', 'id', 'CASCADE', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_podcast}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
+            $this->addForeignKey(null, '{{%studio_podcast}}', ['uploaderId'], '{{%users}}', ['id'], 'SET NULL', null);
+            $this->addForeignKey(null, '{{%studio_podcast}}', ['podcastFormatId'], '{{%studio_podcastFormat}}', ['id'], 'CASCADE', null);
         }
 
         // Create episode table
         if (!$this->tableExists('{{%studio_episode}}')) {
             $this->createTable('{{%studio_episode}}', [
                 'id' => $this->primaryKey(),
-                'episode' => $this->integer(),
                 'podcastId' => $this->integer(),
                 'deletedWithPodcast' => $this->boolean()->null(),
                 'uploaderId' => $this->integer(),
@@ -97,9 +99,9 @@ class Install extends Migration
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid(),
             ]);
-            $this->addForeignKey(null, '{{%studio_episode}}', 'id', '{{%elements}}', 'id', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_episode}}', 'podcastId', '{{%studio_podcast}}', 'id', 'CASCADE', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_episode}}', 'uploaderId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_episode}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
+            $this->addForeignKey(null, '{{%studio_episode}}', ['podcastId'], '{{%studio_podcast}}', ['id'], 'CASCADE', null);
+            $this->addForeignKey(null, '{{%studio_episode}}', ['uploaderId'], '{{%users}}', ['id'], 'SET NULL', null);
         }
 
         // Create i18n field
@@ -108,7 +110,6 @@ class Install extends Migration
                 'id' => $this->primaryKey(),
                 'elementId' => $this->integer(),
                 'siteId' => $this->integer(),
-                'name' => $this->string(1000),
                 'duration' => $this->integer(),
                 'authorName' => $this->string(),
                 'ownerName' => $this->string(),
@@ -132,8 +133,8 @@ class Install extends Migration
                 'uid' => $this->uid(),
             ]);
 
-            $this->addForeignKey(null, '{{%studio_i18n}}', 'elementId', '{{%elements}}', 'id', 'CASCADE', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_i18n}}', 'siteId', '{{%sites}}', 'id', 'CASCADE', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_i18n}}', ['elementId'], '{{%elements}}', ['id'], 'CASCADE', null);
+            $this->addForeignKey(null, '{{%studio_i18n}}', ['siteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
         }
 
         // Create table to keep episode data for podcast format
@@ -151,9 +152,9 @@ class Install extends Migration
                 'uid' => $this->uid(),
             ]);
 
-            $this->addForeignKey(null, '{{%studio_podcastFormat_episode}}', 'podcastFormatId', '{{%studio_podcastFormat}}', 'id', 'CASCADE', null);
-            $this->addForeignKey(null, '{{%studio_podcastFormat_episode}}', 'fieldLayoutId', Table::FIELDLAYOUTS, 'id', 'SET NULL', null);
-            $this->addForeignKey(null, '{{%studio_podcastFormat_episode}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_podcastFormat_episode}}', ['podcastFormatId'], '{{%studio_podcastFormat}}', ['id'], 'CASCADE', null);
+            $this->addForeignKey(null, '{{%studio_podcastFormat_episode}}', ['fieldLayoutId'], Table::FIELDLAYOUTS, ['id'], 'SET NULL', null);
+            $this->addForeignKey(null, '{{%studio_podcastFormat_episode}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
         }
 
         // Create table to keep sites data for podcast format
@@ -174,8 +175,9 @@ class Install extends Migration
                 'uid' => $this->uid(),
             ]);
 
-            $this->addForeignKey(null, '{{%studio_podcastFormat_sites}}', 'siteId', Table::SITES, 'id', 'CASCADE', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_podcastFormat_sites}}', 'podcastFormatId', '{{%studio_podcastFormat}}', 'id', 'CASCADE', null);
+            $this->addForeignKey(null, '{{%studio_podcastFormat_sites}}', ['siteId'], Table::SITES, ['id'], 'CASCADE', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_podcastFormat_sites}}', ['podcastFormatId'], '{{%studio_podcastFormat}}', ['id'], 'CASCADE', null);
+            $this->addForeignKey(null, '{{%studio_podcastFormat_sites}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
         }
 
         // Create general setting table for podcast
@@ -194,9 +196,9 @@ class Install extends Migration
 
             // Create podcastId,siteId unique
             $this->createIndex(null, '{{%studio_podcast_general_settings}}', ['podcastId', 'siteId'], true);
-            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'podcastId', '{{%studio_podcast}}', 'id', 'SET NULL', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', 'siteId', '{{%sites}}', 'id', 'CASCADE', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', ['podcastId'], '{{%studio_podcast}}', ['id'], 'CASCADE', null);
+            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
+            $this->addForeignKey(null, '{{%studio_podcast_general_settings}}', ['siteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
         }
 
         // Create settings table for episode import
@@ -213,9 +215,9 @@ class Install extends Migration
             ]);
 
             $this->createIndex(null, '{{%studio_podcast_episode_settings}}', ['podcastId', 'siteId'], true);
-            $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', 'podcastId', '{{%studio_podcast}}', 'id', 'SET NULL', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', 'siteId', '{{%sites}}', 'id', 'CASCADE', 'CASCADE');
+            $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', ['podcastId'], '{{%studio_podcast}}', ['id'], 'CASCADE', null);
+            $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
+            $this->addForeignKey(null, '{{%studio_podcast_episode_settings}}', ['siteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
         }
 
         // Create settings table for asset indexes
@@ -231,8 +233,9 @@ class Install extends Migration
                 'uid' => $this->uid(),
             ]);
 
-            $this->addForeignKey(null, '{{%studio_podcast_assetIndexes_settings}}', 'podcastId', '{{%studio_podcast}}', 'id', 'CASCADE', 'CASCADE');
-            $this->addForeignKey(null, '{{%studio_podcast_assetIndexes_settings}}', 'userId', '{{%users}}', 'id', 'SET NULL', 'CASCADE');
+            $this->createIndex(null, '{{%studio_podcast_assetIndexes_settings}}', ['enable'], false);
+            $this->addForeignKey(null, '{{%studio_podcast_assetIndexes_settings}}', ['podcastId'], '{{%studio_podcast}}', ['id'], 'CASCADE', null);
+            $this->addForeignKey(null, '{{%studio_podcast_assetIndexes_settings}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
         }
     }
 
