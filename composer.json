@@ -12,8 +12,16 @@
         "episode"
     ],
     "license": "proprietary",
+    "support": {
+        "email": "vnali.dev@gmail.com",
+        "issues": "https://github.com/vnali/craft-studio/issues?state=open",
+        "source": "https://github.com/vnali/craft-studio",
+        "docs": "https://github.com/vnali/studio-plugin-docs",
+        "rss": "https://github.com/vnali/releases.atom"
+    },
     "authors": [{
         "name": "vnali",
+        "email": "vnali.dev@gmail.com",
         "homepage": "https://github.com/vnali"
     }],
     "require": {
@@ -21,6 +29,10 @@
         "james-heinrich/getid3": "^1.9.19",
         "symfony/dom-crawler": "^6.0.0",
         "symfony/css-selector": "^6.0.0"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main"
     },
     "autoload": {
         "psr-4": {
@@ -33,6 +45,22 @@
         "hasCpSettings": true,
         "hasCpSection": true,
 		"class": "vnali\\studio\\Studio",
-        "developer": "vnali"
+        "developer": "vnali",
+        "documentationUrl": "https://github.com/vnali/studio-plugin-docs"
+    },
+    "scripts": {
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --ansi --fix",
+        "phpstan": "phpstan --memory-limit=1G"
+    },
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "8.0.2"
+        },
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        }
     }
 }
