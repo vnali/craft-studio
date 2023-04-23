@@ -300,7 +300,7 @@ class Podcast extends Element
                     }
                 }
                 $baseUrl = $this->getSite()->baseUrl;
-                return '<a href="' . $baseUrl . 'podcasts/rss?podcastId=' . $elementId . '">' . $RSSLabel . "</a>";
+                return '<a href="' . $baseUrl . 'podcasts/rss?podcastId=' . $elementId . '&site=' . $this->getSite()->handle . '">' . $RSSLabel . "</a>";
             case 'dateCreated':
                 $date = $this->dateCreated;
                 return $date->format('Y-m-d H:i:s');

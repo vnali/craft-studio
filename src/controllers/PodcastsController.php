@@ -198,12 +198,20 @@ class PodcastsController extends Controller
      * Generate Podcast's RSS
      *
      * @param integer $podcastId
+     * @param string|null $site
      * @return Response
      */
-    public function actionRss(int $podcastId): Response
+    public function actionRss(int $podcastId, ?string $site = null): Response
     {
         $cache = Craft::$app->getCache();
-        $site = Craft::$app->sites->getCurrentSite();
+        if ($site) {
+            $site = Craft::$app->sites->getSiteByHandle($site);
+        }
+
+        // If site is not passed or not found use default site
+        if (!$site) {
+            $site = Craft::$app->sites->getCurrentSite();
+        }
         $siteId = $site->id;
 
         /** @var PodcastElement|null $podcast */
@@ -384,7 +392,7 @@ class PodcastsController extends Controller
 
             // Podcast New feed url
             if (isset($podcast->podcastIsNewFeedUrl) && $podcast->podcastIsNewFeedUrl) {
-                $xmlPodcastNewFeedURL = $xml->createElement("itunes:new-feed-url", htmlspecialchars($site->getBaseUrl() . 'podcasts/rss?podcastId=' . $podcast->id));
+                $xmlPodcastNewFeedURL = $xml->createElement("itunes:new-feed-url", htmlspecialchars($site->getBaseUrl() . 'podcasts/rss?podcastId=' . $podcast->id . '&site=' . $site->handle));
                 $xmlChannel->appendChild($xmlPodcastNewFeedURL);
             }
 
