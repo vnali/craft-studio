@@ -369,6 +369,8 @@ class podcastFormatsService extends Component
                     $siteUid = array_search($siteId, $siteIdMap, false);
                     if (!in_array($siteUid, $affectedSiteUids, false)) {
                         $siteSettingsRecord->delete();
+                        $resavePodcasts = true;
+                        $resaveEpisodes = true;
                     }
                 }
             }
