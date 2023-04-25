@@ -95,7 +95,8 @@ class EpisodeQuery extends ElementQuery
         $this->query->innerJoin(['studio_i18n' => '{{%studio_i18n}}'], '[[studio_i18n.elementId]] = [[studio_episode.id]] and studio_i18n.siteId=subquery.siteId');
         // To order by duration works
         $this->subQuery->innerJoin(['studio_i18n' => '{{%studio_i18n}}'], '[[studio_i18n.elementId]] = [[studio_episode.id]]');
-
+        // Make sure podcast element is available for this site
+        $this->query->innerJoin(['elements_sites_podcast' => '{{%elements_sites}}'], '[[studio_episode.podcastId]] = [[elements_sites_podcast.elementId]] and elements_sites_podcast.siteId=subquery.siteId');
         if ($this->uploaderId) {
             $this->subQuery->andWhere(Db::parseParam('studio_ad.uploaderId', $this->uploaderId));
         }

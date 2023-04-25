@@ -58,6 +58,7 @@
 - Fixed a bug where new episode button was not displayed
 - Fixed a bug where it was possible to create episodes via RSS and asset indexes for sites which the podcast was not propagated
 - Fixed a bug where resaving podcasts and episodes were not called when disable a site in podcast format
+- Fixed a bug where sites that a podcast was not propagated for them, were suggested for creating episodes on edit page
 - Removed getPodcastBySlug()
 - Removed getAllPodcastsAllSites()
 - Removed PodcastCondition from episode conditions

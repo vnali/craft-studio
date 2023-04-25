@@ -37,6 +37,7 @@ use vnali\studio\Studio;
 
 use yii\base\InvalidConfigException;
 use yii\web\Response;
+use yii\web\ServerErrorHttpException;
 
 class Episode extends Element
 {
@@ -645,19 +646,28 @@ class Episode extends Element
 
             $currentSites = array_flip($currentSites);
         }
+        $podcast = $this->getPodcast();
+        // Check if still podcast for the site is available before actions like edit episode for the site
+        if (!$podcast) {
+            throw new ServerErrorHttpException("Episode is not valid for this podcast on this site");
+        }
         $podcastFormat = $this->getPodcast()->getPodcastFormat();
         $sitesSettings = $podcastFormat->getSiteSettings();
         foreach ($sitesSettings as $key => $siteSettings) {
-            $int = (int) $siteSettings->siteId;
-            $propagate = ($siteSettings->siteId == $this->siteId ||
-                $this->getEnabledForSite($siteSettings->siteId) !== null ||
-                isset($currentSites[$int]));
-            $sites[] = [
-                // Craft need siteId as int
-                'siteId' => (int) $siteSettings->siteId,
-                'propagate' => $propagate,
-                'enabledByDefault' => (bool)$siteSettings->podcastEnabledByDefault,
-            ];
+            // If the podcast is not available for a site, this site is not a supported site for the episode
+            $podcast = Studio::$plugin->podcasts->getPodcastById($this->getPodcast()->id, $siteSettings->siteId);
+            if ($podcast) {
+                $int = (int) $siteSettings->siteId;
+                $propagate = ($siteSettings->siteId == $this->siteId ||
+                    $this->getEnabledForSite($siteSettings->siteId) !== null ||
+                    isset($currentSites[$int]));
+                $sites[] = [
+                    // Craft need siteId as int
+                    'siteId' => (int) $siteSettings->siteId,
+                    'propagate' => $propagate,
+                    'enabledByDefault' => (bool)$siteSettings->podcastEnabledByDefault,
+                ];
+            }
         }
         return $sites;
     }
