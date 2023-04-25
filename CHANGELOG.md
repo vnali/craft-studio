@@ -18,6 +18,7 @@
 - Added support for propagate-to and set-enabled-for-site for console resave
 - Added support for different podcast general settings per site
 - Added importing episodes to specific sites from asset indexes and RSS
+- Added hard delete for podcast format
 - Now each podcast has two settings pages (general settings, episode settings)
 - Episode summary and description can be different now
 - Added basic support for pubDate on podcast RSS

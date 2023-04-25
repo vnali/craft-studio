@@ -842,6 +842,9 @@ class Studio extends Plugin
             $gc = Craft::$app->getGc();
             $gc->deletePartialElements(PodcastElement::class, '{{%studio_podcast}}', 'id');
             $gc->deletePartialElements(EpisodeElement::class, '{{%studio_episode}}', 'id');
+            $gc->hardDelete([
+                '{{%studio_podcastFormat}}',
+            ]);
         });
     }
 }
