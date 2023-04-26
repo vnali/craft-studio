@@ -220,16 +220,24 @@ class PodcastsController extends Controller
         $userSession = Craft::$app->getUser();
         $currentUser = $userSession->getIdentity();
 
-        if (!$podcast || (!$podcast->enabled && (!$currentUser || !$currentUser->can("studio-viewPodcast-" . $podcast->uid)))) {
+        if (!$podcast) {
             throw new ServerErrorHttpException('Invalid podcast');
         }
 
+        if (!$podcast->enabled && (!$currentUser || (!$currentUser->can("studio-viewPodcast-" . $podcast->uid) && !$currentUser->can("studio-managePodcasts")))) {
+            throw new ForbiddenHttpException('User is not authorized to view this page.');
+        }
+
         if ($generalSettings->publishRSS && !$generalSettings->allowAllToSeeRSS) {
-            $this->requirePermission('studio-viewPublishedRSS-' . $podcast->uid);
+            if (!$currentUser || (!$currentUser->can('studio-viewPublishedRSS-' . $podcast->uid) && !$currentUser->can("studio-managePodcasts"))) {
+                throw new ForbiddenHttpException('User is not authorized to view this page.');
+            }
         }
 
         if (!$generalSettings->publishRSS) {
-            $this->requirePermission('studio-viewNotPublishedRSS-' . $podcast->uid);
+            if (!$currentUser || (!$currentUser->can('studio-viewNotPublishedRSS-' . $podcast->uid) && !$currentUser->can("studio-managePodcasts"))) {
+                throw new ForbiddenHttpException('User is not authorized to view this page.');
+            }
         }
 
         if (isset($podcast->podcastRedirectTo) && $podcast->podcastRedirectTo) {
