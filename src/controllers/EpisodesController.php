@@ -213,7 +213,10 @@ class EpisodesController extends Controller
             }
         }
         if ($podcast) {
-            $this->requirePermission('studio-importEpisodeByRSS-' . $podcast->uid);
+            $user = Craft::$app->getUser()->getIdentity();
+            if (!$user->can('studio-manageEpisodes') && !$user->can('studio-importEpisodeByRSS-' . $podcast->uid)) {
+                throw new ForbiddenHttpException('User is not authorized to perform this action.');
+            }
         }
 
         $ch = curl_init();
@@ -300,7 +303,11 @@ class EpisodesController extends Controller
         if (!$podcast) {
             throw new NotFoundHttpException('Invalid podcast id');
         }
-        $this->requirePermission('studio-importEpisodeByRSS-' . $podcast->uid);
+
+        $user = Craft::$app->getUser()->getIdentity();
+        if (!$user->can('studio-manageEpisodes') && !$user->can('studio-importEpisodeByRSS-' . $podcast->uid)) {
+            throw new ForbiddenHttpException('User is not authorized to perform this action.');
+        }
 
         $variables['podcastId'] = $podcastId;
 
@@ -358,7 +365,11 @@ class EpisodesController extends Controller
         if (!$podcast) {
             throw new NotFoundHttpException('Invalid podcast id');
         }
-        $this->requirePermission('studio-importEpisodeByAssetIndex-' . $podcast->uid);
+
+        $user = Craft::$app->getUser()->getIdentity();
+        if (!$user->can('studio-manageEpisodes') && !$user->can('studio-importEpisodeByAssetIndex-' . $podcast->uid)) {
+            throw new ForbiddenHttpException('User is not authorized to perform this action.');
+        }
 
         if ($settings === null) {
             $settings = Studio::$plugin->podcasts->getPodcastAssetIndexesSettings($podcastId);
@@ -458,7 +469,10 @@ class EpisodesController extends Controller
         }
 
         if ($podcast) {
-            $this->requirePermission('studio-importEpisodeByAssetIndex-' . $podcast->uid);
+            $user = Craft::$app->getUser()->getIdentity();
+            if (!$user->can('studio-manageEpisodes') && !$user->can('studio-importEpisodeByAssetIndex-' . $podcast->uid)) {
+                throw new ForbiddenHttpException('User is not authorized to perform this action.');
+            }
         }
 
         // Save it
