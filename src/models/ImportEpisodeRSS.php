@@ -48,14 +48,16 @@ class ImportEpisodeRSS extends Model
         $rules[] = [['ignoreMainAsset', 'ignoreImageAsset'], 'in', 'range' => [0, 1]];
         $rules[] = [['siteIds'], 'each', 'rule' => [SiteIdValidator::class]];
         $rules[] = [['siteIds'], function($attribute, $params, $validator) {
-            $currentUser = Craft::$app->getUser()->getIdentity();
-            // Allow only sites that user has access
-            if (is_array($this->$attribute)) {
-                foreach ($this->$attribute as $key => $siteId) {
-                    $siteUid = Db::uidById(Table::SITES, $siteId);
-                    if (!$currentUser->can('editSite:' . $siteUid)) {
-                        $this->addError($attribute, 'The user can not access site');
-                        break;
+            if (Craft::$app->getIsMultiSite()) {
+                $currentUser = Craft::$app->getUser()->getIdentity();
+                // Allow only sites that user has access
+                if (is_array($this->$attribute)) {
+                    foreach ($this->$attribute as $key => $siteId) {
+                        $siteUid = Db::uidById(Table::SITES, $siteId);
+                        if (!$currentUser->can('editSite:' . $siteUid)) {
+                            $this->addError($attribute, 'The user can not access site');
+                            break;
+                        }
                     }
                 }
             }
