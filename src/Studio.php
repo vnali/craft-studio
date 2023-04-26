@@ -643,11 +643,11 @@ class Studio extends Plugin
                 $permissions = [
                     'studio-managePodcasts' => [
                         'label' => Craft::t('studio', 'Manage podcasts'),
-                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting and other actions for all podcasts'),
+                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting podcasts and access to general and episode settings'),
                     ],
                     'studio-manageEpisodes' => [
                         'label' => Craft::t('studio', 'Manage episodes'),
-                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting and other actions for all episodes'),
+                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting/importing episodes'),
                     ],
                     'studio-createDraftNewPodcasts' => [
                         'label' => Craft::t('studio', 'Create a draft for new podcasts'),
