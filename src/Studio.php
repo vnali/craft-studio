@@ -642,19 +642,19 @@ class Studio extends Plugin
                 $podcasts = PodcastElement::find()->status(null)->siteId('*')->unique()->all();
                 $permissions = [
                     'studio-managePodcasts' => [
-                        'label' => Craft::t('studio', 'Manage Podcasts'),
+                        'label' => Craft::t('studio', 'Manage podcasts'),
                         'info' => Craft::t('studio', 'Includes viewing/creating/deleting and other actions for all podcasts'),
                     ],
                     'studio-manageEpisodes' => [
-                        'label' => Craft::t('studio', 'Manage Episodes'),
+                        'label' => Craft::t('studio', 'Manage episodes'),
                         'info' => Craft::t('studio', 'Includes viewing/creating/deleting and other actions for all episodes'),
                     ],
                     'studio-createDraftNewPodcasts' => [
                         'label' => Craft::t('studio', 'Create a draft for new podcasts'),
                         'info' => Craft::t('studio', 'Includes creating/viewing/resaving/deleting those drafts'),
                     ],
-                    'studio-importCategory' => ['label' => Craft::t('studio', 'Import Category')],
-                    'studio-manageSettings' => ['label' => Craft::t('studio', 'Manage plugin Settings')],
+                    'studio-importCategory' => ['label' => Craft::t('studio', 'Import categories')],
+                    'studio-manageSettings' => ['label' => Craft::t('studio', 'Manage plugin settings')],
                 ];
                 $event->permissions[] = [
                     'heading' => Craft::t('studio', 'Studio'),
