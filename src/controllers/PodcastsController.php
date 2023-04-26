@@ -637,7 +637,11 @@ class PodcastsController extends Controller
         if (!$podcast) {
             throw new NotFoundHttpException('invalid podcast id');
         }
-        $this->requirePermission('studio-editPodcastGeneralSettings-' . $podcast->uid);
+
+        $user = Craft::$app->getUser()->getIdentity();
+        if (!$user->can('studio-managePodcasts') && !$user->can('studio-editPodcastGeneralSettings-' . $podcast->uid)) {
+            throw new ForbiddenHttpException('User is not authorized to perform this action.');
+        }
 
         if ($settings === null) {
             $settings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId, $siteId);
@@ -670,7 +674,11 @@ class PodcastsController extends Controller
         if (!$podcast) {
             throw new NotFoundHttpException('invalid podcast id');
         }
-        $this->requirePermission('studio-editPodcastEpisodeSettings-' . $podcast->uid);
+
+        $user = Craft::$app->getUser()->getIdentity();
+        if (!$user->can('studio-managePodcasts') && !$user->can('studio-editPodcastEpisodeSettings-' . $podcast->uid)) {
+            throw new ForbiddenHttpException('User is not authorized to perform this action.');
+        }
 
         $currentUser = Craft::$app->getUser()->getIdentity();
         $siteUid = Db::uidById(Table::SITES, $siteId);
@@ -805,7 +813,11 @@ class PodcastsController extends Controller
         if (!$podcast) {
             throw new NotFoundHttpException('invalid podcast id');
         }
-        $this->requirePermission('studio-editPodcastGeneralSettings-' . $podcast->uid);
+
+        $user = Craft::$app->getUser()->getIdentity();
+        if (!$user->can('studio-managePodcasts') && !$user->can('studio-editPodcastGeneralSettings-' . $podcast->uid)) {
+            throw new ForbiddenHttpException('User is not authorized to perform this action.');
+        }
 
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $settings->publishRSS = Craft::$app->getRequest()->getBodyParam('publishRSS', $settings->publishRSS);
@@ -862,7 +874,11 @@ class PodcastsController extends Controller
         if (!$podcast) {
             throw new NotFoundHttpException('invalid podcast id');
         }
-        $this->requirePermission('studio-editPodcastEpisodeSettings-' . $podcast->uid);
+
+        $user = Craft::$app->getUser()->getIdentity();
+        if (!$user->can('studio-managePodcasts') && !$user->can('studio-editPodcastEpisodeSettings-' . $podcast->uid)) {
+            throw new ForbiddenHttpException('User is not authorized to perform this action.');
+        }
 
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $settings->defaultGenres = Craft::$app->getRequest()->getBodyParam('defaultGenres', $settings->defaultGenres);
