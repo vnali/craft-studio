@@ -9,12 +9,12 @@
 
 {% block content %}
 
-    <div class="studio-info">
-        <span class="info"></span>
-        {{ 'These settings only applies when importing episodes via asset index utility or resaving episodes via console'|t('studio') }} 
-    </div>
+	<div class="studio-info">
+		<span class="info"></span>
+		{{ 'These settings only applies when importing episodes via asset index utility or resaving episodes via console'|t('studio') }}
+	</div>
 
-    <br>
+	<br>
 
 	{% import "_includes/forms" as forms %}
 
@@ -24,7 +24,7 @@
 
 		{{ hiddenInput('podcastId', podcastId) }}
 
-        {{ hiddenInput('siteId', site.id) }}
+		{{ hiddenInput('siteId', site.id) }}
 
 		<input type="hidden" name="action" value="studio/podcasts/episode-settings-save">
 
@@ -35,15 +35,16 @@
             viewMode: 'list',
             elementType: 'craft\\elements\\Asset',
             selectionLabel: "Add"|t("studio"),
-            sources: folder ?? null,
+            sources: sources|length ? sources : null,
             required: false,
             errors: settings.getErrors('defaultImage'),
             limit: 1,
             elements: images,
-            criteria: {kind: 'image'}
+            criteria: {kind: 'image'},
+            disabled: sources|length ? false : true
         }) }}
 
-        {{ forms.selectField({
+		{{ forms.selectField({
             label: 'How to set image field'|t('studio'),
             id: 'imageOption',
             name: 'imageOption',
@@ -64,7 +65,7 @@
             value: settings.defaultPubDate is defined ? settings.defaultPubDate,
         }) }}
 
-        {{ forms.selectField({
+		{{ forms.selectField({
             label: 'How to set pubDate field'|t('studio'),
             id: 'pubDateOption',
             name: 'pubDateOption',
@@ -74,9 +75,9 @@
             errors: settings.getErrors('pubDateOption')      
         }) }}
 
-        <hr>
+		<hr>
 
-        {{ forms.multiSelectField({
+		{{ forms.multiSelectField({
             label: 'Default episode genre'|t('studio'),
             id: 'defaultGenres',
             name: 'defaultGenres',
@@ -105,10 +106,12 @@
             on: settings.genreImportCheck is defined ? settings.genreImportCheck
         }) }}
 
-        <div><b>{{ 'Site'|t('studio') }}</b></div> 
-        {{ site.name|t('app') }}
+		<div>
+			<b>{{ 'Site'|t('studio') }}</b>
+		</div>
+		{{ site.name|t('app') }}
 
-        <hr>
+		<hr>
 
 		<input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
 

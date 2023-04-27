@@ -753,22 +753,30 @@ class PodcastsController extends Controller
         $variables['podcasts'] = [];
         $variables['podcastId'] = $podcastId;
 
+        $variables['sources'] = [];
         if (isset($imageField)) {
             if (get_class($imageField) == 'craft\fields\Assets') {
-                $episode = new EpisodeElement();
-                $folderId = $imageField->resolveDynamicPathToFolderId($episode);
-                if (empty($folderId)) {
-                    throw new BadRequestHttpException('The target destination provided for uploading is not valid');
+                $sources = $imageField->sources;
+                $user = Craft::$app->getUser()->getIdentity();
+                $volumeSources = [];
+                if ($sources == '*') {
+                    $volumes = Craft::$app->volumes->getAllVolumes();
+                    foreach ($volumes as $volume) {
+                        if ($user->can('viewAssets:' . $volume->uid)) {
+                            $volumeSources[] = 'volume:' . $volume->uid;
+                        }
+                    }
+                } else {
+                    foreach ($sources as $source) {
+                        $source = explode(':', $source);
+                        if (isset($source[1])) {
+                            if ($user->can('viewAssets:' . $source[1])) {
+                                $volumeSources[] = 'volume:' . $source[1];
+                            }
+                        }
+                    }
                 }
-
-                $folder = Craft::$app->getAssets()->findFolder(['id' => $folderId]);
-
-                if (!$folder) {
-                    throw new BadRequestHttpException('The target folder provided for uploading is not valid');
-                }
-
-                $folderUid = $folder->uid;
-                $variables['folder'] = 'folder:' . $folderUid;
+                $variables['sources'] = $volumeSources;
             }
         }
 
