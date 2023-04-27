@@ -108,7 +108,7 @@ class DefaultController extends Controller
         }
 
         if (!$fieldHandle) {
-            Craft::$app->getSession()->setError("$item file field is not specified. Please set the episode custom file first.");
+            Craft::$app->getSession()->setError(ucfirst($item) . " main asset field is not specified. Please set the episode custom file first.");
             return $this->redirect($element->getCpEditUrl());
         }
 
