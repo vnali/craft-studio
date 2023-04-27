@@ -106,8 +106,6 @@ class PodcastFormatEpisode extends Model
                 'convertTo' => [
                     '' => 'select one',
                     'craft\fields\Assets' => 'asset',
-                    'craft\fields\PlainText' => 'plain text',
-                    'craft\fields\Url' => 'URL',
                 ],
             ],
             'episodeSubtitle' => [
