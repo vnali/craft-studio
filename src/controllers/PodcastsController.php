@@ -338,10 +338,13 @@ class PodcastsController extends Controller
             $descriptionField = GeneralHelper::getElementDescriptionField('podcast', $podcastMapping);
             if ($descriptionField) {
                 $descriptionFieldHandle = $descriptionField->handle;
-                $xmlPodcastItunesSummary = $xml->createElement("itunes:summary", htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                $xmlChannel->appendChild($xmlPodcastItunesSummary);
-                $xmlPodcastDescription = $xml->createElement("description", htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                $xmlChannel->appendChild($xmlPodcastDescription);
+                $descriptionTxt = htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8');
+                if ($descriptionTxt) {
+                    $xmlPodcastItunesSummary = $xml->createElement("itunes:summary", htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlChannel->appendChild($xmlPodcastItunesSummary);
+                    $xmlPodcastDescription = $xml->createElement("description", htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlChannel->appendChild($xmlPodcastDescription);
+                }
             }
 
             // Podcast Category
@@ -552,27 +555,33 @@ class PodcastsController extends Controller
                 $summaryField = GeneralHelper::getElementSummaryField('episode', $episodeMapping);
                 if ($summaryField) {
                     $summaryFieldHandle = $summaryField->handle;
-                    $xmlEpisodeSummary = $xml->createElement("itunes:summary");
-                    $xmlEpisodeSummary->appendChild($xml->createCDATASection($episode->{$summaryFieldHandle}));
-                    $xmlItem->appendChild($xmlEpisodeSummary);
+                    if ($episode->{$summaryFieldHandle}) {
+                        $xmlEpisodeSummary = $xml->createElement("itunes:summary");
+                        $xmlEpisodeSummary->appendChild($xml->createCDATASection($episode->{$summaryFieldHandle}));
+                        $xmlItem->appendChild($xmlEpisodeSummary);
+                    }
                 }
 
                 // Episode Description
                 $descriptionField = GeneralHelper::getElementDescriptionField('episode', $episodeMapping);
                 if ($descriptionField) {
                     $descriptionFieldHandle = $descriptionField->handle;
-                    $xmlEpisodeDescription = $xml->createElement("description");
-                    $xmlEpisodeDescription->appendChild($xml->createCDATASection($episode->{$descriptionFieldHandle}));
-                    $xmlItem->appendChild($xmlEpisodeDescription);
+                    if ($episode->{$descriptionFieldHandle}) {
+                        $xmlEpisodeDescription = $xml->createElement("description");
+                        $xmlEpisodeDescription->appendChild($xml->createCDATASection($episode->{$descriptionFieldHandle}));
+                        $xmlItem->appendChild($xmlEpisodeDescription);
+                    }
                 }
 
                 // Episode Content encoded
                 $contentEncodedField = GeneralHelper::getElementContentEncodedField('episode', $episodeMapping);
                 if ($contentEncodedField) {
                     $contentEncodedFieldHandle = $contentEncodedField->handle;
-                    $xmlEpisodeContentEncoded = $xml->createElement("content:encoded");
-                    $xmlEpisodeContentEncoded->appendChild($xml->createCDATASection($episode->{$contentEncodedFieldHandle}));
-                    $xmlItem->appendChild($xmlEpisodeContentEncoded);
+                    if ($episode->{$contentEncodedFieldHandle}) {
+                        $xmlEpisodeContentEncoded = $xml->createElement("content:encoded");
+                        $xmlEpisodeContentEncoded->appendChild($xml->createCDATASection($episode->{$contentEncodedFieldHandle}));
+                        $xmlItem->appendChild($xmlEpisodeContentEncoded);
+                    }
                 }
 
                 // Episode duration
