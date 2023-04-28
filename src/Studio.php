@@ -599,7 +599,7 @@ class Studio extends Plugin
         }
 
         // Import
-        if ($user->checkPermission('studio-importCategory')) {
+        if ($user->checkPermission('studio-importCategory') || $user->checkPermission('studio-manageSettings')) {
             $nav['subnav']['import'] = [
                 'label' => Craft::t('studio', 'Import'),
                 'url' => 'studio/import',

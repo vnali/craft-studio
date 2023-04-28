@@ -49,6 +49,8 @@ class ImportController extends Controller
         $currentUser = $userSession->getIdentity();
         if ($currentUser->can('studio-importCategory')) {
             return $this->redirect('studio/import/category');
+        } elseif ($currentUser->can('studio-manageSettings')) {
+            return $this->redirect('studio/import/podcast-fields');
         } else {
             throw new ForbiddenHttpException('user can not access import');
         }
