@@ -342,13 +342,15 @@ class Studio extends Plugin
                             if (isset($assetIndexesSetting['volumes']) && is_array($assetIndexesSetting['volumes']) && in_array($element->volumeId, $assetIndexesSetting['volumes'])) {
                                 Craft::info('Importing episode via asset indexes utility');
                                 $found = true;
+                                $podcastId = $assetIndexesSetting['podcastId'];
+                                $siteId = $assetIndexesSetting['siteIds'][0];
                                 /** @var PodcastEpisodeSettingsRecord|null $importSetting */
-                                $importSetting = PodcastEpisodeSettingsRecord::find()->where(['podcastId' => $assetIndexesSetting['podcastId'], 'siteId' => $assetIndexesSetting['siteIds'][0]])->one();
+                                $importSetting = PodcastEpisodeSettingsRecord::find()->where(['podcastId' => $podcastId, 'siteId' => $siteId])->one();
                                 if ($importSetting) {
                                     $importSetting = json_decode($importSetting->settings, true);
                                     Studio::$plugin->importer->ImportByAssetIndex($element, 'episode', $importSetting, $assetIndexesSetting['siteIds']);
                                 } else {
-                                    Craft::info("Import setting was not defined for podcastId: $assetIndexesSetting[podcastId] siteId: $assetIndexesSetting[siteIds][0]");
+                                    Craft::info("Import setting was not defined for podcastId $podcastId siteId $siteId");
                                 }
                                 break;
                             }

@@ -422,7 +422,7 @@ class ResaveController extends Controller
                 $this->stdout("    - [$e->position/$count] $label $element ($element->id) ... ");
 
                 // Check if podcast is available for the site we want propagate episode to
-                if (isset($this->propagateTo) && is_array($this->propagateTo) &&  $elementItem == 'episode') {
+                if (isset($this->propagateTo) && is_array($this->propagateTo) && $elementItem == 'episode') {
                     foreach ($this->propagateTo as $propagateToSite) {
                         /** @var Episode $element */
                         $podcast = Studio::$plugin->podcasts->getPodcastById($element->podcastId, $propagateToSite);
