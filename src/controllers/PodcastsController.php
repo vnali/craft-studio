@@ -334,15 +334,18 @@ class PodcastsController extends Controller
                 }
             }
 
-            // Podcast Description
+            // Podcast Description, itunes:summary
             $descriptionField = GeneralHelper::getElementDescriptionField('podcast', $podcastMapping);
             if ($descriptionField) {
                 $descriptionFieldHandle = $descriptionField->handle;
-                $descriptionTxt = htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8');
+                $descriptionTxt = $podcast->$descriptionFieldHandle;
                 if ($descriptionTxt) {
-                    $xmlPodcastItunesSummary = $xml->createElement("itunes:summary", htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                    $xmlChannel->appendChild($xmlPodcastItunesSummary);
-                    $xmlPodcastDescription = $xml->createElement("description", htmlspecialchars($podcast->$descriptionFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $xmlPodcastSummary = $xml->createElement("itunes:summary");
+                    $xmlPodcastSummary->appendChild($xml->createCDATASection($descriptionTxt));
+                    $xmlChannel->appendChild($xmlPodcastSummary);
+
+                    $xmlPodcastDescription = $xml->createElement("description");
+                    $xmlPodcastDescription->appendChild($xml->createCDATASection($descriptionTxt));
                     $xmlChannel->appendChild($xmlPodcastDescription);
                 }
             }
