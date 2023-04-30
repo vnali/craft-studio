@@ -22,6 +22,7 @@ use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\elements\Podcast;
 use vnali\studio\jobs\importEpisodeJob;
 use vnali\studio\models\ImportEpisodeRSS;
+use vnali\studio\records\PodcastEpisodeSettingsRecord;
 use vnali\studio\Studio;
 
 use yii\queue\Queue;
@@ -394,13 +395,13 @@ class EpisodesController extends Controller
         $propagatedSites = Podcast::find()->status(null)->id($podcast->id)->site('*')->select('elements_sites.siteId')->column();
         $items = [];
         $currentUser = Craft::$app->getUser()->getIdentity();
-        foreach ($propagatedSites as $siteId) {
+        foreach ($propagatedSites as $propagatedSite) {
             // Allow only sites that user has access
-            $siteUid = Db::uidById(Table::SITES, $siteId);
+            $siteUid = Db::uidById(Table::SITES, $propagatedSite);
             if (Craft::$app->getIsMultiSite() && !$currentUser->can('editSite:' . $siteUid)) {
                 continue;
             }
-            $site = Craft::$app->sites->getSiteById($siteId);
+            $site = Craft::$app->sites->getSiteById($propagatedSite);
             if ($site) {
                 $item = [];
                 $item['label'] = $site->name;
@@ -488,6 +489,15 @@ class EpisodesController extends Controller
             'enable' => $settings->enable,
         ]);
 
+        $podcastEpisodeSetting = PodcastEpisodeSettingsRecord::find()->where(['podcastId' => $podcastId, 'siteId' => $settings->siteIds[0]])->one();
+        if (!$podcastEpisodeSetting) {
+            $site = Craft::$app->sites->getSiteById($settings->siteIds[0]);
+            Craft::$app->getSession()->setNotice(Craft::t('studio', 'Now you can use asset indexes utility to import episodes. but you should set episode settings for {site} site first', [
+                'site' => $site->handle,
+            ]));
+        } else {
+            Craft::$app->getSession()->setNotice(Craft::t('studio', 'Now you can use asset indexes utility to import episodes.'));
+        }
         return $this->redirectToPostedUrl();
     }
 }
