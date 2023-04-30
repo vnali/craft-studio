@@ -62,15 +62,16 @@
         }) }}
 
         {% if sites|length > 1 %}
-        {{ forms.multiSelectField({
-            label: 'Sites'|t('studio'),
-            id: 'siteIds',
-            name: 'siteIds',
-            options: sites,
-            values: settings.siteIds,
-            errors: settings.getErrors('siteIds'),
-            required: true,
-        }) }}
+            {{ forms.multiSelectField({
+                label: 'Sites'|t('studio'),
+                id: 'siteIds',
+                name: 'siteIds',
+                options: sites,
+                values: settings.siteIds,
+                errors: settings.getErrors('siteIds'),
+                required: true,
+                tip: 'Specify which sites episodes are propagated to.'|t('studio'),
+            }) }}
         {% else %}
             <div><b>{{ 'Site'|t('studio') }}</b></div> 
             {{ sites[0]['label']|t('app') }}
