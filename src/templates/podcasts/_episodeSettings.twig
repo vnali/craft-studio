@@ -14,6 +14,15 @@
 		{{ 'These settings only applies when importing episodes via asset index utility or resaving episodes via console'|t('studio') }}
 	</div>
 
+    <br>
+
+    {% if not imageField %}
+        <div class="studio-warning">
+            <span class="info"></span>
+            {{ 'The episode image field is not specified in episode fields mapping page'|t('studio') }}
+        </div>
+    {% endif %}
+
 	<br>
 
 	{% import "_includes/forms" as forms %}
@@ -41,7 +50,8 @@
             limit: 1,
             elements: images,
             criteria: {kind: 'image'},
-            disabled: sources|length ? false : true
+            disabled: sources|length ? false : true,
+            tip: 'User must have access to view at least one image field source to be able to edit this field'|t('studio')
         }) }}
 
 		{{ forms.selectField({

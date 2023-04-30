@@ -766,6 +766,7 @@ class PodcastsController extends Controller
         $variables['podcastId'] = $podcastId;
 
         $variables['sources'] = [];
+        $variables['imageField'] = false;
         if (isset($imageField)) {
             if (get_class($imageField) == 'craft\fields\Assets') {
                 $sources = $imageField->sources;
@@ -789,6 +790,7 @@ class PodcastsController extends Controller
                     }
                 }
                 $variables['sources'] = $volumeSources;
+                $variables['imageField'] = true;
             }
         }
 

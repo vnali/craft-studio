@@ -5,3 +5,11 @@
     color: #0b69a3;
     padding: 10px;
 }
+
+.studio-warning {
+    position: relative;
+    background-color: #fffbea;
+    border-left: 6px solid #b44d12;
+    color: #b44d12;
+    padding: 10px;
+}
