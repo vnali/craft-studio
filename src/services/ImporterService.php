@@ -48,7 +48,7 @@ class ImporterService extends Component
 
         if ($item == 'episode') {
             $podcastId = $importSetting['podcastId'];
-            $podcast = Podcast::find()->id($podcastId)->siteId('*')->one();
+            $podcast = Podcast::find()->id($podcastId)->siteId('*')->status(null)->one();
             /** @var Podcast|null $podcast */
             $podcastFormat = $podcast->getPodcastFormat();
             $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
