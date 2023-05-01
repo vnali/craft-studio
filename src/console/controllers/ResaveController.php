@@ -473,6 +473,8 @@ class ResaveController extends Controller
                         }
 
                         if ($this->metadata) {
+                            $fieldLayout = $element->getFieldLayout();
+
                             // Get duration from ID3 metadata
                             if (!isset($fileInfo['playtime_string'])) {
                                 $this->stdout(PHP_EOL . "    - Duration not found", Console::FG_YELLOW);
@@ -481,15 +483,19 @@ class ResaveController extends Controller
                                 $this->stdout(PHP_EOL . "    - Duration: $duration", Console::FG_GREEN);
                                 /** @var Episode $element */
                                 if (!$this->previewMetadata && (!$element->duration || $this->overwriteDuration) && ($duration || $this->allowEmptyMetaValue)) {
-                                    if (!ctype_digit($duration)) {
-                                        $duration = Time::time_to_sec($duration);
-                                    }
-                                    if ($this->overwriteDuration) {
-                                        $this->stdout(PHP_EOL . "    - Duration is overwritten. Old value: " . Time::sec_to_time($element->duration), Console::FG_GREEN);
+                                    if ($fieldLayout->isFieldIncluded('duration')) {
+                                        if (!ctype_digit($duration)) {
+                                            $duration = Time::time_to_sec($duration);
+                                        }
+                                        if ($this->overwriteDuration) {
+                                            $this->stdout(PHP_EOL . "    - Duration is overwritten. Old value: " . Time::sec_to_time($element->duration), Console::FG_GREEN);
+                                        } else {
+                                            $this->stdout(PHP_EOL . "    - Duration is saved", Console::FG_GREEN);
+                                        }
+                                        $element->duration = $duration;
                                     } else {
-                                        $this->stdout(PHP_EOL . "    - Duration is saved", Console::FG_GREEN);
+                                        $this->stdout(PHP_EOL . "    - Duration is not included in field layout", Console::FG_YELLOW);
                                     }
-                                    $element->duration = $duration;
                                 } elseif (!$this->previewMetadata && $element->duration && !$this->overwriteDuration) {
                                     $this->stdout(PHP_EOL . "    - Overwriting of the duration is not allowed", Console::FG_YELLOW);
                                 } elseif (!$this->previewMetadata && !$duration && !$this->allowEmptyMetaValue) {
@@ -562,12 +568,16 @@ class ResaveController extends Controller
                                 $this->stdout(PHP_EOL . "    - Track number: " . $track, Console::FG_GREEN);
                                 /** @var Episode $element */
                                 if (!$this->previewMetadata && (!$element->episodeNumber || $this->overwriteNumber) && ($track || $this->allowEmptyMetaValue)) {
-                                    if ($this->overwriteNumber) {
-                                        $this->stdout(PHP_EOL . "    - Episode number is overwritten. Old value: " . $element->episodeNumber, Console::FG_GREEN);
+                                    if ($fieldLayout->isFieldIncluded('episodeNumber')) {
+                                        if ($this->overwriteNumber) {
+                                            $this->stdout(PHP_EOL . "    - Episode number is overwritten. Old value: " . $element->episodeNumber, Console::FG_GREEN);
+                                        } else {
+                                            $this->stdout(PHP_EOL . "    - Episode number is saved", Console::FG_GREEN);
+                                        }
+                                        $element->episodeNumber = (int)$track;
                                     } else {
-                                        $this->stdout(PHP_EOL . "    - Episode number is saved", Console::FG_GREEN);
+                                        $this->stdout(PHP_EOL . "    - Episode number is not included in field layout", Console::FG_YELLOW);
                                     }
-                                    $element->episodeNumber = (int)$track;
                                 } elseif (!$this->previewMetadata && $element->episodeNumber && !$this->overwriteNumber) {
                                     $this->stdout(PHP_EOL . "    - Overwriting of the number is not allowed", Console::FG_YELLOW);
                                 } elseif (!$this->previewMetadata && !$track && !$this->allowEmptyMetaValue) {

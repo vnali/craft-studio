@@ -53,8 +53,11 @@ class ImporterService extends Component
             $podcastFormat = $podcast->getPodcastFormat();
             $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
             $itemElement = new EpisodeElement();
-            $itemElement->episodeGUID = StringHelper::UUID();
             $itemElement->podcastId = $podcastId;
+            $fieldLayout = $itemElement->getFieldLayout();
+            if ($fieldLayout->isFieldIncluded('episodeGUID')) {
+                $itemElement->episodeGUID = StringHelper::UUID();
+            }
             $mapping = json_decode($podcastFormatEpisode->mapping, true);
         } else {
             throw new NotSupportedException('not supported' . $item);
@@ -108,13 +111,15 @@ class ImporterService extends Component
         }
         $fileInfo = Id3::analyze($type, $path);
 
-        if (isset($fileInfo['playtime_string'])) {
-            $duration = $fileInfo['playtime_string'];
-            if ($duration) {
-                if (!ctype_digit((string)$duration)) {
-                    $duration = Time::time_to_sec($duration);
+        if ($fieldLayout->isFieldIncluded('duration')) {
+            if (isset($fileInfo['playtime_string'])) {
+                $duration = $fileInfo['playtime_string'];
+                if ($duration) {
+                    if (!ctype_digit((string)$duration)) {
+                        $duration = Time::time_to_sec($duration);
+                    }
+                    $itemElement->duration = $duration;
                 }
-                $itemElement->duration = $duration;
             }
         }
 
@@ -146,9 +151,11 @@ class ImporterService extends Component
             $itemElement->{$pubDateField->handle} = $pubDate;
         }
 
-        if (isset($fileInfo['tags']['id3v2']['track_number'][0])) {
-            $track = trim($fileInfo['tags']['id3v2']['track_number'][0]);
-            $itemElement->episodeNumber = (int)$track;
+        if ($fieldLayout->isFieldIncluded('episodeNumber')) {
+            if (isset($fileInfo['tags']['id3v2']['track_number'][0])) {
+                $track = trim($fileInfo['tags']['id3v2']['track_number'][0]);
+                $itemElement->episodeNumber = (int)$track;
+            }
         }
 
         $genreIds = [];

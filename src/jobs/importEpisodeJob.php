@@ -72,9 +72,9 @@ class importEpisodeJob extends BaseJob
                 );
 
                 $itemElement = new Episode();
-
-                // Set podcast if podcast field is specified
                 $itemElement->podcastId = $this->podcastId;
+                $fieldLayout = $itemElement->getFieldLayout();
+                
                 foreach ($crawler->filter('html body item')->children() as $domElement) {
                     /** @var \DOMElement $domElement */
                     $nodeName = $domElement->nodeName;
@@ -90,12 +90,16 @@ class importEpisodeJob extends BaseJob
                             }
                             break;
                         case 'episode':
-                            $number = $domElement->textContent;
-                            $itemElement->episodeNumber = $number;
+                            if ($fieldLayout->isFieldIncluded('episodeNumber')) {
+                                $number = $domElement->textContent;
+                                $itemElement->episodeNumber = $number;
+                            }
                             break;
                         case 'guid':
-                            $guid = $domElement->textContent;
-                            $itemElement->episodeGUID = $guid;
+                            if ($fieldLayout->isFieldIncluded('episodeGUID')) {
+                                $guid = $domElement->textContent;
+                                $itemElement->episodeGUID = $guid;
+                            }
                             break;
                         case 'pubdate':
                             $pubdate = $domElement->textContent;
@@ -107,8 +111,10 @@ class importEpisodeJob extends BaseJob
                             }
                             break;
                         case 'duration':
-                            $duration = $domElement->textContent;
-                            $itemElement->duration = $duration;
+                            if ($fieldLayout->isFieldIncluded('duration')) {
+                                $duration = $domElement->textContent;
+                                $itemElement->duration = $duration;
+                            }
                             break;
                         case 'summary':
                             $crawler = new Crawler($domElement);

@@ -39,6 +39,7 @@
 - Improved podcast RSS page speed by caching
 - Episode pubDate is now checked before publishing on RSS
 - Don't display summary, description, content encoded on RSS if they are empty
+- Duration, episode number and GUID fields now are set only if they are included in field layout
 - Fixed route for episodes
 - Fixed a bug where changing lightswitch inputs on the sidebar of the episode edit page, creates unwanted drafts
 - Fixed permission issues where non-admin users were not able to access some plugin actions

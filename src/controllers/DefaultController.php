@@ -129,23 +129,29 @@ class DefaultController extends Controller
             $fileInfo = Id3::analyze($type, $path);
         }
         if ($fetchId3Metadata) {
-            if (isset($fileInfo['playtime_string'])) {
-                $duration = $fileInfo['playtime_string'];
-                if ($duration) {
-                    if (!ctype_digit((string)$duration)) {
-                        $duration = Time::time_to_sec($duration);
-                    }
-                    if (!$element->duration) {
-                        $element->duration = $duration;
+            $fieldLayout = $element->getFieldLayout();
+
+            if ($fieldLayout->isFieldIncluded('duration')) {
+                if (isset($fileInfo['playtime_string'])) {
+                    $duration = $fileInfo['playtime_string'];
+                    if ($duration) {
+                        if (!ctype_digit((string)$duration)) {
+                            $duration = Time::time_to_sec($duration);
+                        }
+                        if (!$element->duration) {
+                            $element->duration = $duration;
+                        }
                     }
                 }
             }
 
-            if (isset($fileInfo['tags']['id3v2']['track_number'][0])) {
-                $track = trim($fileInfo['tags']['id3v2']['track_number'][0]);
-                if ($track) {
-                    if (!$element->episodeNumber) {
-                        $element->episodeNumber = (int)$track;
+            if ($fieldLayout->isFieldIncluded('episodeNumber')) {
+                if (isset($fileInfo['tags']['id3v2']['track_number'][0])) {
+                    $track = trim($fileInfo['tags']['id3v2']['track_number'][0]);
+                    if ($track) {
+                        if (!$element->episodeNumber) {
+                            $element->episodeNumber = (int)$track;
+                        }
                     }
                 }
             }

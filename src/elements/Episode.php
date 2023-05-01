@@ -959,7 +959,7 @@ class Episode extends Element
                 ->execute();
         } else {
             $episodeSite = I18nRecord::find()->where(['elementId' => $this->id, 'siteId' => $this->siteId])->one();
-            if (!$this->episodeGUID) {
+            if (!$this->episodeGUID && $episodeFieldLayout->isFieldIncluded('episodeGUID')) {
                 $this->episodeGUID = StringHelper::UUID();
             }
             if (!$is_propagating && $episodeSite) {
@@ -992,7 +992,7 @@ class Episode extends Element
                         'duration' => $this->duration,
                         'episodeBlock' => $this->episodeBlock,
                         'episodeExplicit' => $this->episodeExplicit,
-                        'episodeGUID' => $this->episodeGUID ?: StringHelper::UUID(),
+                        'episodeGUID' => $this->episodeGUID,
                         'episodeNumber' => $this->episodeNumber,
                         'episodeSeason' => $this->episodeSeason,
                         'episodeType' => $this->episodeType,
