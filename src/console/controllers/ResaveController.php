@@ -553,7 +553,7 @@ class ResaveController extends Controller
                                             $this->stdout(PHP_EOL . "    - Genre is empty and empty value is not allowed", Console::FG_YELLOW);
                                         }
                                     }
-                                } else {
+                                } elseif (!$this->previewMetadata) {
                                     $this->stdout(PHP_EOL . "    - Genre import option is not specified", Console::FG_YELLOW);
                                 }
                             } elseif (!$this->previewMetadata && !isset($genreFieldGroup)) {
@@ -798,7 +798,7 @@ class ResaveController extends Controller
                                             $serializedMatrix = $field->serializeValue($existingMatrixQuery, $element);
                                         }
                                     }
-                                } else {
+                                } elseif (!$this->previewMetadata) {
                                     $this->stdout(PHP_EOL . "    - Image import option is not specified", Console::FG_YELLOW);
                                 }
                             } elseif (!$this->previewMetadata && !$imageField) {
