@@ -8,6 +8,17 @@
 
 {% block content %}
 
+	{% if settings.dateUpdated %}
+		{% set user = craft.users().id(settings.userId).one() %}
+		<div class="studio-info">
+			<span class="info"></span>
+			{{ 'Last updated'|t('studio') }}
+			{{ settings.dateUpdated|date('Y-m-d H:i T') }}
+			{{ 'By'|t('studio') }}
+			{{ user.name }}
+		</div>
+	{% endif %}
+
 	{% import "_includes/forms" as forms %}
 
 	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
@@ -72,3 +83,5 @@ $('#volumes, #siteIds').selectize({
         dropdownParent: 'body'
     });
 {% endjs %}
+
+{% do view.registerAssetBundle("vnali\\studio\\assets\\StudioCssAsset") %}

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright © vnali
  */
@@ -11,9 +12,10 @@ use craft\db\ActiveRecord;
  * Podcast general setting record.
  *
  * @property int $podcastId
-* @property int $siteId
+ * @property int $siteId
  * @property bool $publishRSS
  * @property bool $allowAllToSeeRSS
+ * @property int $userId
  */
 class PodcastGeneralSettingsRecord extends ActiveRecord
 {

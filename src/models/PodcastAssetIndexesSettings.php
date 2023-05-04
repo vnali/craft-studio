@@ -34,6 +34,10 @@ class PodcastAssetIndexesSettings extends Model
      */
     public array|string|null $siteIds = null;
 
+    public mixed $dateUpdated = null;
+
+    public ?int $userId = null;
+
     public function rules(): array
     {
         $rules = parent::rules();

@@ -9,19 +9,24 @@
 
 {% block content %}
 
+	{% if settings.dateUpdated %}
+		{% set user = craft.users().id(settings.userId).one() %}
+		<div class="studio-info">
+			<span class="info"></span>
+			{{ 'Last updated'|t('studio') }}
+			{{ settings.dateUpdated|date('Y-m-d H:i T') }}
+			{{ 'By'|t('studio') }}
+			{{ user.name }}
+		</div>
+	{% endif %}
+
 	<div class="studio-info">
 		<span class="info"></span>
 		{{ 'These settings only applies when importing episodes via asset index utility or resaving episodes via console'|t('studio') }}
 	</div>
 
-    <br>
+	<br>
 
-    {% if not imageField %}
-        <div class="studio-warning">
-            <span class="info"></span>
-            {{ 'The episode image field is not specified in episode fields mapping page'|t('studio') }}
-        </div>
-    {% endif %}
 
 	<br>
 
@@ -53,6 +58,13 @@
             disabled: sources|length ? false : true,
             tip: 'User must have access to view at least one image field source to be able to edit this field'|t('studio')
         }) }}
+
+		{% if not imageField %}
+			<div class="studio-warning">
+				<span class="info"></span>
+				{{ 'The episode image field is not specified in episode fields mapping page'|t('studio') }}
+			</div>
+		{% endif %}
 
 		{{ forms.selectField({
             label: 'How to set image field'|t('studio'),

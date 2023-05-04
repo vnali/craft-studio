@@ -60,6 +60,10 @@ class PodcastEpisodeSettings extends Model
      */
     public int $siteId;
 
+    public mixed $dateUpdated = null;
+
+    public ?int $userId = null;
+
     public function rules(): array
     {
         $rules = parent::rules();

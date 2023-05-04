@@ -11,7 +11,8 @@ use craft\events\ConfigEvent;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
-
+use DateTime;
+use DateTimeZone;
 use vnali\studio\elements\db\PodcastQuery;
 use vnali\studio\elements\Podcast as PodcastElement;
 use vnali\studio\models\PodcastAssetIndexesSettings;
@@ -190,24 +191,28 @@ class podcastsService extends Component
      */
     public function getPodcastEpisodeSettings(int $podcastId, int $siteId): PodcastEpisodeSettings
     {
+        $podcastEpisodeSettings = new PodcastEpisodeSettings();
         $record = PodcastEpisodeSettingsRecord::find()
             ->where(['podcastId' => $podcastId, 'siteId' => $siteId])
             ->one();
-        if (!$record) {
-            $episodeImportSettings = new PodcastEpisodeSettings();
-        } else {
+        if ($record) {
             /** @var PodcastEpisodeSettingsRecord $record */
             $settings = $record->settings;
             $settings = json_decode($settings, true);
-            $episodeImportSettings = new PodcastEpisodeSettings();
             foreach ($settings as $key => $setting) {
                 // Check if we still have this record property also on model
-                if (property_exists($episodeImportSettings, $key)) {
-                    $episodeImportSettings->$key = $setting;
+                if (property_exists($podcastEpisodeSettings, $key)) {
+                    $podcastEpisodeSettings->$key = $setting;
                 }
             }
+            $tz = Craft::$app->getTimeZone();
+            $dateUpdated = new DateTime($record->dateUpdated, new \DateTimeZone("UTC"));
+            $tzTime = new DateTimeZone($tz);
+            $dateUpdated->setTimezone($tzTime);
+            $podcastEpisodeSettings->dateUpdated = $dateUpdated;
+            $podcastEpisodeSettings->userId = $record->userId;
         }
-        return $episodeImportSettings;
+        return $podcastEpisodeSettings;
     }
 
     /**
@@ -218,22 +223,26 @@ class podcastsService extends Component
      */
     public function getPodcastAssetIndexesSettings(int $podcastId): PodcastAssetIndexesSettings
     {
+        $podcastAssetIndexesSettings = new PodcastAssetIndexesSettings();
         $record = PodcastAssetIndexesSettingsRecord::find()
             ->where(['podcastId' => $podcastId])
             ->one();
-        if (!$record) {
-            $podcastAssetIndexesSettings = new PodcastAssetIndexesSettings();
-        } else {
+        if ($record) {
             /** @var PodcastAssetIndexesSettingsRecord $record */
             $settings = $record->settings;
             $settings = json_decode($settings, true);
-            $podcastAssetIndexesSettings = new PodcastAssetIndexesSettings();
             foreach ($settings as $key => $setting) {
                 // Check if we still have this record property also on model
                 if (property_exists($podcastAssetIndexesSettings, $key)) {
                     $podcastAssetIndexesSettings->$key = $setting;
                 }
             }
+            $tz = Craft::$app->getTimeZone();
+            $dateUpdated = new DateTime($record->dateUpdated, new \DateTimeZone("UTC"));
+            $tzTime = new DateTimeZone($tz);
+            $dateUpdated->setTimezone($tzTime);
+            $podcastAssetIndexesSettings->dateUpdated = $dateUpdated;
+            $podcastAssetIndexesSettings->userId = $record->userId;
         }
         return $podcastAssetIndexesSettings;
     }
@@ -252,12 +261,17 @@ class podcastsService extends Component
             ->where(['podcastId' => $podcastId, 'siteId' => $siteId])
             ->one();
         if ($record) {
-            $podcastGeneralSettings = new PodcastGeneralSettings();
             /** @var PodcastGeneralSettingsRecord $record */
             $podcastGeneralSettings->podcastId = $record->podcastId;
             $podcastGeneralSettings->siteId = $record->siteId;
             $podcastGeneralSettings->publishRSS = $record->publishRSS;
             $podcastGeneralSettings->allowAllToSeeRSS = $record->allowAllToSeeRSS;
+            $tz = Craft::$app->getTimeZone();
+            $dateUpdated = new DateTime($record->dateUpdated, new \DateTimeZone("UTC"));
+            $tzTime = new DateTimeZone($tz);
+            $dateUpdated->setTimezone($tzTime);
+            $podcastGeneralSettings->dateUpdated = $dateUpdated;
+            $podcastGeneralSettings->userId = $record->userId;
         }
         return $podcastGeneralSettings;
     }
