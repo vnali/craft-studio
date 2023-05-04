@@ -606,7 +606,7 @@ class PodcastsController extends Controller
                         $keywords = $episode->$keywordFieldHandle->collect();
                         $keywords = $keywords->pluck('title')->join(', ');
                     }
-                    if (isset($keywords)) {
+                    if (isset($keywords) && $keywords) {
                         $xmlEpisodeKeywords = $xml->createElement("itunes:keywords", htmlspecialchars($keywords, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                         $xmlItem->appendChild($xmlEpisodeKeywords);
                     }
