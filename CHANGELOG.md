@@ -8,6 +8,8 @@
 - Added studio-viewPublishedRSS-[PodcastUID] permission to check accessing to RSS
 - Added checkAccessToVolumes general setting which checks saveAssets:[VolumeUID] permission before listing volumes on Asset Indexes utility page
 - Added lastBuildDate for podcast RSS
+- Added basic support for pubDate on podcast RSS
+- lastBuildDate and pubDate display time when cache for rss page is created
 - Added support importing from content:encoded
 - Added support importing from itunes:keywords
 - Added ignoreMainAsset option on fetch from RSS form to prevent fetching large main asset via CURL
@@ -21,7 +23,6 @@
 - Added hard delete for podcast format
 - Now each podcast has two settings pages (general settings, episode settings)
 - Episode summary and description can be different now
-- Added basic support for pubDate on podcast RSS
 - Added support for fetching itunes:subtitle from RSS
 - podcasts and episodes records are now removing when their related elements are removed
 - Improved fetch from RSS via CURL 

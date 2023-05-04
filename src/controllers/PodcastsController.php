@@ -213,13 +213,11 @@ class PodcastsController extends Controller
             $site = Craft::$app->sites->getCurrentSite();
         }
         $siteId = $site->id;
-
         /** @var PodcastElement|null $podcast */
         $podcast = PodcastElement::find()->id($podcastId)->status(null)->siteId($siteId)->one();
         $generalSettings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId, $siteId);
         $userSession = Craft::$app->getUser();
         $currentUser = $userSession->getIdentity();
-
         if (!$podcast) {
             throw new ServerErrorHttpException('Invalid podcast');
         }
@@ -246,9 +244,10 @@ class PodcastsController extends Controller
             exit();
         }
 
+        $tz = Craft::$app->getTimeZone();
         $variables = [];
-        $rssCacheKey = 'studio-plugin-' . $siteId . '-' . $podcast->id;
-        $variables = $cache->getOrSet($rssCacheKey, function() use ($podcast, $site, $variables) {
+        $rssCacheKey = 'studio-plugin-' . $siteId . '-' . $podcast->id . '-' . $tz;
+        $variables = $cache->getOrSet($rssCacheKey, function() use ($podcast, $site, $tz, $variables) {
             $podcastFormat = $podcast->getPodcastFormat();
             $podcastMapping = json_decode($podcastFormat->mapping, true);
             $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
@@ -260,12 +259,6 @@ class PodcastsController extends Controller
             /** @var EpisodeElement[] $episodes */
             $episodes = $episodeQuery->all();
 
-            // Latest updated date for episodes
-            $lastBuildDate = null;
-            $latestUpdatedEpisode = $episodeQuery->orderBy('dateUpdated desc')->one();
-            if ($latestUpdatedEpisode) {
-                $lastBuildDate = $latestUpdatedEpisode->dateUpdated;
-            }
 
             // Create the document.
             $xml = new DOMDocument("1.0", "UTF-8");
@@ -287,12 +280,8 @@ class PodcastsController extends Controller
             $podcastTitle = $xml->createElement("itunes:title", htmlspecialchars($podcast->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
             $xmlChannel->appendChild($podcastTitle);
 
-            // Compare podcast updated date with latest update date for episodes
-            $podcastUpdate = $podcast->dateUpdated;
-            if ($lastBuildDate < $podcastUpdate) {
-                $lastBuildDate = $podcastUpdate;
-            }
-
+            // We use current time for last build, when cache is created
+            $lastBuildDate = new \DateTime('now', new \DateTimeZone($tz));
             // Add lastBuildDate and pubDate
             $lastBuildDate = $lastBuildDate->format('D, d M Y H:i:s T');
             $pubDate = $xml->createElement("pubDate", $lastBuildDate);
