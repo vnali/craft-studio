@@ -86,8 +86,6 @@ class ImporterService extends Component
         if (!isset($itemFieldHandle)) {
             craft::warning("$item file is not specified in setting");
             return;
-        } else {
-            craft::warning('warning' . $itemFieldHandle);
         }
 
         list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField($item, $mapping);

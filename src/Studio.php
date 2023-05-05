@@ -332,7 +332,7 @@ class Studio extends Plugin
                         is_a($element, Asset::class) && $element->firstSave && !$element->propagating &&
                         in_array($element->kind, ['audio', 'video'])
                     ) {
-                        Craft::info($element->kind . 'kind:');
+                        Craft::info('kind:' . $element->kind);
                         $found = false;
                         $assetIndexesSettings = PodcastAssetIndexesSettingsRecord::find()->where(['enable' => 1])->all();
                         // Check which podcast setting allows for importing episodes.
