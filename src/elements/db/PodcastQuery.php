@@ -74,6 +74,7 @@ class PodcastQuery extends ElementQuery
             ->select(['id'])
             ->from('{{%studio_podcastFormat}}')
             ->where(Db::parseParam('handle', $value))
+            ->andWhere(['dateDeleted' => null])
             ->scalar();
 
         if ($podcastFormatId) {
