@@ -2,7 +2,7 @@
     "name": "vnali/craft-studio",
     "description": "Podcast management and more for Craft CMS",
     "type": "craft-plugin",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "keywords": [
         "craft",
         "cms",
@@ -16,8 +16,7 @@
         "email": "vnali.dev@gmail.com",
         "issues": "https://github.com/vnali/craft-studio/issues?state=open",
         "source": "https://github.com/vnali/craft-studio",
-        "docs": "https://github.com/vnali/studio-plugin-docs",
-        "rss": "https://github.com/vnali/releases.atom"
+        "docs": "https://github.com/vnali/studio-plugin-docs"
     },
     "authors": [{
         "name": "vnali",
@@ -40,12 +39,12 @@
         }
     },
     "extra": {
-        "name": "studio",
+        "name": "Studio",
         "handle": "studio",
         "hasCpSettings": true,
         "hasCpSection": true,
 		"class": "vnali\\studio\\Studio",
-        "developer": "vnali",
+        "developer": "Vnali",
         "documentationUrl": "https://github.com/vnali/studio-plugin-docs"
     },
     "scripts": {

@@ -1,6 +1,6 @@
-# Release Notes for Studio
+# Release Notes for Studio plugin
 
-## Unreleased
+## 0.2.0 - 2023-05-07
 
 - Initial public release
 
