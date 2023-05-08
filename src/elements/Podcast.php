@@ -971,6 +971,14 @@ class Podcast extends Element
     /**
      * @inheritdoc
      */
+    protected static function defineSearchableAttributes(): array
+    {
+        return ['ownerName', 'ownerEmail', 'authorName', 'podcastType', 'copyright'];
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected static function defineSortOptions(): array
     {
         return [

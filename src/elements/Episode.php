@@ -1093,6 +1093,14 @@ class Episode extends Element
         return $attributes;
     }
 
+    /**
+     * @inheritdoc
+     */
+    protected static function defineSearchableAttributes(): array
+    {
+        return ['duration', 'episodeSeason', 'episodeNumber', 'episodeType'];
+    }
+
     protected static function defineFieldLayouts(string $source): array
     {
         $podcasts = [];

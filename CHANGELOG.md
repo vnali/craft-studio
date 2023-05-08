@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## 0.3.0 - 2023-05-08
+
+- ownerName, ownerEmail, authorName, podcastType, copyright, duration, episodeSeason, episodeNumber, episodeType attributes are now searchable
+
 ## 0.2.1 - 2023-05-07
 
 - Fixed the plugin folder structure
