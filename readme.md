@@ -7,8 +7,7 @@ This plugin is in the development phase.
 Please visit [Documentation page](https://github.com/vnali/studio-plugin-docs/blob/main/README.md).
 
 ## License
-This is a commercial plugin and going to be available on [Craft CMS plugin store](https://plugins.craftcms.com/studio?craft4).
+This is a commercial plugin available on [Craft CMS plugin store](https://plugins.craftcms.com/studio?craft4).
 
 ## Installation
-The plugin is going to be available on [Craft CMS plugin store](https://plugins.craftcms.com/studio?craft4).
-
+The plugin can be installed via [Plugin Store](https://plugins.craftcms.com/studio?craft4) in the Craft Control Panel.
