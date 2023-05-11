@@ -21,26 +21,26 @@ class PodcastQuery extends ElementQuery
     public ?string $authorName = null;
     public mixed $siteId = null;
     public mixed $id = null;
-    public ?bool $podcastIsBlock = null;
-    public ?bool $podcastIsComplete = null;
-    public ?bool $podcastIsExplicit = null;
+    public ?bool $blocked = null;
+    public ?bool $completed = null;
+    public ?bool $explicit = null;
     public ?bool $podcastIsNewFeedUrl = null;
 
-    public function podcastIsBlock(?bool $value = true): self
+    public function blocked(?bool $value = true): self
     {
-        $this->podcastIsBlock = $value;
+        $this->blocked = $value;
         return $this;
     }
 
-    public function podcastIsComplete(?bool $value = true): self
+    public function completed(?bool $value = true): self
     {
-        $this->podcastIsComplete = $value;
+        $this->completed = $value;
         return $this;
     }
 
-    public function podcastIsExplicit(?bool $value = true): self
+    public function explicit(?bool $value = true): self
     {
-        $this->podcastIsExplicit = $value;
+        $this->explicit = $value;
         return $this;
     }
 
@@ -152,39 +152,39 @@ class PodcastQuery extends ElementQuery
         }
 
         if ($this->id) {
-            $this->query->andWhere(Db::parseParam('studio_podcast.id', $this->id));
+            $this->subQuery->andWhere(Db::parseParam('studio_podcast.id', $this->id));
         }
 
-        if ($this->podcastIsBlock !== null) {
-            $this->query->andWhere(Db::parseBooleanParam('studio_i18n.podcastBlock', $this->podcastIsBlock, false));
+        if ($this->blocked !== null) {
+            $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.podcastBlock', $this->blocked, false));
         }
 
-        if ($this->podcastIsComplete !== null) {
-            $this->query->andWhere(Db::parseBooleanParam('studio_i18n.podcastComplete', $this->podcastIsComplete, false));
+        if ($this->completed !== null) {
+            $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.podcastComplete', $this->completed, false));
         }
         
-        if ($this->podcastIsExplicit !== null) {
-            $this->query->andWhere(Db::parseBooleanParam('studio_i18n.podcastExplicit', $this->podcastIsExplicit, false));
+        if ($this->explicit !== null) {
+            $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.podcastExplicit', $this->explicit, false));
         }
 
         if ($this->podcastIsNewFeedUrl !== null) {
-            $this->query->andWhere(Db::parseBooleanParam('studio_i18n.podcastIsNewFeedUrl', $this->podcastIsNewFeedUrl, false));
+            $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.podcastIsNewFeedUrl', $this->podcastIsNewFeedUrl, false));
         }
 
         if ($this->ownerEmail) {
-            $this->query->andWhere(Db::parseParam('studio_i18n.ownerEmail', $this->ownerEmail));
+            $this->subQuery->andWhere(Db::parseParam('studio_i18n.ownerEmail', $this->ownerEmail));
         }
 
         if ($this->ownerName) {
-            $this->query->andWhere(Db::parseParam('studio_i18n.ownerName', $this->ownerName));
+            $this->subQuery->andWhere(Db::parseParam('studio_i18n.ownerName', $this->ownerName));
         }
 
         if ($this->authorName) {
-            $this->query->andWhere(Db::parseParam('studio_i18n.authorName', $this->authorName));
+            $this->subQuery->andWhere(Db::parseParam('studio_i18n.authorName', $this->authorName));
         }
 
         if ($this->copyright) {
-            $this->query->andWhere(Db::parseParam('studio_i18n.copyright', $this->copyright));
+            $this->subQuery->andWhere(Db::parseParam('studio_i18n.copyright', $this->copyright));
         }
 
         $this->subQuery->addSelect(['elements_sites.siteId']);

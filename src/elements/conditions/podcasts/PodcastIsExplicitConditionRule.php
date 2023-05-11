@@ -29,7 +29,7 @@ class PodcastIsExplicitConditionRule extends BaseLightswitchConditionRule implem
      */
     public function getExclusiveQueryParams(): array
     {
-        return ['podcastIsExplicit'];
+        return ['explicit'];
     }
 
     /**
@@ -38,7 +38,7 @@ class PodcastIsExplicitConditionRule extends BaseLightswitchConditionRule implem
     public function modifyQuery(ElementQueryInterface $query): void
     {
         /** @var PodcastQuery $query */
-        $query->podcastIsExplicit($this->value);
+        $query->explicit($this->value);
     }
 
     /**

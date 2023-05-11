@@ -29,7 +29,7 @@ class PodcastIsCompleteConditionRule extends BaseLightswitchConditionRule implem
      */
     public function getExclusiveQueryParams(): array
     {
-        return ['podcastIsComplete'];
+        return ['completed'];
     }
 
     /**
@@ -38,7 +38,7 @@ class PodcastIsCompleteConditionRule extends BaseLightswitchConditionRule implem
     public function modifyQuery(ElementQueryInterface $query): void
     {
         /** @var PodcastQuery $query */
-        $query->podcastIsComplete($this->value);
+        $query->completed($this->value);
     }
 
     /**

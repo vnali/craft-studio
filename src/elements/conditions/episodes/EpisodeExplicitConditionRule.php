@@ -30,7 +30,7 @@ class EpisodeExplicitConditionRule extends BaseLightswitchConditionRule implemen
      */
     public function getExclusiveQueryParams(): array
     {
-        return ['episodeIsExplicit'];
+        return ['explicit'];
     }
 
     /**
@@ -39,7 +39,7 @@ class EpisodeExplicitConditionRule extends BaseLightswitchConditionRule implemen
     public function modifyQuery(ElementQueryInterface $query): void
     {
         /** @var EpisodeQuery $query */
-        $query->episodeIsExplicit($this->value);
+        $query->explicit($this->value);
     }
 
     /**

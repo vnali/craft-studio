@@ -29,7 +29,7 @@ class PodcastIsBlockConditionRule extends BaseLightswitchConditionRule implement
      */
     public function getExclusiveQueryParams(): array
     {
-        return ['podcastIsBlock'];
+        return ['blocked'];
     }
 
     /**
@@ -38,7 +38,7 @@ class PodcastIsBlockConditionRule extends BaseLightswitchConditionRule implement
     public function modifyQuery(ElementQueryInterface $query): void
     {
         /** @var PodcastQuery $query */
-        $query->podcastIsBlock($this->value);
+        $query->blocked($this->value);
     }
 
     /**

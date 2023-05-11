@@ -18,8 +18,9 @@ class EpisodeQuery extends ElementQuery
     public $duration;
     public mixed $siteId = null;
     public mixed $id = null;
-    public ?bool $episodeIsBlock = null;
-    public ?bool $episodeIsExplicit = null;
+    public ?bool $blocked = null;
+    public ?bool $explicit = null;
+    public ?bool $published = null;
 
     public function id(mixed $value): \craft\elements\db\ElementQuery
     {
@@ -39,15 +40,21 @@ class EpisodeQuery extends ElementQuery
         return $this;
     }
 
-    public function episodeIsBlock(?bool $value = true): self
+    public function blocked(?bool $value = true): self
     {
-        $this->episodeIsBlock = $value;
+        $this->blocked = $value;
         return $this;
     }
 
-    public function episodeIsExplicit(?bool $value = true): self
+    public function explicit(?bool $value = true): self
     {
-        $this->episodeIsExplicit = $value;
+        $this->explicit = $value;
+        return $this;
+    }
+
+    public function published(?bool $value = true): self
+    {
+        $this->published = $value;
         return $this;
     }
 
@@ -90,6 +97,7 @@ class EpisodeQuery extends ElementQuery
             'studio_i18n.episodeNumber',
             'studio_i18n.episodeSeason',
             'studio_i18n.episodeType',
+            'studio_i18n.publishOnRSS',
         ]);
 
         $this->query->innerJoin(['studio_i18n' => '{{%studio_i18n}}'], '[[studio_i18n.elementId]] = [[studio_episode.id]] and studio_i18n.siteId=subquery.siteId');
@@ -97,6 +105,7 @@ class EpisodeQuery extends ElementQuery
         $this->subQuery->innerJoin(['studio_i18n' => '{{%studio_i18n}}'], '[[studio_i18n.elementId]] = [[studio_episode.id]]');
         // Make sure podcast element is available for this site
         $this->query->innerJoin(['elements_sites_podcast' => '{{%elements_sites}}'], '[[studio_episode.podcastId]] = [[elements_sites_podcast.elementId]] and elements_sites_podcast.siteId=subquery.siteId');
+        
         if ($this->uploaderId) {
             $this->subQuery->andWhere(Db::parseParam('studio_ad.uploaderId', $this->uploaderId));
         }
@@ -113,31 +122,35 @@ class EpisodeQuery extends ElementQuery
         }
 
         if ($this->id) {
-            $this->query->andWhere(Db::parseParam('studio_episode.id', $this->id));
+            $this->subQuery->andWhere(Db::parseParam('studio_episode.id', $this->id));
         }
 
-        if ($this->episodeIsBlock !== null) {
-            $this->query->andWhere(Db::parseBooleanParam('studio_i18n.podcastBlock', $this->episodeIsBlock, false));
+        if ($this->blocked !== null) {
+            $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.episodeBlock', $this->blocked, false));
         }
 
-        if ($this->episodeIsExplicit !== null) {
-            $this->query->andWhere(Db::parseBooleanParam('studio_i18n.podcastBlock', $this->episodeIsExplicit, false));
+        if ($this->explicit !== null) {
+            $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.episodeExplicit', $this->explicit, false));
+        }
+
+        if ($this->published !== null) {
+            $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.publishOnRSS', $this->published, false));
         }
 
         if ($this->episodeSeason) {
-            $this->query->andWhere(Db::parseParam('studio_i18n.episodeSeason', $this->episodeSeason));
+            $this->subQuery->andWhere(Db::parseParam('studio_i18n.episodeSeason', $this->episodeSeason));
         }
 
         if ($this->episodeNumber) {
-            $this->query->andWhere(Db::parseParam('studio_i18n.episodeNumber', $this->episodeNumber));
+            $this->subQuery->andWhere(Db::parseParam('studio_i18n.episodeNumber', $this->episodeNumber));
         }
 
         if ($this->episodeType) {
-            $this->query->andWhere(Db::parseParam('studio_i18n.episodeType', $this->episodeType));
+            $this->subQuery->andWhere(Db::parseParam('studio_i18n.episodeType', $this->episodeType));
         }
 
         if ($this->duration) {
-            $this->query->andWhere(Db::parseParam('studio_i18n.duration', $this->duration));
+            $this->subQuery->andWhere(Db::parseParam('studio_i18n.duration', $this->duration));
         }
 
         $this->subQuery->addSelect(['elements_sites.siteId']);
