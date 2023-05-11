@@ -45,6 +45,7 @@ class podcastFormatsService extends Component
     {
         $podcastFormats = [];
         $podcastFormatRecords = PodcastFormatRecord::find()->all();
+        /** @var PodcastFormatRecord $podcastFormatRecord */
         foreach ($podcastFormatRecords as $podcastFormatRecord) {
             $podcastFormat = new PodcastFormat();
             $podcastFormat->setAttributes($podcastFormatRecord->getAttributes(), false);
@@ -62,6 +63,7 @@ class podcastFormatsService extends Component
     {
         $podcastFormatEpisodes = [];
         $podcastFormatEpisodeRecords = PodcastFormatEpisodeRecord::find()->all();
+        /** @var PodcastFormatEpisodeRecord $podcastFormatEpisodeRecord */
         foreach ($podcastFormatEpisodeRecords as $podcastFormatEpisodeRecord) {
             $podcastFormatEpisode = new PodcastFormatEpisode();
             $podcastFormatEpisode->setAttributes($podcastFormatEpisodeRecord->getAttributes(), false);
@@ -79,6 +81,7 @@ class podcastFormatsService extends Component
     public function getPodcastFormatById(int $podcastFormatId): ?PodcastFormat
     {
         $podcastFormat = null;
+        /** @var PodcastFormatRecord|null $podcastFormatRecord */
         $podcastFormatRecord = PodcastFormatRecord::find()->where(['id' => $podcastFormatId])->one();
         if ($podcastFormatRecord) {
             $podcastFormat = new PodcastFormat();
@@ -97,6 +100,7 @@ class podcastFormatsService extends Component
     {
         $podcastFormatEpisode = null;
         $podcastFormatEpisodeRecord = PodcastFormatEpisodeRecord::find()->where(['id' => $podcastFormatId])->one();
+        /** @var PodcastFormatEpisodeRecord|null $podcastFormatEpisodeRecord */
         if ($podcastFormatEpisodeRecord) {
             $podcastFormatEpisode = new PodcastFormatEpisode();
             $podcastFormatEpisode->setAttributes($podcastFormatEpisodeRecord->getAttributes(), false);
@@ -137,6 +141,7 @@ class podcastFormatsService extends Component
     {
         $podcastFormat = null;
         $podcastFormatRecord = PodcastFormatRecord::find()->where(['uid' => $uid])->one();
+        /** @var PodcastFormatRecord|null $podcastFormatRecord */
         if ($podcastFormatRecord) {
             $podcastFormat = new PodcastFormat();
             $podcastFormat->setAttributes($podcastFormatRecord->getAttributes(), false);
@@ -154,6 +159,7 @@ class podcastFormatsService extends Component
     {
         $podcastFormat = null;
         $podcastFormatRecord = PodcastFormatRecord::find()->where(['handle' => $podcastFormatHandle, 'dateDeleted' => null])->one();
+        /** @var PodcastFormatRecord|null $podcastFormatRecord */
         if ($podcastFormatRecord) {
             $podcastFormat = new PodcastFormat();
             $podcastFormat->setAttributes($podcastFormatRecord->getAttributes(), false);
