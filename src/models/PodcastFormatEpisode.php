@@ -191,6 +191,7 @@ class PodcastFormatEpisode extends Model
             'duration' => Craft::t('studio', 'Duration'),
             'episodeBlock' => Craft::t('studio', 'Episode Block'),
             'episodeExplicit' => Craft::t('studio', 'Episode Explicit'),
+            'publishOnRSS' => Craft::t('studio', 'Publish on RSS'),
             'episodeSeason' => Craft::t('studio', 'Episode Season'),
             'episodeNumber' => Craft::t('studio', 'Episode Number'),
             'episodeType' => Craft::t('studio', 'Episode Type'),

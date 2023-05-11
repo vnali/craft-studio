@@ -21,6 +21,7 @@ class EpisodeCondition extends ElementCondition
             EpisodeDurationConditionRule::class,
             EpisodeSeasonConditionRule::class,
             EpisodeNumberConditionRule::class,
+            EpisodePublishConditionRule::class,
         ]);
     }
 }

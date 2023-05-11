@@ -100,6 +100,10 @@ class Episode extends Element
      */
     private User|false|null $_uploader = null;
 
+    /**
+     * @var bool|null Publish on RSS
+     */
+    public ?bool $publishOnRSS = null;
 
     /**
      * Returns the episode uploader ID.
@@ -241,6 +245,7 @@ class Episode extends Element
                 return $uploader ? Cp::elementHtml($uploader) : '';
             case 'episodeBlock':
             case 'episodeExplicit':
+            case 'publishOnRSS':
                 if (!$this->$attribute) {
                     return '';
                 }
@@ -818,7 +823,7 @@ class Episode extends Element
                 $this->addError($attribute, $errorMessage);
             }
         }, 'skipOnEmpty' => true, 'on' => [self::SCENARIO_DEFAULT, self::SCENARIO_LIVE]];
-        $rules[] = [['episodeBlock', 'episodeExplicit'], 'safe'];
+        $rules[] = [['episodeBlock', 'episodeExplicit', 'publishOnRSS'], 'safe'];
         $rules[] = [['episodeType'], 'in', 'range' => ['full', 'trailer', 'bonus']];
         $rules[] = [['episodeSeason', 'episodeNumber'], 'number', 'integerOnly' => true];
         $rules[] = [['podcastId'], 'number', 'integerOnly' => true];
@@ -916,7 +921,7 @@ class Episode extends Element
             $userId = null;
         }
 
-        $lightSwitchFields = ['episodeBlock', 'episodeExplicit'];
+        $lightSwitchFields = ['episodeBlock', 'episodeExplicit', 'publishOnRSS'];
         $episodeFieldLayout = $this->getPodcast()->getPodcastFormatEpisode()->getFieldLayout();
         $tabs = $episodeFieldLayout->getTabs();
         foreach ($tabs as $key => $tab) {
@@ -955,6 +960,7 @@ class Episode extends Element
                     'episodeNumber' => $this->episodeNumber,
                     'episodeSeason' => $this->episodeSeason,
                     'episodeType' => $this->episodeType,
+                    'publishOnRSS' => $this->publishOnRSS,
                 ])
                 ->execute();
         } else {
@@ -996,6 +1002,7 @@ class Episode extends Element
                         'episodeNumber' => $this->episodeNumber,
                         'episodeSeason' => $this->episodeSeason,
                         'episodeType' => $this->episodeType,
+                        'publishOnRSS' => $this->publishOnRSS,
                     ])
                     ->execute();
             }
@@ -1088,6 +1095,7 @@ class Episode extends Element
             'episodeNumber' => ['label' => Craft::t('studio', 'Episode Number')],
             'episodeType' => ['label' => Craft::t('studio', 'Episode Type')],
             'episodeGUID' => ['label' => Craft::t('studio', 'GUID')],
+            'publishOnRSS' => ['label' => Craft::t('studio', 'Publish on RSS')],
         ];
 
         return $attributes;

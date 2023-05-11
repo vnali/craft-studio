@@ -116,6 +116,7 @@ class Install extends Migration
                 'ownerEmail' => $this->string(),
                 'episodeBlock' => $this->boolean(),
                 'episodeExplicit' => $this->boolean(),
+                'publishOnRSS' => $this->boolean(),
                 'episodeNumber' => $this->integer(),
                 'episodeType' => $this->string(10),
                 'episodeSeason' => $this->smallInteger(),
@@ -132,6 +133,8 @@ class Install extends Migration
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid(),
             ]);
+
+            $this->createIndex(null, '{{%studio_i18n}}', ['publishOnRSS'], false);
 
             $this->addForeignKey(null, '{{%studio_i18n}}', ['elementId'], '{{%elements}}', ['id'], 'CASCADE', null);
             $this->addForeignKey(null, '{{%studio_i18n}}', ['siteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');

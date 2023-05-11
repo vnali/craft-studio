@@ -257,7 +257,7 @@ class PodcastsController extends Controller
             /** @var EpisodeQuery $episodeQuery */
             $episodeQuery->podcastId = $podcast->id;
             /** @var EpisodeElement[] $episodes */
-            $episodes = $episodeQuery->all();
+            $episodes = $episodeQuery->published(true)->all();
 
 
             // Create the document.

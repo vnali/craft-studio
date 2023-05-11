@@ -86,7 +86,7 @@ class Studio extends Plugin
      */
     public static Studio $plugin;
 
-    public string $schemaVersion = '0.2.0';
+    public string $schemaVersion = '0.4.0';
 
     /**
      * @inheritdoc
@@ -224,6 +224,13 @@ class Studio extends Plugin
                         'mandatory' => false,
                         'label' => Craft::t('studio', 'GUID'),
                         'translatable' => $episodeNativeFieldSettings['episodeGUID']['translatable'] ?? false,
+                    ];
+                    $event->fields[] = [
+                        'class' => NativeLightswitchField::class,
+                        'attribute' => 'publishOnRSS',
+                        'mandatory' => false,
+                        'label' => Craft::t('studio', 'Publish on RSS'),
+                        'translatable' => $episodeNativeFieldSettings['publishOnRSS']['translatable'] ?? 0,
                     ];
                     break;
                 case PodcastElement::class:

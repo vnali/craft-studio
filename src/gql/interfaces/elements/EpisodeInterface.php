@@ -85,7 +85,12 @@ class EpisodeInterface extends Element
             'episodeExplicit' => [
                 'name' => 'episodeExplicit',
                 'type' => Type::boolean(),
-                'description' => 'episode Explicit',
+                'description' => 'Episode Explicit',
+            ],
+            'publishOnRSS' => [
+                'name' => 'publishOnRSS',
+                'type' => Type::boolean(),
+                'description' => 'Publish on RSS',
             ],
             'episodeGUID' => [
                 'name' => 'episodeGUID',
