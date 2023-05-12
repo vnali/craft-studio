@@ -1,5 +1,11 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+> {warning} Please read [#3](https://github.com/vnali/craft-studio/discussions/3) before update to this version.
+
+- Changed episode published() method to rss().
+
 ## 0.4.0 - 2023-05-12
 
 > {warning} Please read [#1](https://github.com/vnali/craft-studio/discussions/1) and [#2](https://github.com/vnali/craft-studio/discussions/2) before update to this version.

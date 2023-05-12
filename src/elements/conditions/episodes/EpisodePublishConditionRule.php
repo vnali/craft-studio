@@ -30,7 +30,7 @@ class EpisodePublishConditionRule extends BaseLightswitchConditionRule implement
      */
     public function getExclusiveQueryParams(): array
     {
-        return ['published'];
+        return ['rss'];
     }
 
     /**
@@ -39,7 +39,7 @@ class EpisodePublishConditionRule extends BaseLightswitchConditionRule implement
     public function modifyQuery(ElementQueryInterface $query): void
     {
         /** @var EpisodeQuery $query */
-        $query->published($this->value);
+        $query->rss($this->value);
     }
 
     /**

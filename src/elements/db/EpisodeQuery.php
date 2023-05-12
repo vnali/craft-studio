@@ -20,7 +20,7 @@ class EpisodeQuery extends ElementQuery
     public mixed $id = null;
     public ?bool $blocked = null;
     public ?bool $explicit = null;
-    public ?bool $published = null;
+    public ?bool $rss = null;
 
     public function id(mixed $value): \craft\elements\db\ElementQuery
     {
@@ -52,9 +52,9 @@ class EpisodeQuery extends ElementQuery
         return $this;
     }
 
-    public function published(?bool $value = true): self
+    public function rss(?bool $value = true): self
     {
-        $this->published = $value;
+        $this->rss = $value;
         return $this;
     }
 
@@ -133,8 +133,8 @@ class EpisodeQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.episodeExplicit', $this->explicit, false));
         }
 
-        if ($this->published !== null) {
-            $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.publishOnRSS', $this->published, false));
+        if ($this->rss !== null) {
+            $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.publishOnRSS', $this->rss, false));
         }
 
         if ($this->episodeSeason) {
