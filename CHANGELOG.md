@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.5.0 - 2023-05-12
 
 > {warning} Please read [#3](https://github.com/vnali/craft-studio/discussions/3) before update to this version.
 
