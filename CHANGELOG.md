@@ -2,8 +2,8 @@
 
 ## 0.6.0 - 2023-05-18
 
-- Added <podcast:chapters> support [#4](https://github.com/vnali/craft-studio/discussions/4).
-- Added a new tool for audio preview to make creating chapters in <podcast:chapters> and {timestamp}-{chapter title} format easier [#4](https://github.com/vnali/craft-studio/discussions/4).
+- Added <podcast:chapters> support ([#4](https://github.com/vnali/craft-studio/discussions/4)).
+- Added a new tool for audio preview to make creating chapters in <podcast:chapters> and {timestamp}-{chapter title} format easier ([#4](https://github.com/vnali/craft-studio/discussions/4)).
 - Fixed a bug where users with manage episodes permission could not view episodes on the episode index page.
 - Fixed a bug where under certain conditions a podcast considered as enabled even if the podcast was disabled.
 
