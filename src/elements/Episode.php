@@ -844,7 +844,6 @@ class Episode extends Element
         $user = Craft::$app->getUser()->getIdentity();
         foreach ($podcasts as $podcast) {
             $podcastEpisodeIds = [];
-            // If user can view podcast, show that podcast on element index
             if (
                 Craft::$app->user->checkPermission('studio-viewPodcastEpisodes-' . $podcast->uid)
             ) {
@@ -875,9 +874,14 @@ class Episode extends Element
         }
 
         $sources = [];
-        $criteria = [
-            'id' => $episodeIds,
-        ];
+        // if user can manage episodes, only episode query is enough, otherwise we have pass only episodes that user has access via criteria
+        if (Craft::$app->user->checkPermission('studio-manageEpisodes')) {
+            $criteria = [];
+        } else {
+            $criteria = [
+                'id' => $episodeIds,
+            ];
+        }
         $sources[] = [
             'key' => '*',
             'label' => Craft::t('studio', 'All Episodes'),
@@ -900,6 +904,18 @@ class Episode extends Element
                     'sites' => [$podcast->siteId],
                     'criteria' => [
                         'id' => $podcastCriteria[$podcast->id][$podcast->siteId],
+                    ],
+                ];
+            } elseif (Craft::$app->user->checkPermission('studio-manageEpisodes')) {
+                $sources[] = [
+                    'key' => 'podcast:' . $podcast->uid . $podcast->siteId,
+                    'label' => $podcast->title,
+                    'data' => [
+                        'handle' => $podcast->id . '-' . $podcast->slug,
+                    ],
+                    'sites' => [$podcast->siteId],
+                    'criteria' => [
+                        'podcastId' => $podcast->id,
                     ],
                 ];
             }
