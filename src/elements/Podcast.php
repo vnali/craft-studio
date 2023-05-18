@@ -21,6 +21,7 @@ use craft\events\DefineElementInnerHtmlEvent;
 use craft\fieldlayoutelements\CustomField;
 use craft\helpers\Cp;
 use craft\helpers\Db;
+use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use craft\web\CpScreenResponseBehavior;
@@ -287,11 +288,9 @@ class Podcast extends Element
                 $elementId = $this->id;
                 if (!$this->getIsDraft()) {
                     $record = PodcastGeneralSettingsRecord::find()->where(['podcastId' => $this->id, 'siteId' => $this->siteId])->one();
-                    if (Craft::$app->getIsMultiSite() && count($this->getSupportedSites()) > 1) {
-                        $enabled = $this->getEnabledForSite();
-                    } else {
-                        $enabled = $this->enabled;
-                    }
+                    
+                    $siteStatuses = ElementHelper::siteStatusesForElement($this, true);
+                    $enabled = $siteStatuses[$this->siteId];
                     /** @var PodcastGeneralSettingsRecord|null $record */
                     if ($enabled && $record && $record->publishRSS) {
                         $RSSLabel = Craft::t('studio', 'View');
