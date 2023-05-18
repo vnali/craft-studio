@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Added <podcast:chapters> support
+- Added <podcast:chapters> support [#4](https://github.com/vnali/craft-studio/discussions/4)
+- Added a new tool for audio preview to make creating chapters easier [#4](https://github.com/vnali/craft-studio/discussions/4)
 
 ## 0.5.0 - 2023-05-12
 

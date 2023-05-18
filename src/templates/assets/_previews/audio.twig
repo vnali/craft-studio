@@ -1,8 +1,110 @@
-<audio id="asset" autoplay controls style="width: 100%; height: 100%">
-  <source src="{{ url }}" type="{{ asset.mimeType }}">
-  Your browser does not support the audio tag.
-</audio>
-<script>
-  var audio = document.getElementById("asset");
-  audio.volume = 0.2;
-</script>
+<div style="height:100%;width:100%;padding:5px;background:rgb(226, 234, 243)">
+    <div id="newChapterContainer"></div>
+    <audio id="asset" controls style="width: 100%;">
+        <source src="{{ url }}" type="{{ asset.mimeType }}">
+    </audio>
+    <br>
+    <div id="chapterContainer" style="overflow-y:scroll;">
+        <div id="chapterText"></div>
+    </div>
+<div>
+{% js %}
+    var audio = document.getElementById("asset");
+    audio.volume = 0.2;
+
+    $(function () {
+
+        var elementId = $("input[name='elementId']").val();
+        if (!elementId) {
+            return;
+        }
+        var data = {
+            'elementId' : elementId,
+        };
+
+        $.ajax({
+            method: "GET",
+            url: Craft.getUrl("studio/default/get-page-context" + "?=_" + new Date().getTime()),
+            data: data,
+            dataType: 'json',
+            success: function (data) {
+
+                if (data.elementType == 'vnali\\studio\\elements\\Episode') {
+                    var newChapterBtn = '<br><button type="button" id="new-chapter" class="btn submit">{{ "New Chapter"|t("studio") }}</button><p></p>';
+                    $('#newChapterContainer').html(newChapterBtn)
+                    var $form = 
+                    $('<form class="modal fitted lazy-create-modal">' + 
+                        '<div class="header">' +
+                            '<h1 class="centeralign"></h1>' +
+                        '</div>' +
+                        '<div class="body">' +
+                            '{{ createField|e("js") }}' +
+                        '</div>' +
+                        '<div class="footer">' +
+                            '<button type="button" class="btn submit save-chapter">{{ "save"|t("studio") }}</button>' +
+                        '</div>' +
+                    '</form>');
+
+                    $(".modal").on("click", "#new-chapter", function() {
+                        if (data.chapterField == 'verbb\\supertable\\fields\\SuperTableField') {
+                            $("div[data-attribute='episodeChapter']").find(".matrixLayoutContainer, .rowLayoutContainer, .superTable-table").next('.add').activate();
+                        } else {
+                            $("div[data-attribute='episodeChapter'] button[data-type='chapter']").click();
+                        }
+                        var assetAudio = document.getElementById("asset");
+
+                        // Get hh:mm:ss format
+                        seconds = Math.floor(assetAudio.currentTime);
+                        const date = new Date(null);
+                        date.setSeconds(seconds);
+                        const hhmmss = date.toISOString().slice(11, 19);
+
+                        if (Number.isInteger(assetAudio.currentTime)) {
+                            secondsFixed = assetAudio.currentTime;
+                        } else {
+                            secondsFixed = assetAudio.currentTime.toFixed(3);
+                        }
+
+                        if (data.chapterField == 'verbb\\supertable\\fields\\SuperTableField') {
+                            $("div[data-attribute='episodeChapter'] div[data-attribute='startTime']:last input").val(secondsFixed);
+                        } else {
+                            $("div[data-attribute='episodeChapter'] div[data-type='chapter'] div[data-attribute='startTime']:last input").val(secondsFixed);
+                        }
+                        audio.pause();
+
+                        var modal = new Garnish.Modal($form, {
+                            onHide: function () {
+                                modal.destroy();
+                                delete modal;
+                            },
+                        });
+
+                        setTimeout(function () {
+                            $form.find('.text:first').focus();
+                            modal.updateSizeAndPosition();
+
+                            $(".centeralign").html(hhmmss);
+                        }, 100);
+
+                        $('.save-chapter').on('click', function (ev) {
+                            chapterTitle = $('#chapterTitle').val();
+                            if (data.chapterField == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='episodeChapter'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
+                            } else {
+                                $("div[data-attribute='episodeChapter'] div[data-type='chapter'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
+                            }
+                            $("#chapterText").append(hhmmss + '-' + chapterTitle + '</br>');
+                            audio.play();
+                            modal.hide();
+                        });
+
+                        $form.find('.cancel-btn').on('click', function () {
+                            modal.hide();
+                            audio.play();
+                        });
+                    });
+                }
+            }
+        });
+    });
+{% endjs %}
