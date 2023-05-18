@@ -11,6 +11,7 @@ use craft\base\Element;
 use craft\db\Table;
 use craft\fields\Categories;
 use craft\fields\Entries;
+use craft\fields\Matrix;
 use craft\fields\Tags;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
@@ -22,7 +23,8 @@ use craft\web\Controller;
 use craft\web\UrlManager;
 use craft\web\View;
 use DOMDocument;
-
+use verbb\supertable\elements\SuperTableBlockElement;
+use verbb\supertable\fields\SuperTableField;
 use vnali\studio\elements\db\EpisodeQuery;
 use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\elements\Podcast as PodcastElement;
@@ -222,7 +224,10 @@ class PodcastsController extends Controller
             throw new ServerErrorHttpException('Invalid podcast');
         }
 
-        if (!$podcast->enabled && (!$currentUser || (!$currentUser->can("studio-viewPodcast-" . $podcast->uid) && !$currentUser->can("studio-managePodcasts")))) {
+        $siteStatuses = ElementHelper::siteStatusesForElement($podcast, true);
+        $podcastEnabled = $siteStatuses[$podcast->siteId];
+
+        if (!$podcastEnabled && (!$currentUser || (!$currentUser->can("studio-viewPodcast-" . $podcast->uid) && !$currentUser->can("studio-managePodcasts")))) {
             throw new ForbiddenHttpException('User is not authorized to view this page.');
         }
 
@@ -272,6 +277,7 @@ class PodcastsController extends Controller
             $rssNode->setAttribute("xmlns:atom", "http://www.w3.org/2005/Atom");
             $rssNode->setAttribute("xmlns:itunes", 'http://www.itunes.com/dtds/podcast-1.0.dtd');
             $rssNode->setAttribute("xmlns:content", 'http://purl.org/rss/1.0/modules/content/');
+            $rssNode->setAttribute("xmlns:podcast", 'https://podcastindex.org/namespace/1.0');
 
             $xmlChannel = $xml->createElement("channel");
             $rssNode->appendChild($xmlChannel);
@@ -616,6 +622,25 @@ class PodcastsController extends Controller
                 if ($episode->episodeGUID) {
                     $xmlEpisodeGUID = $xml->createElement("guid", $episode->episodeGUID);
                     $xmlItem->appendChild($xmlEpisodeGUID);
+                }
+
+                // Episode chapter
+                $chapterField = Craft::$app->fields->getFieldByHandle('episodeChapter');
+                if ($chapterField) {
+                    if (get_class($chapterField) == Matrix::class) {
+                        $blockQuery = \craft\elements\MatrixBlock::find();
+                        $chapterBlock = $blockQuery->fieldId($chapterField->id)->owner($episode)->type('chapter')->one();
+                    } elseif (get_class($chapterField) == SuperTableField::class) {
+                        $blockQuery = SuperTableBlockElement::find();
+                        $chapterBlock = $blockQuery->fieldId($chapterField->id)->owner($episode)->one();
+                    }
+                    if (isset($chapterBlock)) {
+                        $chapterUrl = $site->getBaseUrl() . 'episodes/chapter?episodeId=' . $episode->id . '&site=' . $site->handle;
+                        $xmlChapter = $xml->createElement("podcast:chapters");
+                        $xmlChapter->setAttribute("url", htmlspecialchars($chapterUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlChapter->setAttribute("type", "application/json+chapters");
+                        $xmlItem->appendChild($xmlChapter);
+                    }
                 }
 
                 $xmlChannel->appendChild($xmlItem);

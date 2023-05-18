@@ -9,7 +9,6 @@ namespace vnali\studio\controllers;
 use Craft;
 use craft\base\LocalFsInterface;
 use craft\web\Controller;
-
 use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\helpers\Id3;
 use vnali\studio\helpers\Time;
@@ -212,5 +211,22 @@ class DefaultController extends Controller
         }
 
         return $this->redirect($element->getCpEditUrl());
+    }
+
+    /**
+     * Get page context
+     *
+     * @param int $elementId
+     * @return Response
+     */
+    public function actionGetPageContext(int $elementId): Response
+    {
+        $elementType = Craft::$app->getElements()->getElementTypeById($elementId);
+        $chapterField = Craft::$app->fields->getFieldByHandle('episodeChapter');
+        $array = [
+            'elementType' => $elementType,
+            'chapterField' => $chapterField ? get_class($chapterField) : null,
+        ];
+        return $this->asJson($array);
     }
 }

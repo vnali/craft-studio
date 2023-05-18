@@ -9,22 +9,25 @@ namespace vnali\studio\controllers;
 use Craft;
 use craft\base\Element;
 use craft\db\Table;
+use craft\elements\db\AssetQuery;
 use craft\helpers\Cp;
 use craft\helpers\Db;
 use craft\helpers\ElementHelper;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\UrlManager;
-
+use craft\web\View;
 use Symfony\Component\DomCrawler\Crawler;
 
 use vnali\studio\elements\Episode as EpisodeElement;
-use vnali\studio\elements\Podcast;
+use vnali\studio\elements\Podcast as PodcastElement;
+
+;
 use vnali\studio\jobs\importEpisodeJob;
 use vnali\studio\models\ImportEpisodeRSS;
 use vnali\studio\records\PodcastEpisodeSettingsRecord;
 use vnali\studio\Studio;
-
+use yii\caching\TagDependency;
 use yii\queue\Queue;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -34,6 +37,8 @@ use yii\web\ServerErrorHttpException;
 
 class EpisodesController extends Controller
 {
+    protected int|bool|array $allowAnonymous = ['chapter'];
+
     /**
      * @inheritdoc
      */
@@ -45,10 +50,10 @@ class EpisodesController extends Controller
     /**
      * Get all available site Ids for the podcast which user has access to
      *
-     * @param Podcast $podcast
+     * @param PodcastElement $podcast
      * @return array
      */
-    protected function editableSiteIds(Podcast $podcast): array
+    protected function editableSiteIds(PodcastElement $podcast): array
     {
         if (!Craft::$app->getIsMultiSite()) {
             return [Craft::$app->getSites()->getPrimarySite()->id];
@@ -317,7 +322,7 @@ class EpisodesController extends Controller
         }
         $variables['settings'] = $settings;
 
-        $propagatedSites = Podcast::find()->status(null)->id($podcast->id)->site('*')->select('elements_sites.siteId')->column();
+        $propagatedSites = PodcastElement::find()->status(null)->id($podcast->id)->site('*')->select('elements_sites.siteId')->column();
         $items = [];
         $currentUser = Craft::$app->getUser()->getIdentity();
         foreach ($propagatedSites as $propagatedSite) {
@@ -392,7 +397,7 @@ class EpisodesController extends Controller
         $variables['settings'] = $settings;
 
         $variables['enable'] = $settings->enable;
-        $propagatedSites = Podcast::find()->status(null)->id($podcast->id)->site('*')->select('elements_sites.siteId')->column();
+        $propagatedSites = PodcastElement::find()->status(null)->id($podcast->id)->site('*')->select('elements_sites.siteId')->column();
         $items = [];
         $currentUser = Craft::$app->getUser()->getIdentity();
         foreach ($propagatedSites as $propagatedSite) {
@@ -499,5 +504,116 @@ class EpisodesController extends Controller
             Craft::$app->getSession()->setNotice(Craft::t('studio', 'Now you can use asset indexes utility to import episodes.'));
         }
         return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Generate episode's chapter json
+     *
+     * @param integer $episodeId
+     * @param string|null $site
+     * @return Response
+     */
+    public function actionChapter(int $episodeId, ?string $site = null): Response
+    {
+        $cache = Craft::$app->getCache();
+        if ($site) {
+            $site = Craft::$app->sites->getSiteByHandle($site);
+        }
+
+        // If site is not passed or not found use default site
+        if (!$site) {
+            $site = Craft::$app->sites->getCurrentSite();
+        }
+        $siteId = $site->id;
+        /** @var EpisodeElement|null $episode */
+        $episode = EpisodeElement::find()->id($episodeId)->status(null)->siteId($siteId)->one();
+        $podcast = $episode->getPodcast();
+        $generalSettings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcast->id, $siteId);
+        $userSession = Craft::$app->getUser();
+        $currentUser = $userSession->getIdentity();
+
+        if (!$episode) {
+            throw new ServerErrorHttpException('Invalid episode');
+        }
+
+        $siteStatuses = ElementHelper::siteStatusesForElement($podcast, true);
+        $podcastEnabled = $siteStatuses[$podcast->siteId];
+
+        $siteStatuses = ElementHelper::siteStatusesForElement($episode, true);
+        $episodeEnabled = $siteStatuses[$episode->siteId];
+
+        if ((!$podcastEnabled || !$episodeEnabled) && (!$currentUser || (!$currentUser->can("studio-viewPodcast-" . $episode->getPodcast()->uid) && !$currentUser->can("studio-managePodcasts")))) {
+            throw new ForbiddenHttpException('User is not authorized to view this page.');
+        }
+
+        if ($generalSettings->publishRSS && !$generalSettings->allowAllToSeeRSS) {
+            if (!$currentUser || (!$currentUser->can('studio-viewPublishedRSS-' . $podcast->uid) && !$currentUser->can("studio-managePodcasts"))) {
+                throw new ForbiddenHttpException('User is not authorized to view this page.');
+            }
+        }
+
+        if (!$generalSettings->publishRSS) {
+            if (!$currentUser || (!$currentUser->can('studio-viewNotPublishedRSS-' . $podcast->uid) && !$currentUser->can("studio-managePodcasts"))) {
+                throw new ForbiddenHttpException('User is not authorized to view this page.');
+            }
+        }
+
+        $rssCacheKey = 'studio-plugin-' . $siteId . '-' . $episode->id;
+
+        $jsonChapter = $cache->getOrSet($rssCacheKey, function() use ($episode) {
+            $chaptersArray = [];
+            if (isset($episode->episodeChapter)) {
+                $chapters = $episode->episodeChapter->all();
+                foreach ($chapters as $key => $chapter) {
+                    $chapterArray = [];
+                    if (is_null($chapter->type->handle) || $chapter->type->handle == 'chapter') {
+                        // Start time is required
+                        if (!isset($chapter->startTime)) {
+                            continue;
+                        }
+                        $chapterArray['startTime'] = $chapter->startTime;
+                        if (isset($chapter->chapterTitle) && $chapter->chapterTitle) {
+                            $chapterArray['title'] = $chapter->chapterTitle;
+                        }
+                        if (isset($chapter->img) && $chapter->img) {
+                            if (!is_object($chapter->img)) {
+                                $chapterArray['img'] = $chapter->img;
+                            } elseif (is_a($chapter->img, AssetQuery::class)) {
+                                $img = $chapter->img->one();
+                                if ($img) {
+                                    $chapterArray['img'] = $img->getUrl();
+                                }
+                            }
+                        }
+                        if (isset($chapter->toc) && $chapter->toc) {
+                            $chapterArray['toc'] = $chapter->toc;
+                        }
+                        if (isset($chapter->chapterUrl) && $chapter->chapterUrl) {
+                            $chapterArray['url'] = $chapter->chapterUrl;
+                        }
+                        if (isset($chapter->endTime) && $chapter->endTime) {
+                            $chapterArray['endTime'] = $chapter->endTime;
+                        }
+                        $chaptersArray[] = $chapterArray;
+                    }
+                }
+            }
+            $jsonChapter = [];
+            $jsonChapter['version'] = '1.2.0';
+            $jsonChapter['title'] = $episode->title;
+            $jsonChapter['podcastName'] = $episode->getPodcast()->title;
+            if ($author = $episode->getUploader()->fullName) {
+                $jsonChapter['author'] = $author;
+            }
+            $jsonChapter['chapters'] = $chaptersArray;
+            return $jsonChapter;
+        }, 0, new TagDependency(['tags' => ['studio-plugin', 'element::' . PodcastElement::class . '::*', 'element::' . EpisodeElement::class . '::*']]));
+
+        $variables['json'] = json_encode($jsonChapter);
+        Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_CP);
+        return $this->renderTemplate(
+            'studio/episodes/_jsonChapter',
+            $variables
+        );
     }
 }

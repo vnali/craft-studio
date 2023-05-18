@@ -512,6 +512,7 @@ class Studio extends Plugin
                 $event->rules['studio/default/fields-filter'] = 'studio/default/fields-filter';
                 $event->rules['studio/default/meta'] = 'studio/default/meta';
                 $event->rules['studio/default/get-entry-types'] = 'studio/default/get-entry-types';
+                $event->rules['studio/default/get-page-context'] = 'studio/default/get-page-context';
                 $event->rules['studio/episodes/import-from-asset-index'] = 'studio/episodes/import-from-asset-index';
                 $event->rules['studio/episodes/import-from-rss'] = 'studio/episodes/import-from-rss';
                 $event->rules['studio/episodes/<podcastHandle>'] = ['template' => 'studio/episodes'];
@@ -537,6 +538,7 @@ class Studio extends Plugin
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
             function(RegisterUrlRulesEvent $event) {
                 $event->rules['podcasts/rss'] = 'studio/podcasts/rss';
+                $event->rules['episodes/chapter'] = 'studio/episodes/chapter';
             }
         );
     }
