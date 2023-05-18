@@ -119,6 +119,7 @@ class podcastFormatsService extends Component
         $podcastFormatSites = [];
         $podcastFormatSitesRecord = PodcastFormatSitesRecord::find()
             ->where(['podcastFormatId' => $podcastFormatId])
+            ->andWhere(['sites.dateDeleted' => null])
             ->innerJoin(['sites' => Table::SITES], '[[sites.id]] = [[siteId]]')
             ->orderBy(['sites.sortOrder' => SORT_ASC])
             ->all();
