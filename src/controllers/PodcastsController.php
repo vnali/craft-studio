@@ -624,6 +624,27 @@ class PodcastsController extends Controller
                     $xmlItem->appendChild($xmlEpisodeGUID);
                 }
 
+                // Episode soundbite
+                $soundbiteField = Craft::$app->fields->getFieldByHandle('episodeSoundbite');
+                if ($soundbiteField) {
+                    $soundbiteBlocks = [];
+                    if (get_class($soundbiteField) == Matrix::class) {
+                        $blockQuery = \craft\elements\MatrixBlock::find();
+                        $soundbiteBlocks = $blockQuery->fieldId($soundbiteField->id)->owner($episode)->type('soundbite')->all();
+                    } elseif (get_class($soundbiteField) == SuperTableField::class) {
+                        $blockQuery = SuperTableBlockElement::find();
+                        $soundbiteBlocks = $blockQuery->fieldId($soundbiteField->id)->owner($episode)->all();
+                    }
+                    foreach ($soundbiteBlocks as $soundbiteBlock) {
+                        if ($soundbiteBlock->getFieldValue('startTime') !== null && $soundbiteBlock->getFieldValue('duration') !== null) {
+                            $xmlSoundbite = $xml->createElement("podcast:soundbite", $soundbiteBlock->getFieldValue('soundbiteTitle') ?? '');
+                            $xmlSoundbite->setAttribute("startTime", $soundbiteBlock->getFieldValue('startTime'));
+                            $xmlSoundbite->setAttribute("duration",  $soundbiteBlock->getFieldValue('duration'));
+                            $xmlItem->appendChild($xmlSoundbite);
+                        }
+                    }
+                }
+
                 // Episode chapter
                 $chapterField = Craft::$app->fields->getFieldByHandle('episodeChapter');
                 if ($chapterField) {

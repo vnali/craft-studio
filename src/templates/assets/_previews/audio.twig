@@ -1,18 +1,32 @@
-<div style="height:100%;width:100%;padding:5px;background:rgb(226, 234, 243)">
-    <div id="newChapterContainer"></div>
-    <audio id="asset" controls style="width: 100%;">
+<div style="height:100%;width:100%;padding:5px;background:rgb(226, 234, 243);overflow-y:auto">
+    <p></p>
+    <span id="newChapterBtnContainer"></span>&nbsp;&nbsp;
+    <span id="newSoundbiteBtnContainer"></span>
+    <p></p>
+    <audio id="audioPreview" controls style="width: 100%;">
         <source src="{{ url }}" type="{{ asset.mimeType }}">
     </audio>
     <br>
-    <div id="chapterContainer" style="overflow-y:scroll;">
-        <div id="chapterText"></div>
+    <div id="soundbiteContainer">
+        <div id="soundbiteText">
+            <b id="soundbiteHeader"></b>
+            <br>
+        </div>
+    </div>
+    <div id="chapterContainer">
+        <div id="chapterText">
+            <b id="chapterHeader"></b>
+            <br>
+        </div>
     </div>
 <div>
 {% js %}
-    var audio = document.getElementById("asset");
-    audio.volume = 0.2;
+
 
     $(function () {
+
+        var assetAudio = document.getElementById("audioPreview");
+        assetAudio.volume = 0.2;
 
         var elementId = $("input[name='elementId']").val();
         if (!elementId) {
@@ -30,18 +44,35 @@
             success: function (data) {
 
                 if (data.elementType == 'vnali\\studio\\elements\\Episode') {
-                    var newChapterBtn = '<br><button type="button" id="new-chapter" class="btn submit">{{ "New Chapter"|t("studio") }}</button><p></p>';
-                    $('#newChapterContainer').html(newChapterBtn)
-                    var $form = 
+                    var newChapterBtn = '<button type="button" id="new-chapter" class="btn submit">{{ "New Chapter"|t("studio") }}</button>';
+                    var newSoundbiteBtn = '<button type="button" id="new-soundbite" class="btn submit start">{{ "Start Soundbite"|t("studio") }}</button>';
+                    
+                    $('#newSoundbiteBtnContainer').html(newSoundbiteBtn);
+                    $('#newChapterBtnContainer').html(newChapterBtn);
+                    
+                    var $chapterForm = 
                     $('<form class="modal fitted lazy-create-modal">' + 
                         '<div class="header">' +
-                            '<h1 class="centeralign"></h1>' +
+                            '<h1 class="chapterHeader"></h1>' +
                         '</div>' +
                         '<div class="body">' +
-                            '{{ createField|e("js") }}' +
+                            '{{ createChapter|e("js") }}' +
                         '</div>' +
                         '<div class="footer">' +
                             '<button type="button" class="btn submit save-chapter">{{ "save"|t("studio") }}</button>' +
+                        '</div>' +
+                    '</form>');
+
+                    var $soundbiteForm = 
+                    $('<form class="modal fitted lazy-create-modal">' + 
+                        '<div class="header">' +
+                            '<h1 class="soundbiteHeader"></h1>' +
+                        '</div>' +
+                        '<div class="body">' +
+                            '{{ createSoundbite|e("js") }}' +
+                        '</div>' +
+                        '<div class="footer">' +
+                            '<button type="button" class="btn submit save-soundbite">{{ "save"|t("studio") }}</button>' +
                         '</div>' +
                     '</form>');
 
@@ -51,7 +82,6 @@
                         } else {
                             $("div[data-attribute='episodeChapter'] button[data-type='chapter']").click();
                         }
-                        var assetAudio = document.getElementById("asset");
 
                         // Get hh:mm:ss format
                         seconds = Math.floor(assetAudio.currentTime);
@@ -59,20 +89,21 @@
                         date.setSeconds(seconds);
                         const hhmmss = date.toISOString().slice(11, 19);
 
+                        // start time
                         if (Number.isInteger(assetAudio.currentTime)) {
-                            secondsFixed = assetAudio.currentTime;
+                            startTimeFixed = assetAudio.currentTime;
                         } else {
-                            secondsFixed = assetAudio.currentTime.toFixed(3);
+                            startTimeFixed = assetAudio.currentTime.toFixed(3);
                         }
 
                         if (data.chapterField == 'verbb\\supertable\\fields\\SuperTableField') {
-                            $("div[data-attribute='episodeChapter'] div[data-attribute='startTime']:last input").val(secondsFixed);
+                            $("div[data-attribute='episodeChapter'] div[data-attribute='startTime']:last input").val(startTimeFixed);
                         } else {
-                            $("div[data-attribute='episodeChapter'] div[data-type='chapter'] div[data-attribute='startTime']:last input").val(secondsFixed);
+                            $("div[data-attribute='episodeChapter'] div[data-type='chapter'] div[data-attribute='startTime']:last input").val(startTimeFixed);
                         }
-                        audio.pause();
+                        assetAudio.pause();
 
-                        var modal = new Garnish.Modal($form, {
+                        var modal = new Garnish.Modal($chapterForm, {
                             onHide: function () {
                                 modal.destroy();
                                 delete modal;
@@ -80,10 +111,10 @@
                         });
 
                         setTimeout(function () {
-                            $form.find('.text:first').focus();
+                            $chapterForm.find('.text:first').focus();
                             modal.updateSizeAndPosition();
 
-                            $(".centeralign").html(hhmmss);
+                            $(".chapterHeader").html(hhmmss);
                         }, 100);
 
                         $('.save-chapter').on('click', function (ev) {
@@ -93,14 +124,106 @@
                             } else {
                                 $("div[data-attribute='episodeChapter'] div[data-type='chapter'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
                             }
+                            if (!$("#chapterHeader").val()) {
+                                $("#chapterHeader").html("{{ 'Chapter'|t('studio') }}:");
+                            }
                             $("#chapterText").append(hhmmss + '-' + chapterTitle + '</br>');
-                            audio.play();
+                            assetAudio.play();
                             modal.hide();
                         });
 
-                        $form.find('.cancel-btn').on('click', function () {
+                        $chapterForm.find('.cancel-btn').on('click', function () {
                             modal.hide();
-                            audio.play();
+                            assetAudio.play();
+                        });
+                    });
+
+                    var startSoundbite;
+                    var stopSoundbite
+                    var soundbiteModal;
+                    $(".modal").on("click", "#new-soundbite", function() {
+
+                        if ($("#new-soundbite").hasClass('start')) {
+                            $("#new-soundbite").html('{{ "Stop Soundbite"|t("studio") }}');
+                            $("#new-soundbite").addClass('stop').removeClass('start');
+                            startSoundbite = assetAudio.currentTime;
+                            assetAudio.play();
+                            if (data.soundbiteField == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='episodeSoundbite']").find(".matrixLayoutContainer, .rowLayoutContainer, .superTable-table").next('.add').activate();
+                            } else {
+                                $("div[data-attribute='episodeSoundbite'] button[data-type='soundbite']").click();
+                            }
+
+                            // start time
+                            if (Number.isInteger(startSoundbite)) {
+                                startTimeFixed = startSoundbite;
+                            } else {
+                                startTimeFixed = startSoundbite.toFixed(3);
+                            }
+
+                            if (data.soundbiteField == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='episodeSoundbite'] div[data-attribute='startTime']:last input").val(startTimeFixed);
+                            } else {
+                                $("div[data-attribute='episodeSoundbite'] div[data-type='soundbite'] div[data-attribute='startTime']:last input").val(startTimeFixed);
+                            }
+                        } else if ($("#new-soundbite").hasClass('stop')) {
+                            $("#new-soundbite").addClass('start').removeClass('stop');
+                            $("#new-soundbite").html('{{ "Start Soundbite"|t("studio") }}');
+                            stopSoundbite = assetAudio.currentTime;
+                            assetAudio.pause();
+
+                            duration = stopSoundbite - startSoundbite;
+                            // Get hh:mm:ss format
+                            seconds = Math.floor(duration);
+                            const date = new Date(null);
+                            date.setSeconds(seconds);
+                            const hhmmss = date.toISOString().slice(11, 19);
+
+                            if (Number.isInteger(duration)) {
+                                durationFixed = duration;
+                            } else {
+                                durationFixed = duration.toFixed(3);
+                            }
+
+                            soundbiteModal = new Garnish.Modal($soundbiteForm, {
+                                onHide: function () {
+                                    soundbiteModal.destroy();
+                                    delete soundbiteModal;
+                                },
+                            });
+
+                            setTimeout(function () {
+                                $soundbiteForm.find('.text:first').focus();
+                                soundbiteModal.updateSizeAndPosition();
+
+                                $(".soundbiteHeader").html("{{ 'Duration'|t('studio')}}" + ': ' + hhmmss);
+                            }, 100);
+
+                            if (data.soundbiteField == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='episodeSoundbite'] div[data-attribute='duration']:last input").val(durationFixed);
+                            } else {
+                                $("div[data-attribute='episodeSoundbite'] div[data-type='soundbite'] div[data-attribute='duration']:last input").val(durationFixed);
+                            }
+                        }
+
+                        $('.save-soundbite').on('click', function (ev) {
+                            soundbiteTitle = $('#soundbiteTitle').val();
+                            if (data.soundbiteField == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='episodeSoundbite'] div[data-attribute='soundbiteTitle']:last input").val(soundbiteTitle);
+                            } else {
+                                $("div[data-attribute='episodeSoundbite'] div[data-type='soundbite'] div[data-attribute='soundbiteTitle']:last input").val(soundbiteTitle);
+                            }
+                            if (!$("#soundbiteHeader").val()) {
+                                $("#soundbiteHeader").html("{{ 'Soundbite'|t('studio') }}:");
+                            }
+                            $("#soundbiteText").append(startSoundbite + ' - ' + stopSoundbite + ' - ' + soundbiteTitle + '</br>');
+                            assetAudio.play();
+                            soundbiteModal.hide();
+                        });
+
+                        $soundbiteForm.find('.cancel-btn').on('click', function () {
+                            soundbiteModal.hide();
+                            assetAudio.play();
                         });
                     });
                 }

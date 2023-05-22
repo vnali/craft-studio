@@ -27,8 +27,12 @@ class AudioPreview extends AssetPreviewHandler
 
         $view = Craft::$app->view;
         $view->startJsBuffer();
-        $variables['createField'] = $view->renderTemplate('studio/assets/_previews/chapter.twig');
-        $variables['createFieldJs'] = $view->clearJsBuffer(false);
+        $variables['createChapter'] = $view->renderTemplate('studio/assets/_previews/chapter.twig');
+        $variables['createChapterJs'] = $view->clearJsBuffer(false);
+
+        $view->startJsBuffer();
+        $variables['createSoundbite'] = $view->renderTemplate('studio/assets/_previews/soundbite.twig');
+        $variables['createSoundbiteJs'] = $view->clearJsBuffer(false);
 
         return Craft::$app->getView()->renderTemplate(
             'studio/assets/_previews/audio',

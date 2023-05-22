@@ -223,9 +223,11 @@ class DefaultController extends Controller
     {
         $elementType = Craft::$app->getElements()->getElementTypeById($elementId);
         $chapterField = Craft::$app->fields->getFieldByHandle('episodeChapter');
+        $soundbiteField = Craft::$app->fields->getFieldByHandle('episodeSoundbite');
         $array = [
             'elementType' => $elementType,
             'chapterField' => $chapterField ? get_class($chapterField) : null,
+            'soundbiteField' => $soundbiteField ? get_class($soundbiteField) : null,
         ];
         return $this->asJson($array);
     }
