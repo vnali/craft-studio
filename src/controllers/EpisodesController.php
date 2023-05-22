@@ -568,7 +568,7 @@ class EpisodesController extends Controller
                     $chapterArray = [];
                     if (is_null($chapter->type->handle) || $chapter->type->handle == 'chapter') {
                         // Start time is required
-                        if (!isset($chapter->startTime)) {
+                        if ($chapter->startTime === null) {
                             continue;
                         }
                         $chapterArray['startTime'] = $chapter->startTime;
@@ -609,7 +609,7 @@ class EpisodesController extends Controller
             return $jsonChapter;
         }, 0, new TagDependency(['tags' => ['studio-plugin', 'element::' . PodcastElement::class . '::*', 'element::' . EpisodeElement::class . '::*']]));
 
-        $variables['json'] = json_encode($jsonChapter);
+        $variables['json'] = json_encode($jsonChapter, JSON_UNESCAPED_UNICODE);
         Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_CP);
         return $this->renderTemplate(
             'studio/episodes/_jsonChapter',

@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Added <podcast:soundbite> support
+- Podcast chapter json file now uses JSON_UNESCAPED_UNICODE format.
+- Fixed a bug where chapter startTime was not checked properly
 
 ## 0.6.0 - 2023-05-18
 
