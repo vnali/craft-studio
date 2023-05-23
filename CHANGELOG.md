@@ -2,9 +2,10 @@
 
 ## Unreleased
 
-- Added <podcast:soundbite> support
+- Added <podcast:soundbite> support ([#5](https://github.com/vnali/craft-studio/discussions/5)).
+- Added a new tool for audio preview to make creating soundbites easier ([#5](https://github.com/vnali/craft-studio/discussions/5)).
 - Podcast chapter json file now uses JSON_UNESCAPED_UNICODE format.
-- Fixed a bug where chapter startTime was not checked properly
+- Fixed a bug where chapter startTime was not checked properly.
 
 ## 0.6.0 - 2023-05-18
 
