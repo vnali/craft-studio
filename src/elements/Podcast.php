@@ -107,6 +107,11 @@ class Podcast extends Element
     public ?bool $podcastIsNewFeedUrl = null;
 
     /**
+     * @var string|null Podcast medium
+     */
+    public ?string $medium = null;
+
+    /**
      * @inheritdoc
      */
     public function __toString(): string
@@ -860,6 +865,7 @@ class Podcast extends Element
                     'ownerEmail' => $this->ownerEmail,
                     'podcastRedirectTo' => $this->podcastRedirectTo,
                     'podcastIsNewFeedUrl' => $this->podcastIsNewFeedUrl,
+                    'medium' => $this->medium,
                 ])
                 ->execute();
         } else {
@@ -901,6 +907,7 @@ class Podcast extends Element
                         'ownerEmail' => $this->ownerEmail,
                         'podcastRedirectTo' => $this->podcastRedirectTo,
                         'podcastIsNewFeedUrl' => $this->podcastIsNewFeedUrl,
+                        'medium' => $this->medium,
                     ])
                     ->execute();
             }
@@ -963,6 +970,7 @@ class Podcast extends Element
             'podcastType' => ['label' => Craft::t('studio', 'Podcast Type')],
             'podcastIsNewFeedUrl' => ['label' => Craft::t('studio', 'New Feed URL')],
             'copyright' => ['label' => Craft::t('studio', 'Copyright')],
+            'medium' => ['label' => Craft::t('studio', 'Medium')],
         ];
         return $attributes;
     }
@@ -972,7 +980,7 @@ class Podcast extends Element
      */
     protected static function defineSearchableAttributes(): array
     {
-        return ['ownerName', 'ownerEmail', 'authorName', 'podcastType', 'copyright'];
+        return ['ownerName', 'ownerEmail', 'authorName', 'podcastType', 'copyright', 'medium'];
     }
 
     /**
@@ -1108,6 +1116,7 @@ class Podcast extends Element
         $rules[] = [['podcastFormatId'], 'number', 'integerOnly' => true];
         $rules[] = [['podcastBlock', 'podcastComplete', 'podcastExplicit', 'podcastIsNewFeedUrl'], 'safe'];
         $rules[] = [['podcastType'], 'in', 'range' => ['Episodic', 'Serial']];
+        $rules[] = [['medium'], 'in', 'range' => ['podcast', 'music', 'video', 'film', 'audiobook', 'newsletter', 'blog']];
         $rules[] = [['authorName', 'ownerName', 'copyright'], 'string', 'max' => ['255']];
         $rules[] = [['ownerEmail'], 'email'];
         $rules[] = [['podcastRedirectTo', 'podcastLink'], 'url'];

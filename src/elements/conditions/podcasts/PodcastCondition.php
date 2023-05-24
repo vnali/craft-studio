@@ -23,6 +23,7 @@ class PodcastCondition extends ElementCondition
             podcastOwnerNameConditionRule::class,
             podcastAuthorNameConditionRule::class,
             podcastCopyrightConditionRule::class,
+            PodcastMediumConditionRule::class,
         ]);
     }
 }

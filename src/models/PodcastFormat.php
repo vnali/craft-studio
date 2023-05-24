@@ -198,6 +198,7 @@ class PodcastFormat extends Model
             'podcastExplicit' => Craft::t('studio', 'Podcast Explicit'),
             'podcastType' => Craft::t('studio', 'Podcast Type'),
             'copyright' => Craft::t('studio', 'Copyright'),
+            'medium' => Craft::t('studio', 'Podcast Medium'),
             'podcastRedirectTo' => Craft::t('studio', 'Redirect to'),
             'podcastIsNewFeedUrl' => Craft::t('studio', 'Is New Feed URL'),
         ];

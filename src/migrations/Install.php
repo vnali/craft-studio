@@ -129,12 +129,13 @@ class Install extends Migration
                 'podcastRedirectTo' => $this->string(1000),
                 'podcastIsNewFeedUrl' => $this->boolean(),
                 'copyright' => $this->string(1000),
+                'medium' => $this->string(50),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid(),
             ]);
 
-            $this->createIndex(null, '{{%studio_i18n}}', ['publishOnRSS'], false);
+            $this->createIndex(null, '{{%studio_i18n}}', ['publishOnRSS', 'medium'], false);
 
             $this->addForeignKey(null, '{{%studio_i18n}}', ['elementId'], '{{%elements}}', ['id'], 'CASCADE', null);
             $this->addForeignKey(null, '{{%studio_i18n}}', ['siteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');

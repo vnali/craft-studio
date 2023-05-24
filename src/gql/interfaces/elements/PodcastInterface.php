@@ -112,6 +112,11 @@ class PodcastInterface extends Element
                 'type' => Type::string(),
                 'description' => 'Redirect to',
             ],
+            'medium' => [
+                'name' => 'medium',
+                'type' => Type::string(),
+                'description' => 'Podcast Medium',
+            ],
         ]), self::getName());
     }
 }

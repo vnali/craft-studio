@@ -25,6 +25,7 @@ class PodcastQuery extends ElementQuery
     public ?bool $completed = null;
     public ?bool $explicit = null;
     public ?bool $podcastIsNewFeedUrl = null;
+    public string|array|null $medium = null;
 
     public function blocked(?bool $value = true): self
     {
@@ -110,6 +111,12 @@ class PodcastQuery extends ElementQuery
         return $this;
     }
 
+    public function medium($value)
+    {
+        $this->medium = $value;
+        return $this;
+    }
+
     protected function beforePrepare(): bool
     {
         $this->joinElementTable('studio_podcast');
@@ -130,6 +137,7 @@ class PodcastQuery extends ElementQuery
             'studio_i18n.podcastType',
             'studio_i18n.copyright',
             'studio_podcast.uploaderId',
+            'studio_i18n.medium',
         ]);
 
         $this->query->innerJoin(['studio_i18n' => '{{%studio_i18n}}'], '[[studio_i18n.elementId]] = [[studio_podcast.id]] and [[studio_i18n.siteId]]=subquery.siteId');
@@ -185,6 +193,10 @@ class PodcastQuery extends ElementQuery
 
         if ($this->copyright) {
             $this->subQuery->andWhere(Db::parseParam('studio_i18n.copyright', $this->copyright));
+        }
+
+        if ($this->medium) {
+            $this->subQuery->andWhere(Db::parseParam('studio_i18n.medium', $this->medium));
         }
 
         $this->subQuery->addSelect(['elements_sites.siteId']);

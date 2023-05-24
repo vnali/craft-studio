@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- Added <podcast:medium> support.
+
 ## 0.7.0 - 2023-05-23
 
 - Added <podcast:soundbite> support ([#5](https://github.com/vnali/craft-studio/discussions/5)).

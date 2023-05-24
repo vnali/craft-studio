@@ -49,6 +49,7 @@ use vnali\studio\fields\GUIDField;
 use vnali\studio\fields\NativeLightswitchField;
 use vnali\studio\fields\NumberField;
 use vnali\studio\fields\PodcastField;
+use vnali\studio\fields\PodcastMediumField;
 use vnali\studio\fields\PodcastTypeField;
 use vnali\studio\gql\directives\SecToTime;
 use vnali\studio\gql\interfaces\elements\EpisodeInterface;
@@ -86,7 +87,7 @@ class Studio extends Plugin
      */
     public static Studio $plugin;
 
-    public string $schemaVersion = '0.4.0';
+    public string $schemaVersion = '0.8.0';
 
     /**
      * @inheritdoc
@@ -323,6 +324,14 @@ class Studio extends Plugin
                         'mandatory' => false,
                         'label' => Craft::t('studio', 'Is New Feed Url'),
                         'translatable' => $podcastNativeFieldSettings['podcastIsNewFeedUrl']['translatable'] ?? false,
+                    ];
+                    $event->fields[] = [
+                        'class' => PodcastMediumField::class,
+                        'attribute' => 'medium',
+                        'mandatory' => false,
+                        'requirable' => true,
+                        'label' => Craft::t('studio', 'Podcast Medium'),
+                        'translatable' => $podcastNativeFieldSettings['medium']['translatable'] ?? false,
                     ];
                     break;
             }

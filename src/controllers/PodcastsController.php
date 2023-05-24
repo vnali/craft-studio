@@ -429,6 +429,12 @@ class PodcastsController extends Controller
                 $xmlChannel->appendChild($xmlPodcastType);
             }
 
+            // Podcast medium
+            if ($podcast->medium) {
+                $xmlPodcastMedium = $xml->createElement("podcast:medium", $podcast->medium);
+                $xmlChannel->appendChild($xmlPodcastMedium);
+            }
+
             $fieldHandle = null;
             $fieldContainer = null;
 
