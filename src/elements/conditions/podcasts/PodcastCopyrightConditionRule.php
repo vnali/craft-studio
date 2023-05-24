@@ -14,14 +14,14 @@ use craft\elements\db\ElementQueryInterface;
 use vnali\studio\elements\db\PodcastQuery;
 use vnali\studio\elements\Podcast;
 
-class podcastAuthorNameConditionRule extends BaseTextConditionRule implements ElementConditionRuleInterface
+class PodcastCopyrightConditionRule extends BaseTextConditionRule implements ElementConditionRuleInterface
 {
     /**
      * @inheritdoc
      */
     public function getLabel(): string
     {
-        return Craft::t('studio', 'Podcast Author Name');
+        return Craft::t('studio', 'Podcast Copyright');
     }
 
     /**
@@ -29,7 +29,7 @@ class podcastAuthorNameConditionRule extends BaseTextConditionRule implements El
      */
     public function getExclusiveQueryParams(): array
     {
-        return ['authorName'];
+        return ['copyright'];
     }
 
     /**
@@ -38,7 +38,7 @@ class podcastAuthorNameConditionRule extends BaseTextConditionRule implements El
     public function modifyQuery(ElementQueryInterface $query): void
     {
         /** @var PodcastQuery $query */
-        $query->authorName($this->paramValue());
+        $query->copyright($this->paramValue());
     }
 
     /**
@@ -47,6 +47,6 @@ class podcastAuthorNameConditionRule extends BaseTextConditionRule implements El
     public function matchElement(ElementInterface $element): bool
     {
         /** @var Podcast $element */
-        return $this->matchValue($element->authorName);
+        return $this->matchValue($element->copyright);
     }
 }

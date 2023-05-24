@@ -19,10 +19,10 @@ class PodcastCondition extends ElementCondition
             PodcastIsExplicitConditionRule::class,
             PodcastIsCompleteConditionRule::class,
             PodcastIsNewFeedUrlRule::class,
-            podcastOwnerEmailConditionRule::class,
-            podcastOwnerNameConditionRule::class,
-            podcastAuthorNameConditionRule::class,
-            podcastCopyrightConditionRule::class,
+            PodcastOwnerEmailConditionRule::class,
+            PodcastOwnerNameConditionRule::class,
+            PodcastAuthorNameConditionRule::class,
+            PodcastCopyrightConditionRule::class,
             PodcastMediumConditionRule::class,
         ]);
     }
