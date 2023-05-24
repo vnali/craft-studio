@@ -87,6 +87,11 @@ class PodcastInterface extends Element
                 'type' => Type::boolean(),
                 'description' => 'Podcast block',
             ],
+            'locked' => [
+                'name' => 'locked',
+                'type' => Type::boolean(),
+                'description' => 'Podcast Locked',
+            ],
             'podcastExplicit' => [
                 'name' => 'podcastExplicit',
                 'type' => Type::boolean(),

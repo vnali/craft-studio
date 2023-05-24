@@ -77,6 +77,11 @@ class Podcast extends Element
     public ?bool $podcastBlock = null;
 
     /**
+     * @var bool|null Podcast Locked
+     */
+    public ?bool $locked = null;
+
+    /**
      * @var bool|null Podcast is complete
      */
     public ?bool $podcastComplete = null;
@@ -272,6 +277,7 @@ class Podcast extends Element
             case 'uploader':
                 $uploader = $this->getUploader();
                 return $uploader ? Cp::elementHtml($uploader) : '';
+            case 'locked':
             case 'podcastBlock':
             case 'podcastComplete':
             case 'podcastExplicit':
@@ -827,7 +833,7 @@ class Podcast extends Element
             $userId = null;
         }
 
-        $lightSwitchFields = ['podcastBlock', 'podcastComplete', 'podcastExplicit'];
+        $lightSwitchFields = ['podcastBlock', 'podcastComplete', 'podcastExplicit', 'locked'];
         $podcastFieldLayout = $this->getPodcastFormat()->getFieldLayout();
         $tabs = $podcastFieldLayout->getTabs();
         foreach ($tabs as $key => $tab) {
@@ -858,6 +864,7 @@ class Podcast extends Element
                     'podcastBlock' => $this->podcastBlock,
                     'podcastComplete' => $this->podcastComplete,
                     'podcastExplicit' => $this->podcastExplicit,
+                    'locked' => $this->locked,
                     'podcastLink' => $this->podcastLink,
                     'podcastType' => $this->podcastType,
                     'authorName' => $this->authorName,
@@ -901,6 +908,7 @@ class Podcast extends Element
                         'podcastLink' => $this->podcastLink,
                         'podcastComplete' => $this->podcastComplete,
                         'podcastExplicit' => $this->podcastExplicit,
+                        'locked' => $this->locked,
                         'podcastType' => $this->podcastType,
                         'authorName' => $this->authorName,
                         'ownerName' => $this->ownerName,
@@ -967,6 +975,7 @@ class Podcast extends Element
             'podcastLink' => ['label' => Craft::t('studio', 'Podcast Link')],
             'podcastComplete' => ['label' => Craft::t('studio', 'Podcast Complete')],
             'podcastExplicit' => ['label' => Craft::t('studio', 'Podcast Explicit')],
+            'locked' => ['label' => Craft::t('studio', 'Podcast Lock')],
             'podcastType' => ['label' => Craft::t('studio', 'Podcast Type')],
             'podcastIsNewFeedUrl' => ['label' => Craft::t('studio', 'New Feed URL')],
             'copyright' => ['label' => Craft::t('studio', 'Copyright')],
@@ -1114,7 +1123,7 @@ class Podcast extends Element
         }
 
         $rules[] = [['podcastFormatId'], 'number', 'integerOnly' => true];
-        $rules[] = [['podcastBlock', 'podcastComplete', 'podcastExplicit', 'podcastIsNewFeedUrl'], 'safe'];
+        $rules[] = [['podcastBlock', 'podcastComplete', 'podcastExplicit', 'locked', 'podcastIsNewFeedUrl'], 'safe'];
         $rules[] = [['podcastType'], 'in', 'range' => ['Episodic', 'Serial']];
         $rules[] = [['medium'], 'in', 'range' => ['podcast', 'music', 'video', 'film', 'audiobook', 'newsletter', 'blog']];
         $rules[] = [['authorName', 'ownerName', 'copyright'], 'string', 'max' => ['255']];

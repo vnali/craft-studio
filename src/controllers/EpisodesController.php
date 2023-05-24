@@ -249,6 +249,22 @@ class EpisodesController extends Controller
         }
 
         $crawler = new Crawler($content);
+
+        // Prevent import from a podcast when the podcast is locked
+        if ($crawler->filter('podcast|locked')->count()) {
+            $locked = $crawler->filter('podcast|locked')->text();
+            if (strtolower($locked) == 'yes') {
+                Craft::$app->getSession()->setError(Craft::t('studio', 'This podcast is locked.'));
+                /** @var UrlManager $urlManager */
+                $urlManager = Craft::$app->getUrlManager();
+                $urlManager->setRouteParams([
+                    'settings' => $settings,
+                ]);
+    
+                return null;
+            }
+        }
+
         $total = $crawler->filter('rss channel item')->count();
         if ($crawler->filter('rss channel item')->count() == 0) {
             Craft::$app->getSession()->setError(Craft::t('studio', 'No item found'));

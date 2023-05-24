@@ -22,6 +22,7 @@ class PodcastQuery extends ElementQuery
     public mixed $siteId = null;
     public mixed $id = null;
     public ?bool $blocked = null;
+    public ?bool $locked = null;
     public ?bool $completed = null;
     public ?bool $explicit = null;
     public ?bool $podcastIsNewFeedUrl = null;
@@ -30,6 +31,12 @@ class PodcastQuery extends ElementQuery
     public function blocked(?bool $value = true): self
     {
         $this->blocked = $value;
+        return $this;
+    }
+
+    public function locked(?bool $value = true): self
+    {
+        $this->locked = $value;
         return $this;
     }
 
@@ -138,6 +145,7 @@ class PodcastQuery extends ElementQuery
             'studio_i18n.copyright',
             'studio_podcast.uploaderId',
             'studio_i18n.medium',
+            'studio_i18n.locked',
         ]);
 
         $this->query->innerJoin(['studio_i18n' => '{{%studio_i18n}}'], '[[studio_i18n.elementId]] = [[studio_podcast.id]] and [[studio_i18n.siteId]]=subquery.siteId');
@@ -165,6 +173,10 @@ class PodcastQuery extends ElementQuery
 
         if ($this->blocked !== null) {
             $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.podcastBlock', $this->blocked, false));
+        }
+
+        if ($this->locked !== null) {
+            $this->subQuery->andWhere(Db::parseBooleanParam('studio_i18n.locked', $this->locked, false));
         }
 
         if ($this->completed !== null) {

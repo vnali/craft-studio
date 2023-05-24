@@ -417,6 +417,20 @@ class PodcastsController extends Controller
                 $xmlChannel->appendChild($xmlPodcastBlock);
             }
 
+            // Podcast locked
+            if (isset($podcast->locked)) {
+                if ($podcast->locked == '1') {
+                    $podcastLocked = 'yes';
+                } else {
+                    $podcastLocked = 'no';
+                }
+                $xmlPodcastLocked = $xml->createElement("podcast:locked", $podcastLocked);
+                if ($podcast->ownerEmail) {
+                    $xmlPodcastLocked->setAttribute("owner", $podcast->ownerEmail);
+                }
+                $xmlChannel->appendChild($xmlPodcastLocked);
+            }
+
             // Podcast Complete
             if ($podcast->podcastComplete) {
                 $xmlPodcastComplete = $xml->createElement("itunes:complete", 'yes');

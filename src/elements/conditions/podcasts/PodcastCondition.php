@@ -24,6 +24,7 @@ class PodcastCondition extends ElementCondition
             PodcastAuthorNameConditionRule::class,
             PodcastCopyrightConditionRule::class,
             PodcastMediumConditionRule::class,
+            PodcastIsLockedConditionRule::class,
         ]);
     }
 }

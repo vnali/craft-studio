@@ -193,6 +193,7 @@ class PodcastFormat extends Model
             'ownerEmail' => Craft::t('studio', 'Owner Email'),
             'authorName' => Craft::t('studio', 'Author Name'),
             'podcastBlock' => Craft::t('studio', 'Podcast Block'),
+            'locked' => Craft::t('studio', 'Podcast Lock'),
             'podcastLink' => Craft::t('studio', 'Podcast Link'),
             'podcastComplete' => Craft::t('studio', 'Podcast Complete'),
             'podcastExplicit' => Craft::t('studio', 'Podcast Explicit'),

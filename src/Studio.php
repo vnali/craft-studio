@@ -275,6 +275,13 @@ class Studio extends Plugin
                     ];
                     $event->fields[] = [
                         'class' => NativeLightswitchField::class,
+                        'attribute' => 'locked',
+                        'mandatory' => false,
+                        'label' => Craft::t('studio', 'Podcast Locked'),
+                        'translatable' => $podcastNativeFieldSettings['locked']['translatable'] ?? false,
+                    ];
+                    $event->fields[] = [
+                        'class' => NativeLightswitchField::class,
                         'attribute' => 'podcastComplete',
                         'mandatory' => false,
                         'label' => Craft::t('studio', 'Podcast Complete'),
