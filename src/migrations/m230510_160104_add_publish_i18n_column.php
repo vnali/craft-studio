@@ -17,7 +17,6 @@ class m230510_160104_add_publish_i18n_column extends Migration
     {
         $this->addColumn('{{%studio_i18n}}', 'publishOnRSS', $this->integer()->after('episodeExplicit'));
 
-        // Create podcastId,siteId unique
         $this->createIndex(null, '{{%studio_i18n}}', ['publishOnRSS'], false);
         Craft::$app->db->schema->refresh();
 
