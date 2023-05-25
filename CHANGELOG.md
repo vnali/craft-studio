@@ -5,6 +5,7 @@
 - Added <podcast:medium> support.
 - Added <podcast:locked> support.
 - Added <podcast:funding> support.
+- Added <podcast:season> support.
 
 ## 0.7.0 - 2023-05-23
 

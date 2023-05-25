@@ -547,6 +547,13 @@ class PodcastsController extends Controller
                 if ($episode->episodeSeason) {
                     $episodeSeason = $xml->createElement("itunes:season", (string)$episode->episodeSeason);
                     $xmlItem->appendChild($episodeSeason);
+
+                    // Podcast season
+                    $podcastSeason = $xml->createElement("podcast:season", (string)$episode->episodeSeason);
+                    if ($episode->episodeSeasonName) {
+                        $podcastSeason->setAttribute("name",  htmlspecialchars($episode->episodeSeasonName, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    }
+                    $xmlItem->appendChild($podcastSeason);
                 }
 
                 // Episode number

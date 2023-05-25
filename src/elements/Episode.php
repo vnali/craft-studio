@@ -77,6 +77,11 @@ class Episode extends Element
     public ?int $episodeSeason = null;
 
     /**
+     * @var string|null Episode season name
+     */
+    public ?string $episodeSeasonName = null;
+
+    /**
      * @var string|null Episode type
      */
     public ?string $episodeType = null;
@@ -828,6 +833,7 @@ class Episode extends Element
         $rules[] = [['episodeSeason', 'episodeNumber'], 'number', 'integerOnly' => true];
         $rules[] = [['podcastId'], 'number', 'integerOnly' => true];
         $rules[] = [['episodeGUID'], 'string', 'max' => 1000];
+        $rules[] = [['episodeSeasonName'], 'string', 'max' => 128];
 
         return $rules;
     }
@@ -975,6 +981,7 @@ class Episode extends Element
                     'episodeGUID' => $this->episodeGUID,
                     'episodeNumber' => $this->episodeNumber,
                     'episodeSeason' => $this->episodeSeason,
+                    'episodeSeasonName' => $this->episodeSeasonName,
                     'episodeType' => $this->episodeType,
                     'publishOnRSS' => $this->publishOnRSS,
                 ])
@@ -1017,6 +1024,7 @@ class Episode extends Element
                         'episodeGUID' => $this->episodeGUID,
                         'episodeNumber' => $this->episodeNumber,
                         'episodeSeason' => $this->episodeSeason,
+                        'episodeSeasonName' => $this->episodeSeasonName,
                         'episodeType' => $this->episodeType,
                         'publishOnRSS' => $this->publishOnRSS,
                     ])
@@ -1108,6 +1116,7 @@ class Episode extends Element
             'episodeBlock' => ['label' => Craft::t('studio', 'Episode Block')],
             'episodeExplicit' => ['label' => Craft::t('studio', 'Episode Explicit')],
             'episodeSeason' => ['label' => Craft::t('studio', 'Episode Season')],
+            'episodeSeasonName' => ['label' => Craft::t('studio', 'Episode Season name')],
             'episodeNumber' => ['label' => Craft::t('studio', 'Episode Number')],
             'episodeType' => ['label' => Craft::t('studio', 'Episode Type')],
             'episodeGUID' => ['label' => Craft::t('studio', 'GUID')],
@@ -1122,7 +1131,7 @@ class Episode extends Element
      */
     protected static function defineSearchableAttributes(): array
     {
-        return ['duration', 'episodeSeason', 'episodeNumber', 'episodeType'];
+        return ['duration', 'episodeSeason', 'episodeSeasonName', 'episodeNumber', 'episodeType'];
     }
 
     protected static function defineFieldLayouts(string $source): array

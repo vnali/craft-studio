@@ -13,6 +13,7 @@ class EpisodeQuery extends ElementQuery
     public $uploaderId;
     public $podcastId;
     public $episodeSeason;
+    public $episodeSeasonName;
     public $episodeNumber;
     public $episodeType;
     public $duration;
@@ -64,6 +65,12 @@ class EpisodeQuery extends ElementQuery
         return $this;
     }
 
+    public function seasonName($value)
+    {
+        $this->episodeSeasonName = $value;
+        return $this;
+    }
+
     public function episodeNumber($value)
     {
         $this->episodeNumber = $value;
@@ -96,6 +103,7 @@ class EpisodeQuery extends ElementQuery
             'studio_i18n.episodeGUID',
             'studio_i18n.episodeNumber',
             'studio_i18n.episodeSeason',
+            'studio_i18n.episodeSeasonName',
             'studio_i18n.episodeType',
             'studio_i18n.publishOnRSS',
         ]);
@@ -139,6 +147,10 @@ class EpisodeQuery extends ElementQuery
 
         if ($this->episodeSeason) {
             $this->subQuery->andWhere(Db::parseParam('studio_i18n.episodeSeason', $this->episodeSeason));
+        }
+
+        if ($this->episodeSeasonName) {
+            $this->subQuery->andWhere(Db::parseParam('studio_i18n.episodeSeasonName', $this->episodeSeasonName));
         }
 
         if ($this->episodeNumber) {
