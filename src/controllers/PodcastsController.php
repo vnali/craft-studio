@@ -252,6 +252,7 @@ class PodcastsController extends Controller
         $tz = Craft::$app->getTimeZone();
         $variables = [];
         $rssCacheKey = 'studio-plugin-' . $siteId . '-' . $podcast->id . '-' . $tz;
+
         $variables = $cache->getOrSet($rssCacheKey, function() use ($podcast, $site, $tz, $variables) {
             $podcastFormat = $podcast->getPodcastFormat();
             $podcastMapping = json_decode($podcastFormat->mapping, true);
@@ -362,6 +363,40 @@ class PodcastsController extends Controller
                         $xmlPodcastSubCategory = $xml->createElement("itunes:category");
                         $xmlPodcastSubCategory->setAttribute("text", htmlspecialchars($subCategory->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                         $xmlPodcastCategory->appendChild($xmlPodcastSubCategory);
+                    }
+                }
+            }
+
+            // Podcast Funding
+            $fundingField = Craft::$app->fields->getFieldByHandle('podcastFunding');
+            if (isset($podcast->podcastFunding)) {
+                if (get_class($fundingField) == 'craft\fields\Table') {
+                    if (count($podcast->podcastFunding)) {
+                        foreach ($podcast->podcastFunding as $row) {
+                            if ($row['fundingUrl']) {
+                                if ($row['fundingTitle']) {
+                                    $xmlFunding = $xml->createElement("podcast:funding", $row['fundingTitle']);
+                                    $xmlFunding->setAttribute("url", $row['fundingUrl']);
+                                    $xmlChannel->appendChild($xmlFunding);
+                                }
+                            }
+                        }
+                    }
+                } elseif (get_class($fundingField) == Matrix::class || get_class($fundingField) == SuperTableField::class) {
+                    $fundingBlocks = [];
+                    if (get_class($fundingField) == Matrix::class) {
+                        $blockQuery = \craft\elements\MatrixBlock::find();
+                        $fundingBlocks = $blockQuery->fieldId($fundingField->id)->owner($podcast)->type('funding')->all();
+                    } elseif (get_class($fundingField) == SuperTableField::class) {
+                        $blockQuery = SuperTableBlockElement::find();
+                        $fundingBlocks = $blockQuery->fieldId($fundingField->id)->owner($podcast)->all();
+                    }
+                    foreach ($fundingBlocks as $fundingBlock) {
+                        if (isset($fundingBlock->fundingUrl) && $fundingBlock->getFieldValue('fundingUrl') !== null) {
+                            $xmlFunding = $xml->createElement("podcast:funding", isset($fundingBlock->fundingTitle) ? $fundingBlock->getFieldValue('fundingTitle') : '');
+                            $xmlFunding->setAttribute("url", $fundingBlock->getFieldValue('fundingUrl'));
+                            $xmlChannel->appendChild($xmlFunding);
+                        }
                     }
                 }
             }
