@@ -136,7 +136,9 @@ class Install extends Migration
                 'uid' => $this->uid(),
             ]);
 
-            $this->createIndex(null, '{{%studio_i18n}}', ['publishOnRSS', 'medium', 'locked'], false);
+            $this->createIndex(null, '{{%studio_i18n}}', ['publishOnRSS'], false);
+            $this->createIndex(null, '{{%studio_i18n}}', ['medium'], false);
+            $this->createIndex(null, '{{%studio_i18n}}', ['locked'], false);
 
             $this->addForeignKey(null, '{{%studio_i18n}}', ['elementId'], '{{%elements}}', ['id'], 'CASCADE', null);
             $this->addForeignKey(null, '{{%studio_i18n}}', ['siteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
