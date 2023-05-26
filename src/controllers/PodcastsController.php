@@ -9,6 +9,7 @@ namespace vnali\studio\controllers;
 use Craft;
 use craft\base\Element;
 use craft\db\Table;
+use craft\elements\db\AssetQuery;
 use craft\fields\Categories;
 use craft\fields\Entries;
 use craft\fields\Matrix;
@@ -252,7 +253,6 @@ class PodcastsController extends Controller
         $tz = Craft::$app->getTimeZone();
         $variables = [];
         $rssCacheKey = 'studio-plugin-' . $siteId . '-' . $podcast->id . '-' . $tz;
-
         $variables = $cache->getOrSet($rssCacheKey, function() use ($podcast, $site, $tz, $variables) {
             $podcastFormat = $podcast->getPodcastFormat();
             $podcastMapping = json_decode($podcastFormat->mapping, true);
@@ -397,6 +397,56 @@ class PodcastsController extends Controller
                             $xmlFunding->setAttribute("url", $fundingBlock->getFieldValue('fundingUrl'));
                             $xmlChannel->appendChild($xmlFunding);
                         }
+                    }
+                }
+            }
+
+            // Podcast License
+            $licenseField = Craft::$app->fields->getFieldByHandle('podcastLicense');
+            if ($licenseField) {
+                if (get_class($licenseField) == 'craft\fields\PlainText') {
+                    if (isset($podcast->podcastLicense) && $podcast->getFieldValue('podcastLicense')) {
+                        $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($podcast->podcastLicense, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlChannel->appendChild($xmlLicense);
+                    }
+                } elseif (get_class($licenseField) == 'craft\fields\Table') {
+                    if (isset($podcast->podcastLicense) && $podcast->podcastLicense) {
+                        foreach ($podcast->podcastLicense as $row) {
+                            if (isset($row['licenseTitle']) && $row['licenseTitle']) {
+                                $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($row['licenseTitle'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($row['licenseUrl']) && $row['licenseUrl']) {
+                                    $xmlLicense->setAttribute("url", htmlspecialchars($row['licenseUrl'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                $xmlChannel->appendChild($xmlLicense);
+                            }
+                            break;
+                        }
+                    }
+                } elseif (get_class($licenseField) == Matrix::class || get_class($licenseField) == SuperTableField::class) {
+                    $licenseBlocks = [];
+                    if (get_class($licenseField) == Matrix::class) {
+                        $blockQuery = \craft\elements\MatrixBlock::find();
+                        $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($podcast)->type('license')->all();
+                    } elseif (get_class($licenseField) == SuperTableField::class) {
+                        $blockQuery = SuperTableBlockElement::find();
+                        $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($podcast)->all();
+                    }
+                    foreach ($licenseBlocks as $licenseBlock) {
+                        if (isset($licenseBlock->licenseTitle) && $licenseBlock->licenseTitle) {
+                            $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($licenseBlock->licenseTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            if (isset($licenseBlock->licenseUrl) && $licenseBlock->licenseUrl) {
+                                if (is_object($licenseBlock->licenseUrl) && get_class($licenseBlock->licenseUrl) == AssetQuery::class) {
+                                    $licenseUrl = $licenseBlock->licenseUrl->one();
+                                    if ($licenseUrl) {
+                                        $xmlLicense->setAttribute("url",  htmlspecialchars($licenseUrl->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                } elseif (!is_object($licenseBlock->licenseUrl)) {
+                                    $xmlLicense->setAttribute("url",  htmlspecialchars($licenseBlock->licenseUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                            }
+                            $xmlChannel->appendChild($xmlLicense);
+                        }
+                        break;
                     }
                 }
             }
@@ -723,6 +773,56 @@ class PodcastsController extends Controller
                         $xmlChapter->setAttribute("url", htmlspecialchars($chapterUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                         $xmlChapter->setAttribute("type", "application/json+chapters");
                         $xmlItem->appendChild($xmlChapter);
+                    }
+                }
+
+                // Episode License
+                $licenseField = Craft::$app->fields->getFieldByHandle('episodeLicense');
+                if ($licenseField) {
+                    if (get_class($licenseField) == 'craft\fields\PlainText') {
+                        if (isset($episode->episodeLicense) && $episode->episodeLicense) {
+                            $xmlLicense = $xml->createElement("podcast:license", $episode->episodeLicense);
+                            $xmlItem->appendChild($xmlLicense);
+                        }
+                    } elseif (get_class($licenseField) == 'craft\fields\Table') {
+                        if (isset($episode->episodeLicense) && $episode->episodeLicense) {
+                            foreach ($episode->episodeLicense as $row) {
+                                if (isset($row['licenseTitle']) && $row['licenseTitle']) {
+                                    $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($row['licenseTitle'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($row['licenseUrl']) && $row['licenseUrl']) {
+                                        $xmlLicense->setAttribute("url", htmlspecialchars($row['licenseUrl'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    $xmlItem->appendChild($xmlLicense);
+                                }
+                                break;
+                            }
+                        }
+                    } elseif (get_class($licenseField) == Matrix::class || get_class($licenseField) == SuperTableField::class) {
+                        $licenseBlocks = [];
+                        if (get_class($licenseField) == Matrix::class) {
+                            $blockQuery = \craft\elements\MatrixBlock::find();
+                            $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($episode)->type('license')->all();
+                        } elseif (get_class($licenseField) == SuperTableField::class) {
+                            $blockQuery = SuperTableBlockElement::find();
+                            $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($episode)->all();
+                        }
+                        foreach ($licenseBlocks as $licenseBlock) {
+                            if (isset($licenseBlock->licenseTitle) && $licenseBlock->licenseTitle) {
+                                $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($licenseBlock->licenseTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($licenseBlock->licenseUrl) && $licenseBlock->licenseUrl) {
+                                    if (is_object($licenseBlock->licenseUrl) && get_class($licenseBlock->licenseUrl) == AssetQuery::class) {
+                                        $licenseUrl = $licenseBlock->licenseUrl->one();
+                                        if ($licenseUrl) {
+                                            $xmlLicense->setAttribute("url",  htmlspecialchars($licenseUrl->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                    } elseif (!is_object($licenseBlock->licenseUrl)) {
+                                        $xmlLicense->setAttribute("url",  htmlspecialchars($licenseBlock->licenseUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                }
+                                $xmlItem->appendChild($xmlLicense);
+                            }
+                            break;
+                        }
                     }
                 }
 
