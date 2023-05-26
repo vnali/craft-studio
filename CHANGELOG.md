@@ -7,6 +7,7 @@
 - Added <podcast:funding> support.
 - Added <podcast:season> support.
 - Added <podcast:license> support.
+- Fixed a bug where matching elements by episode number and podcast new feed URL were checked incorrectly.
 
 ## 0.7.0 - 2023-05-23
 

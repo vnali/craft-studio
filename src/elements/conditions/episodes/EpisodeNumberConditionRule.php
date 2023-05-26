@@ -48,6 +48,6 @@ class EpisodeNumberConditionRule extends BaseNumberConditionRule implements Elem
     public function matchElement(ElementInterface $element): bool
     {
         /** @var Episode $element */
-        return $this->matchValue($element->id);
+        return $this->matchValue($element->episodeNumber);
     }
 }
