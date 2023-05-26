@@ -13,7 +13,10 @@ use craft\elements\db\AssetQuery;
 use craft\fields\Categories;
 use craft\fields\Entries;
 use craft\fields\Matrix;
+use craft\fields\PlainText;
+use craft\fields\Table as TableField;
 use craft\fields\Tags;
+use craft\fields\Url;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
@@ -369,16 +372,20 @@ class PodcastsController extends Controller
 
             // Podcast Funding
             $fundingField = Craft::$app->fields->getFieldByHandle('podcastFunding');
-            if (isset($podcast->podcastFunding)) {
-                if (get_class($fundingField) == 'craft\fields\Table') {
-                    if (count($podcast->podcastFunding)) {
+            if ($fundingField) {
+                if (get_class($fundingField) == PlainText::class || get_class($fundingField) == Url::class) {
+                    if (isset($podcast->podcastFunding) && $podcast->getFieldValue('podcastFunding')) {
+                        $xmlFunding = $xml->createElement("podcast:funding");
+                        $xmlFunding->setAttribute("url", htmlspecialchars($podcast->podcastFunding, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlChannel->appendChild($xmlFunding);
+                    }
+                } elseif (get_class($fundingField) == TableField::class) {
+                    if (isset($podcast->podcastFunding) && $podcast->podcastFunding) {
                         foreach ($podcast->podcastFunding as $row) {
-                            if ($row['fundingUrl']) {
-                                if ($row['fundingTitle']) {
-                                    $xmlFunding = $xml->createElement("podcast:funding", $row['fundingTitle']);
-                                    $xmlFunding->setAttribute("url", $row['fundingUrl']);
-                                    $xmlChannel->appendChild($xmlFunding);
-                                }
+                            if (isset($row['fundingUrl']) && $row['fundingUrl']) {
+                                $xmlFunding = $xml->createElement("podcast:funding", (isset($row['fundingTitle']) && $row['fundingTitle']) ? $row['fundingTitle'] : '');
+                                $xmlFunding->setAttribute("url", $row['fundingUrl']);
+                                $xmlChannel->appendChild($xmlFunding);
                             }
                         }
                     }
@@ -392,9 +399,9 @@ class PodcastsController extends Controller
                         $fundingBlocks = $blockQuery->fieldId($fundingField->id)->owner($podcast)->all();
                     }
                     foreach ($fundingBlocks as $fundingBlock) {
-                        if (isset($fundingBlock->fundingUrl) && $fundingBlock->getFieldValue('fundingUrl') !== null) {
-                            $xmlFunding = $xml->createElement("podcast:funding", isset($fundingBlock->fundingTitle) ? $fundingBlock->getFieldValue('fundingTitle') : '');
-                            $xmlFunding->setAttribute("url", $fundingBlock->getFieldValue('fundingUrl'));
+                        if (isset($fundingBlock->fundingUrl) && $fundingBlock->fundingUrl) {
+                            $xmlFunding = $xml->createElement("podcast:funding", (isset($fundingBlock->fundingTitle) && $fundingBlock->fundingTitle) ? $fundingBlock->fundingTitle : '');
+                            $xmlFunding->setAttribute("url", $fundingBlock->fundingUrl);
                             $xmlChannel->appendChild($xmlFunding);
                         }
                     }
@@ -404,12 +411,12 @@ class PodcastsController extends Controller
             // Podcast License
             $licenseField = Craft::$app->fields->getFieldByHandle('podcastLicense');
             if ($licenseField) {
-                if (get_class($licenseField) == 'craft\fields\PlainText') {
+                if (get_class($licenseField) == PlainText::class) {
                     if (isset($podcast->podcastLicense) && $podcast->getFieldValue('podcastLicense')) {
                         $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($podcast->podcastLicense, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                         $xmlChannel->appendChild($xmlLicense);
                     }
-                } elseif (get_class($licenseField) == 'craft\fields\Table') {
+                } elseif (get_class($licenseField) == TableField::class) {
                     if (isset($podcast->podcastLicense) && $podcast->podcastLicense) {
                         foreach ($podcast->podcastLicense as $row) {
                             if (isset($row['licenseTitle']) && $row['licenseTitle']) {
@@ -779,12 +786,12 @@ class PodcastsController extends Controller
                 // Episode License
                 $licenseField = Craft::$app->fields->getFieldByHandle('episodeLicense');
                 if ($licenseField) {
-                    if (get_class($licenseField) == 'craft\fields\PlainText') {
+                    if (get_class($licenseField) == PlainText::class) {
                         if (isset($episode->episodeLicense) && $episode->episodeLicense) {
                             $xmlLicense = $xml->createElement("podcast:license", $episode->episodeLicense);
                             $xmlItem->appendChild($xmlLicense);
                         }
-                    } elseif (get_class($licenseField) == 'craft\fields\Table') {
+                    } elseif (get_class($licenseField) == TableField::class) {
                         if (isset($episode->episodeLicense) && $episode->episodeLicense) {
                             foreach ($episode->episodeLicense as $row) {
                                 if (isset($row['licenseTitle']) && $row['licenseTitle']) {
