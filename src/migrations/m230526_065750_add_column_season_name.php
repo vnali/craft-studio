@@ -6,16 +6,16 @@ use Craft;
 use craft\db\Migration;
 
 /**
- * m230525_072305_add_column_season_name migration.
+ * m230526_065750_add_column_season_name migration.
  */
-class m230525_072305_add_column_season_name extends Migration
+class m230526_065750_add_column_season_name extends Migration
 {
     /**
      * @inheritdoc
      */
     public function safeUp(): bool
     {
-        $this->addColumn('{{%studio_i18n}}', 'episodeSeasonName', $this->string()->after('episodeSeason'));
+        $this->addColumn('{{%studio_i18n}}', 'seasonName', $this->string()->after('episodeSeason'));
 
         Craft::$app->db->schema->refresh();
 
@@ -27,7 +27,7 @@ class m230525_072305_add_column_season_name extends Migration
      */
     public function safeDown(): bool
     {
-        echo "m230525_072305_add_column_season_name cannot be reverted.\n";
+        echo "m230526_065750_add_column_season_name cannot be reverted.\n";
         return false;
     }
 }

@@ -206,9 +206,9 @@ class Studio extends Plugin
                         'class' => TextField::class,
                         'mandatory' => false,
                         'requirable' => true,
-                        'label' => Craft::t('studio', 'Episode season name'),
-                        'translatable' => $episodeNativeFieldSettings['episodeSeasonName']['translatable'] ?? false,
-                        'attribute' => 'episodeSeasonName',
+                        'label' => Craft::t('studio', 'Season Name'),
+                        'translatable' => $episodeNativeFieldSettings['seasonName']['translatable'] ?? false,
+                        'attribute' => 'seasonName',
                     ];
                     $event->fields[] = [
                         'class' => NumberField::class,

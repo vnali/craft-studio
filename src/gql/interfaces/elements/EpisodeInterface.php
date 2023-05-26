@@ -67,10 +67,10 @@ class EpisodeInterface extends Element
                 'type' => Type::INT(),
                 'description' => 'Episode Season',
             ],
-            'episodeSeasonName' => [
-                'name' => 'episodeSeasonName',
+            'seasonName' => [
+                'name' => 'seasonName',
                 'type' => Type::STRING(),
-                'description' => 'Episode Season Name',
+                'description' => 'Season Name',
             ],
             'episodeNumber' => [
                 'name' => 'episodeNumber',

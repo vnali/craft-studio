@@ -550,8 +550,8 @@ class PodcastsController extends Controller
 
                     // Podcast season
                     $podcastSeason = $xml->createElement("podcast:season", (string)$episode->episodeSeason);
-                    if ($episode->episodeSeasonName) {
-                        $podcastSeason->setAttribute("name",  htmlspecialchars($episode->episodeSeasonName, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    if ($episode->seasonName) {
+                        $podcastSeason->setAttribute("name",  htmlspecialchars($episode->seasonName, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                     }
                     $xmlItem->appendChild($podcastSeason);
                 }

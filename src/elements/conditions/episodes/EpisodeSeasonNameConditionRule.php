@@ -47,6 +47,6 @@ class EpisodeSeasonNameConditionRule extends BaseTextConditionRule implements El
     public function matchElement(ElementInterface $element): bool
     {
         /** @var Episode $element */
-        return $this->matchValue($element->episodeSeasonName);
+        return $this->matchValue($element->seasonName);
     }
 }
