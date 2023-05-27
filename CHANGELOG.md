@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-- Added <podcast:medium> support.
-- Added <podcast:locked> support.
-- Added <podcast:funding> support.
-- Added <podcast:season> support.
-- Added <podcast:license> support.
+- Added <podcast:medium> support ([#6](https://github.com/vnali/craft-studio/discussions/6)).
+- Added <podcast:locked> support ([#7](https://github.com/vnali/craft-studio/discussions/7)).
+- Added <podcast:funding> support ([#8](https://github.com/vnali/craft-studio/discussions/8)).
+- Added <podcast:season> support ([#10](https://github.com/vnali/craft-studio/discussions/10)).
+- Added <podcast:license> support ([#9](https://github.com/vnali/craft-studio/discussions/9)).
 - Fixed a bug where matching elements by episode number and podcast new feed URL were checked incorrectly.
 
 ## 0.7.0 - 2023-05-23
