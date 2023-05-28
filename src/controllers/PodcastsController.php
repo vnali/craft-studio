@@ -268,7 +268,6 @@ class PodcastsController extends Controller
             /** @var EpisodeElement[] $episodes */
             $episodes = $episodeQuery->rss(true)->all();
 
-
             // Create the document.
             $xml = new DOMDocument("1.0", "UTF-8");
             $xml->preserveWhiteSpace = false;
@@ -383,7 +382,7 @@ class PodcastsController extends Controller
                     if (isset($podcast->podcastFunding) && $podcast->podcastFunding) {
                         foreach ($podcast->podcastFunding as $row) {
                             if (isset($row['fundingUrl']) && $row['fundingUrl']) {
-                                $xmlFunding = $xml->createElement("podcast:funding", (isset($row['fundingTitle']) && $row['fundingTitle']) ? $row['fundingTitle'] : '');
+                                $xmlFunding = $xml->createElement("podcast:funding", (isset($row['fundingTitle']) && $row['fundingTitle']) ? htmlspecialchars($row['fundingTitle'], ENT_QUOTES | ENT_XML1, 'UTF-8') : '');
                                 $xmlFunding->setAttribute("url", $row['fundingUrl']);
                                 $xmlChannel->appendChild($xmlFunding);
                             }
@@ -400,7 +399,7 @@ class PodcastsController extends Controller
                     }
                     foreach ($fundingBlocks as $fundingBlock) {
                         if (isset($fundingBlock->fundingUrl) && $fundingBlock->fundingUrl) {
-                            $xmlFunding = $xml->createElement("podcast:funding", (isset($fundingBlock->fundingTitle) && $fundingBlock->fundingTitle) ? $fundingBlock->fundingTitle : '');
+                            $xmlFunding = $xml->createElement("podcast:funding", (isset($fundingBlock->fundingTitle) && $fundingBlock->fundingTitle) ? htmlspecialchars($fundingBlock->fundingTitle, ENT_QUOTES | ENT_XML1, 'UTF-8') : '');
                             $xmlFunding->setAttribute("url", $fundingBlock->fundingUrl);
                             $xmlChannel->appendChild($xmlFunding);
                         }
@@ -755,10 +754,10 @@ class PodcastsController extends Controller
                         $soundbiteBlocks = $blockQuery->fieldId($soundbiteField->id)->owner($episode)->all();
                     }
                     foreach ($soundbiteBlocks as $soundbiteBlock) {
-                        if ($soundbiteBlock->getFieldValue('startTime') !== null && $soundbiteBlock->getFieldValue('duration') !== null) {
-                            $xmlSoundbite = $xml->createElement("podcast:soundbite", $soundbiteBlock->getFieldValue('soundbiteTitle') ?? '');
-                            $xmlSoundbite->setAttribute("startTime", $soundbiteBlock->getFieldValue('startTime'));
-                            $xmlSoundbite->setAttribute("duration",  $soundbiteBlock->getFieldValue('duration'));
+                        if (isset($soundbiteBlock->startTime) && $soundbiteBlock->startTime && isset($soundbiteBlock->duration) && $soundbiteBlock->duration) {
+                            $xmlSoundbite = $xml->createElement("podcast:soundbite", (isset($soundbiteBlock->soundbiteTitle) && $soundbiteBlock->soundbiteTitle) ? htmlspecialchars($soundbiteBlock->soundbiteTitle, ENT_QUOTES | ENT_XML1, 'UTF-8') : '');
+                            $xmlSoundbite->setAttribute("startTime", $soundbiteBlock->startTime);
+                            $xmlSoundbite->setAttribute("duration", $soundbiteBlock->duration);
                             $xmlItem->appendChild($xmlSoundbite);
                         }
                     }
@@ -788,7 +787,7 @@ class PodcastsController extends Controller
                 if ($licenseField) {
                     if (get_class($licenseField) == PlainText::class) {
                         if (isset($episode->episodeLicense) && $episode->episodeLicense) {
-                            $xmlLicense = $xml->createElement("podcast:license", $episode->episodeLicense);
+                            $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($episode->episodeLicense, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                             $xmlItem->appendChild($xmlLicense);
                         }
                     } elseif (get_class($licenseField) == TableField::class) {
