@@ -71,15 +71,21 @@ class Podcast extends Element
      */
     public ?string $ownerEmail = null;
 
-    /**
-     * @var bool|null Podcast is Blocked
-     */
-    public ?bool $podcastBlock = null;
 
     /**
      * @var bool|null Podcast Locked
      */
     public ?bool $locked = null;
+
+    /**
+     * @var string|null Podcast medium
+     */
+    public ?string $medium = null;
+
+    /**
+     * @var bool|null Podcast is Blocked
+     */
+    public ?bool $podcastBlock = null;
 
     /**
      * @var bool|null Podcast is complete
@@ -92,14 +98,14 @@ class Podcast extends Element
     public ?bool $podcastExplicit = null;
 
     /**
+     * @var bool|null Podcast new feed URL
+     */
+    public ?bool $podcastIsNewFeedUrl = null;
+
+    /**
      * @var string|null Podcast link
      */
     public ?string $podcastLink = null;
-
-    /**
-     * @var string|null Podcast type
-     */
-    public ?string $podcastType = null;
 
     /**
      * @var string|null Podcast is redirected to
@@ -107,14 +113,9 @@ class Podcast extends Element
     public ?string $podcastRedirectTo = null;
 
     /**
-     * @var bool|null Podcast new feed URL
+     * @var string|null Podcast type
      */
-    public ?bool $podcastIsNewFeedUrl = null;
-
-    /**
-     * @var string|null Podcast medium
-     */
-    public ?string $medium = null;
+    public ?string $podcastType = null;
 
     /**
      * @inheritdoc
