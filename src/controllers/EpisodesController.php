@@ -250,11 +250,12 @@ class EpisodesController extends Controller
 
         $crawler = new Crawler($content);
 
+        $crawler->registerNamespace('podcastindex', 'https://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md');
         // Prevent import from a podcast when the podcast is locked
-        if ($crawler->filter('podcast|locked')->count()) {
-            $locked = $crawler->filter('podcast|locked')->text();
+        if ($crawler->filter('podcastindex|locked')->count()) {
+            $locked = $crawler->filter('podcastindex|locked')->text();
             if (strtolower($locked) == 'yes') {
-                Craft::$app->getSession()->setError(Craft::t('studio', 'This podcast is locked.'));
+                Craft::$app->getSession()->setError(Craft::t('studio', 'The podcast:locked tag for this podcast is set to yes, so episodes cannot be imported.'));
                 /** @var UrlManager $urlManager */
                 $urlManager = Craft::$app->getUrlManager();
                 $urlManager->setRouteParams([
