@@ -48,6 +48,6 @@ class EpisodePublishConditionRule extends BaseLightswitchConditionRule implement
     public function matchElement(ElementInterface $element): bool
     {
         /** @var Episode $element */
-        return $this->matchValue($element->publishOnRSS !== null);
+        return $this->matchValue($element->publishOnRSS);
     }
 }

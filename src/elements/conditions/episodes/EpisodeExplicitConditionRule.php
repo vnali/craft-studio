@@ -48,6 +48,6 @@ class EpisodeExplicitConditionRule extends BaseLightswitchConditionRule implemen
     public function matchElement(ElementInterface $element): bool
     {
         /** @var Episode $element */
-        return $this->matchValue($element->episodeExplicit !== null);
+        return $this->matchValue($element->episodeExplicit);
     }
 }

@@ -47,6 +47,6 @@ class PodcastIsBlockConditionRule extends BaseLightswitchConditionRule implement
     public function matchElement(ElementInterface $element): bool
     {
         /** @var Podcast $element */
-        return $this->matchValue($element->podcastBlock !== null);
+        return $this->matchValue($element->podcastBlock);
     }
 }

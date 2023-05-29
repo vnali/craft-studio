@@ -7,7 +7,7 @@
 - Added <podcast:funding> support ([#8](https://github.com/vnali/craft-studio/discussions/8)).
 - Added <podcast:season> support ([#10](https://github.com/vnali/craft-studio/discussions/10)).
 - Added <podcast:license> support ([#9](https://github.com/vnali/craft-studio/discussions/9)).
-- Fixed a bug where matching elements by episode number and podcast new feed URL were checked incorrectly.
+- Fixed bugs where matching elements by episode number and conditions which extend BaseLightswitchConditionRule were checked incorrectly.
 - Fixed a bug where fields required for generating podcast:soundbite tag were not checked correctly.
 - Fixed a bug where podcastIsNewFeedUrl attribute was saved as null instead of 0.
 
