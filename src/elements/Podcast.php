@@ -834,7 +834,7 @@ class Podcast extends Element
             $userId = null;
         }
 
-        $lightSwitchFields = ['podcastBlock', 'podcastComplete', 'podcastExplicit', 'locked'];
+        $lightSwitchFields = ['podcastBlock', 'podcastComplete', 'podcastExplicit', 'locked', 'podcastIsNewFeedUrl'];
         $podcastFieldLayout = $this->getPodcastFormat()->getFieldLayout();
         $tabs = $podcastFieldLayout->getTabs();
         foreach ($tabs as $key => $tab) {
