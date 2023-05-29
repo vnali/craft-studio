@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.8.0 - 2023-05-29
 
 - Added <podcast:medium> support ([#6](https://github.com/vnali/craft-studio/discussions/6)).
 - Added <podcast:locked> support ([#7](https://github.com/vnali/craft-studio/discussions/7)).
