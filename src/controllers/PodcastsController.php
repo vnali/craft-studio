@@ -10,7 +10,10 @@ use Craft;
 use craft\base\Element;
 use craft\db\Table;
 use craft\elements\db\AssetQuery;
+use craft\elements\db\EntryQuery;
+use craft\elements\db\UserQuery;
 use craft\fields\Categories;
+use craft\fields\data\SingleOptionFieldData;
 use craft\fields\Entries;
 use craft\fields\Matrix;
 use craft\fields\PlainText;
@@ -540,6 +543,156 @@ class PodcastsController extends Controller
                 $xmlChannel->appendChild($xmlPodcastMedium);
             }
 
+            // Podcast person
+            $personField = Craft::$app->fields->getFieldByHandle('podcastPerson');
+            if ($personField) {
+                if (get_class($personField) == PlainText::class) {
+                    if (isset($podcast->podcastPerson) && $podcast->getFieldValue('podcastPerson')) {
+                        $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($podcast->podcastPerson, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlChannel->appendChild($xmlPodcastPerson);
+                    }
+                } elseif (get_class($personField) == TableField::class) {
+                    if (isset($podcast->podcastPerson) && $podcast->podcastPerson) {
+                        foreach ($podcast->podcastPerson as $row) {
+                            if (isset($row['person']) && $row['person']) {
+                                $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($row['person'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($row['personRole']) && $row['personRole']) {
+                                    $xmlPodcastPerson->setAttribute("role", htmlspecialchars($row['personRole'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                if (isset($row['personGroup']) && $row['personGroup']) {
+                                    $xmlPodcastPerson->setAttribute("group", htmlspecialchars($row['personGroup'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                if (isset($row['personImg']) && $row['personImg']) {
+                                    $xmlPodcastPerson->setAttribute("img", htmlspecialchars($row['personImg'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                if (isset($row['personHref']) && $row['personHref']) {
+                                    $xmlPodcastPerson->setAttribute("href", htmlspecialchars($row['personHref'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                $xmlChannel->appendChild($xmlPodcastPerson);
+                            }
+                        }
+                    }
+                } elseif (get_class($personField) == Matrix::class || get_class($personField) == SuperTableField::class) {
+                    $personBlocks = [];
+                    if (get_class($personField) == Matrix::class) {
+                        $blockQuery = \craft\elements\MatrixBlock::find();
+                        $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->type('person')->all();
+                    } elseif (get_class($personField) == SuperTableField::class) {
+                        $blockQuery = SuperTableBlockElement::find();
+                        $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->all();
+                    }
+                    foreach ($personBlocks as $personBlock) {
+                        $xmlPodcastPerson = null;
+                        if (isset($personBlock->person) && $personBlock->person) {
+                            // Person Value
+                            if (!is_object($personBlock->person)) {
+                                $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($personBlock->person, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($personBlock->personHref) && $personBlock->personHref) {
+                                    $xmlPodcastPerson->setAttribute("href", htmlspecialchars($personBlock->personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                if (isset($personBlock->personImg) && $personBlock->personImg) {
+                                    if (!is_object($personBlock->personImg)) {
+                                        $xmlPodcastPerson->setAttribute("img", htmlspecialchars($personBlock->personImg, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } else {
+                                        if (get_class($personBlock->personImg) == AssetQuery::class) {
+                                            $personImg = $personBlock->personImg->one();
+                                            if ($personImg) {
+                                                $xmlPodcastPerson->setAttribute("img",  htmlspecialchars($personImg->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (get_class($personBlock->person) == UserQuery::class || get_class($personBlock->person) == EntryQuery::class) {
+                                    $person = $personBlock->person->one();
+                                    if ($person) {
+                                        $photoId = null;
+                                        if (get_class($personBlock->person) == UserQuery::class) {
+                                            if ($person->fullName) {
+                                                $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($person->fullName, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            if ($person->photoId) {
+                                                $photo = Craft::$app->getAssets()->getAssetById($person->photoId);
+                                                if ($photo) {
+                                                    $photoId = true;
+                                                    $xmlPodcastPerson->setAttribute("img",  htmlspecialchars($photo->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                            }
+                                        } elseif (get_class($personBlock->person) == EntryQuery::class) {
+                                            if (isset($person->title) && $person->title) {
+                                                $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($person->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                        }
+                                        if ($xmlPodcastPerson && $person) {
+                                            if (isset($person->personHref) && $person->personHref) {
+                                                $xmlPodcastPerson->setAttribute("href", htmlspecialchars($person->personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            if (!$photoId && isset($person->personImg) && $person->personImg) {
+                                                if (!is_object($person->personImg)) {
+                                                    $xmlPodcastPerson->setAttribute("img", htmlspecialchars($person->personImg, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                } else {
+                                                    if (get_class($person->personImg) == AssetQuery::class) {
+                                                        $personImg = $person->personImg->one();
+                                                        if ($personImg) {
+                                                            $xmlPodcastPerson->setAttribute("img",  htmlspecialchars($personImg->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if ($xmlPodcastPerson) {
+                                // if Role and Group is defined via text plain/drop down field
+                                if (isset($personBlock->personRole) && $personBlock->personRole) {
+                                    if (is_object($personBlock->personRole) && get_class($personBlock->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
+                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } elseif (!is_object($personBlock->personRole)) {
+                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                }
+                                if (isset($personBlock->personGroup) && $personBlock->personGroup) {
+                                    if (is_object($personBlock->personGroup) && get_class($personBlock->personGroup) == SingleOptionFieldData::class && $personBlock->personGroup->value) {
+                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } elseif (!is_object($personBlock->personGroup)) {
+                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                }
+
+                                // if Role and Group is defined via entry
+                                if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
+                                    if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
+                                        $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
+                                        if ($podcastTaxonomy) {
+                                            if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
+                                                if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
+                                                    $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                } elseif (!is_object($podcastTaxonomy->personRole)) {
+                                                    $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                            }
+                                            if (isset($podcastTaxonomy->personGroup) && $podcastTaxonomy->personGroup) {
+                                                if (is_object($podcastTaxonomy->personGroup) && get_class($podcastTaxonomy->personGroup) == SingleOptionFieldData::class && $podcastTaxonomy->personGroup->value) {
+                                                    $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                } elseif (!is_object($podcastTaxonomy->personGroup)) {
+                                                    $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if ($xmlPodcastPerson) {
+                                $xmlChannel->appendChild($xmlPodcastPerson);
+                            }
+                        }
+                    }
+                }
+            }
+
             $fieldHandle = null;
             $fieldContainer = null;
 
@@ -832,12 +985,161 @@ class PodcastsController extends Controller
                     }
                 }
 
+                // podcast:person for episodes
+                $personField = Craft::$app->fields->getFieldByHandle('episodePerson');
+                if ($personField) {
+                    if (get_class($personField) == PlainText::class) {
+                        if (isset($episode->episodePerson) && $episode->getFieldValue('episodePerson')) {
+                            $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($episode->episodePerson, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            $xmlItem->appendChild($xmlPodcastPerson);
+                        }
+                    } elseif (get_class($personField) == TableField::class) {
+                        if (isset($episode->episodePerson) && $episode->episodePerson) {
+                            foreach ($episode->episodePerson as $row) {
+                                if (isset($row['person']) && $row['person']) {
+                                    $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($row['person'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($row['personRole']) && $row['personRole']) {
+                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($row['personRole'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    if (isset($row['personGroup']) && $row['personGroup']) {
+                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($row['personGroup'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    if (isset($row['personImg']) && $row['personImg']) {
+                                        $xmlPodcastPerson->setAttribute("img", htmlspecialchars($row['personImg'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    if (isset($row['personHref']) && $row['personHref']) {
+                                        $xmlPodcastPerson->setAttribute("href", htmlspecialchars($row['personHref'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    $xmlItem->appendChild($xmlPodcastPerson);
+                                }
+                            }
+                        }
+                    } elseif (get_class($personField) == Matrix::class || get_class($personField) == SuperTableField::class) {
+                        $personBlocks = [];
+                        if (get_class($personField) == Matrix::class) {
+                            $blockQuery = \craft\elements\MatrixBlock::find();
+                            $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->type('person')->all();
+                        } elseif (get_class($personField) == SuperTableField::class) {
+                            $blockQuery = SuperTableBlockElement::find();
+                            $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->all();
+                        }
+                        foreach ($personBlocks as $personBlock) {
+                            $xmlPodcastPerson = null;
+                            if (isset($personBlock->person) && $personBlock->person) {
+                                // Person Value
+                                if (!is_object($personBlock->person)) {
+                                    $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($personBlock->person, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($personBlock->personHref) && $personBlock->personHref) {
+                                        $xmlPodcastPerson->setAttribute("href", htmlspecialchars($personBlock->personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    if (isset($personBlock->personImg) && $personBlock->personImg) {
+                                        if (!is_object($personBlock->personImg)) {
+                                            $xmlPodcastPerson->setAttribute("img", htmlspecialchars($personBlock->personImg, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } else {
+                                            if (get_class($personBlock->personImg) == AssetQuery::class) {
+                                                $personImg = $personBlock->personImg->one();
+                                                if ($personImg) {
+                                                    $xmlPodcastPerson->setAttribute("img",  htmlspecialchars($personImg->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (get_class($personBlock->person) == UserQuery::class || get_class($personBlock->person) == EntryQuery::class) {
+                                        $person = $personBlock->person->one();
+                                        if ($person) {
+                                            $photoId = null;
+                                            if (get_class($personBlock->person) == UserQuery::class) {
+                                                if ($person->fullName) {
+                                                    $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($person->fullName, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if ($person->photoId) {
+                                                    $photo = Craft::$app->getAssets()->getAssetById($person->photoId);
+                                                    if ($photo) {
+                                                        $photoId = true;
+                                                        $xmlPodcastPerson->setAttribute("img",  htmlspecialchars($photo->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                }
+                                            } elseif (get_class($personBlock->person) == EntryQuery::class) {
+                                                if (isset($person->title) && $person->title) {
+                                                    $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($person->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                            }
+                                            if ($xmlPodcastPerson && $person) {
+                                                if (isset($person->personHref) && $person->personHref) {
+                                                    $xmlPodcastPerson->setAttribute("href", htmlspecialchars($person->personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (!$photoId && isset($person->personImg) && $person->personImg) {
+                                                    if (!is_object($person->personImg)) {
+                                                        $xmlPodcastPerson->setAttribute("img", htmlspecialchars($person->personImg, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } else {
+                                                        if (get_class($person->personImg) == AssetQuery::class) {
+                                                            $personImg = $person->personImg->one();
+                                                            if ($personImg) {
+                                                                $xmlPodcastPerson->setAttribute("img",  htmlspecialchars($personImg->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if ($xmlPodcastPerson) {
+                                    // if Role and Group is defined via text plain/dropdown field
+                                    if (isset($personBlock->personRole) && $personBlock->personRole) {
+                                        if (is_object($personBlock->personRole) && get_class($personBlock->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
+                                            $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } elseif (!is_object($personBlock->personRole)) {
+                                            $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                    }
+                                    if (isset($personBlock->personGroup) && $personBlock->personGroup) {
+                                        if (is_object($personBlock->personGroup) && get_class($personBlock->personGroup) == SingleOptionFieldData::class && $personBlock->personGroup->value) {
+                                            $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } elseif (!is_object($personBlock->personGroup)) {
+                                            $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                    }
+
+                                    // if Role and Group is defined via entry
+                                    if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
+                                        if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
+                                            $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
+                                            if ($podcastTaxonomy) {
+                                                if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
+                                                    if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $podcastTaxonomy->personRole->value) {
+                                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (!is_object($podcastTaxonomy->personRole)) {
+                                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                }
+                                                if (isset($podcastTaxonomy->personGroup) && $podcastTaxonomy->personGroup) {
+                                                    if (is_object($podcastTaxonomy->personGroup) && get_class($podcastTaxonomy->personGroup) == SingleOptionFieldData::class && $podcastTaxonomy->personGroup->value) {
+                                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (!is_object($podcastTaxonomy->personGroup)) {
+                                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if ($xmlPodcastPerson) {
+                                    $xmlItem->appendChild($xmlPodcastPerson);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $xmlChannel->appendChild($xmlItem);
             }
 
             $variables['xml'] = $xml->saveXML();
             return $variables;
-        }, 0, new TagDependency(['tags' => ['studio-plugin', 'element::' . PodcastElement::class . '::*', 'element::' . EpisodeElement::class . '::*']]));
+        }, 0, new TagDependency(['tags' => ['studio-plugin']]));
 
         Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_CP);
         return $this->renderTemplate(

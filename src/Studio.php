@@ -12,6 +12,7 @@ use craft\base\Plugin;
 use craft\elements\Asset;
 use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\DeleteSiteEvent;
+use craft\events\ModelEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterComponentTypesEvent;
@@ -38,7 +39,6 @@ use craft\utilities\AssetIndexes;
 use craft\utilities\ClearCaches;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
-
 use vnali\studio\assetpreviews\AudioPreview;
 use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\elements\Podcast as PodcastElement;
@@ -72,6 +72,7 @@ use vnali\studio\Studio as StudioPlugin;
 use vnali\studio\twig\CraftVariableBehavior;
 
 use yii\base\Event;
+use yii\caching\TagDependency;
 
 /**
  * @property-read episodesService $episodes
@@ -134,6 +135,14 @@ class Studio extends Plugin
         if ($settings->checkAccessToVolumes) {
             Event::on(AssetIndexes::class, AssetIndexes::EVENT_LIST_VOLUMES, [GeneralHelper::class, 'listVolumes']);
         }
+
+        Event::on(
+            Element::class,
+            Element::EVENT_AFTER_SAVE,
+            function(ModelEvent $event) {
+                TagDependency::invalidate(Craft::$app->getCache(), 'studio-plugin');
+            }
+        );
 
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_INNER_HTML, [PodcastElement::class, 'updatePodcastElementHtml']);
 
