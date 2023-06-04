@@ -623,7 +623,7 @@ class PodcastsController extends Controller
                                                 $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($person->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                             }
                                         }
-                                        if ($xmlPodcastPerson && $person) {
+                                        if ($xmlPodcastPerson) {
                                             if (isset($person->personHref) && $person->personHref) {
                                                 $xmlPodcastPerson->setAttribute("href", htmlspecialchars($person->personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                             }
@@ -667,7 +667,7 @@ class PodcastsController extends Controller
                                         $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
                                         if ($podcastTaxonomy) {
                                             if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
-                                                if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
+                                                if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $podcastTaxonomy->personRole->value) {
                                                     $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                 } elseif (!is_object($podcastTaxonomy->personRole)) {
                                                     $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
@@ -1065,7 +1065,7 @@ class PodcastsController extends Controller
                                                     $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($person->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                 }
                                             }
-                                            if ($xmlPodcastPerson && $person) {
+                                            if ($xmlPodcastPerson) {
                                                 if (isset($person->personHref) && $person->personHref) {
                                                     $xmlPodcastPerson->setAttribute("href", htmlspecialchars($person->personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                 }
