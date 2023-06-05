@@ -11,6 +11,34 @@ class Settings extends Model
 {
     public ?bool $checkAccessToVolumes = null;
 
+    public ?string $chapterField = null;
+
+    public ?string $chapterBlockType = null;
+
+    public ?string $soundbiteField = null;
+    
+    public ?string $soundbiteBlockType = null;
+
+    public ?string $fundingField = null;
+
+    public ?string $fundingBlockType = null;
+    
+    public ?string $podcastLicenseField = null;
+
+    public ?string $podcastLicenseBlockType = null;
+
+    public ?string $episodeLicenseField = null;
+
+    public ?string $episodeLicenseBlockType = null;
+
+    public ?string $podcastPersonField = null;
+
+    public ?string $podcastPersonBlockType = null;
+
+    public ?string $episodePersonField = null;
+
+    public ?string $episodePersonBlockType = null;
+
     public function rules(): array
     {
         $rules = parent::rules();

@@ -77,10 +77,10 @@
                     '</form>');
 
                     $(".modal").on("click", "#new-chapter", function() {
-                        if (data.chapterField == 'verbb\\supertable\\fields\\SuperTableField') {
-                            $("div[data-attribute='episodeChapter']").find(".matrixLayoutContainer, .rowLayoutContainer, .superTable-table").next('.add').activate();
+                        if (data.chapterFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                            $("div[data-attribute='" + data.chapterFieldHandle + "']").find(".matrixLayoutContainer, .rowLayoutContainer, .superTable-table").next('.add').activate();
                         } else {
-                            $("div[data-attribute='episodeChapter'] button[data-type='chapter']").click();
+                            $("div[data-attribute='" + data.chapterFieldHandle + "'] button[data-type='" + data.chapterBlockTypeHandle + "']").click();
                         }
 
                         // Get hh:mm:ss format
@@ -96,10 +96,10 @@
                             startTimeFixed = assetAudio.currentTime.toFixed(3);
                         }
 
-                        if (data.chapterField == 'verbb\\supertable\\fields\\SuperTableField') {
-                            $("div[data-attribute='episodeChapter'] div[data-attribute='startTime']:last input").val(startTimeFixed);
+                        if (data.chapterFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                            $("div[data-attribute='" + data.chapterFieldHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
                         } else {
-                            $("div[data-attribute='episodeChapter'] div[data-type='chapter'] div[data-attribute='startTime']:last input").val(startTimeFixed);
+                            $("div[data-attribute='" + data.chapterFieldHandle + "'] div[data-type='" + data.chapterBlockTypeHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
                         }
                         assetAudio.pause();
 
@@ -119,10 +119,10 @@
 
                         $('.save-chapter').on('click', function (ev) {
                             chapterTitle = $('#chapterTitle').val();
-                            if (data.chapterField == 'verbb\\supertable\\fields\\SuperTableField') {
-                                $("div[data-attribute='episodeChapter'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
+                            if (data.chapterFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='" + data.chapterFieldHandle + "'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
                             } else {
-                                $("div[data-attribute='episodeChapter'] div[data-type='chapter'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
+                                $("div[data-attribute='" + data.chapterFieldHandle + "'] div[data-type='" + data.chapterBlockTypeHandle + "'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
                             }
                             if (!$("#chapterHeader").val()) {
                                 $("#chapterHeader").html("{{ 'Chapter'|t('studio') }}:");
@@ -148,10 +148,10 @@
                             $("#new-soundbite").addClass('stop').removeClass('start');
                             startSoundbite = assetAudio.currentTime;
                             assetAudio.play();
-                            if (data.soundbiteField == 'verbb\\supertable\\fields\\SuperTableField') {
-                                $("div[data-attribute='episodeSoundbite']").find(".matrixLayoutContainer, .rowLayoutContainer, .superTable-table").next('.add').activate();
+                            if (data.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='" + data.soundbiteFieldHandle + "']").find(".matrixLayoutContainer, .rowLayoutContainer, .superTable-table").next('.add').activate();
                             } else {
-                                $("div[data-attribute='episodeSoundbite'] button[data-type='soundbite']").click();
+                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] button[data-type='" + data.soundbiteBlockTypeHandle + "']").click();
                             }
 
                             // start time
@@ -161,10 +161,10 @@
                                 startTimeFixed = startSoundbite.toFixed(3);
                             }
 
-                            if (data.soundbiteField == 'verbb\\supertable\\fields\\SuperTableField') {
-                                $("div[data-attribute='episodeSoundbite'] div[data-attribute='startTime']:last input").val(startTimeFixed);
+                            if (data.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
                             } else {
-                                $("div[data-attribute='episodeSoundbite'] div[data-type='soundbite'] div[data-attribute='startTime']:last input").val(startTimeFixed);
+                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-type='" + data.soundbiteBlockTypeHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
                             }
                         } else if ($("#new-soundbite").hasClass('stop')) {
                             $("#new-soundbite").addClass('start').removeClass('stop');
@@ -199,19 +199,19 @@
                                 $(".soundbiteHeader").html("{{ 'Duration'|t('studio')}}" + ': ' + hhmmss);
                             }, 100);
 
-                            if (data.soundbiteField == 'verbb\\supertable\\fields\\SuperTableField') {
-                                $("div[data-attribute='episodeSoundbite'] div[data-attribute='duration']:last input").val(durationFixed);
+                            if (data.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-attribute='duration']:last input").val(durationFixed);
                             } else {
-                                $("div[data-attribute='episodeSoundbite'] div[data-type='soundbite'] div[data-attribute='duration']:last input").val(durationFixed);
+                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-type='" + data.soundbiteBlockTypeHandle + "'] div[data-attribute='duration']:last input").val(durationFixed);
                             }
                         }
 
                         $('.save-soundbite').on('click', function (ev) {
                             soundbiteTitle = $('#soundbiteTitle').val();
-                            if (data.soundbiteField == 'verbb\\supertable\\fields\\SuperTableField') {
-                                $("div[data-attribute='episodeSoundbite'] div[data-attribute='soundbiteTitle']:last input").val(soundbiteTitle);
+                            if (data.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-attribute='soundbiteTitle']:last input").val(soundbiteTitle);
                             } else {
-                                $("div[data-attribute='episodeSoundbite'] div[data-type='soundbite'] div[data-attribute='soundbiteTitle']:last input").val(soundbiteTitle);
+                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-type='" + data.soundbiteBlockTypeHandle + "'] div[data-attribute='soundbiteTitle']:last input").val(soundbiteTitle);
                             }
                             if (!$("#soundbiteHeader").val()) {
                                 $("#soundbiteHeader").html("{{ 'Soundbite'|t('studio') }}:");

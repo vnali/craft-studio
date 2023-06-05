@@ -372,94 +372,6 @@ class PodcastsController extends Controller
                 }
             }
 
-            // Podcast Funding
-            $fundingField = Craft::$app->fields->getFieldByHandle('podcastFunding');
-            if ($fundingField) {
-                if (get_class($fundingField) == PlainText::class || get_class($fundingField) == Url::class) {
-                    if (isset($podcast->podcastFunding) && $podcast->getFieldValue('podcastFunding')) {
-                        $xmlFunding = $xml->createElement("podcast:funding");
-                        $xmlFunding->setAttribute("url", htmlspecialchars($podcast->podcastFunding, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                        $xmlChannel->appendChild($xmlFunding);
-                    }
-                } elseif (get_class($fundingField) == TableField::class) {
-                    if (isset($podcast->podcastFunding) && $podcast->podcastFunding) {
-                        foreach ($podcast->podcastFunding as $row) {
-                            if (isset($row['fundingUrl']) && $row['fundingUrl']) {
-                                $xmlFunding = $xml->createElement("podcast:funding", (isset($row['fundingTitle']) && $row['fundingTitle']) ? htmlspecialchars($row['fundingTitle'], ENT_QUOTES | ENT_XML1, 'UTF-8') : '');
-                                $xmlFunding->setAttribute("url", $row['fundingUrl']);
-                                $xmlChannel->appendChild($xmlFunding);
-                            }
-                        }
-                    }
-                } elseif (get_class($fundingField) == Matrix::class || get_class($fundingField) == SuperTableField::class) {
-                    $fundingBlocks = [];
-                    if (get_class($fundingField) == Matrix::class) {
-                        $blockQuery = \craft\elements\MatrixBlock::find();
-                        $fundingBlocks = $blockQuery->fieldId($fundingField->id)->owner($podcast)->type('funding')->all();
-                    } elseif (get_class($fundingField) == SuperTableField::class) {
-                        $blockQuery = SuperTableBlockElement::find();
-                        $fundingBlocks = $blockQuery->fieldId($fundingField->id)->owner($podcast)->all();
-                    }
-                    foreach ($fundingBlocks as $fundingBlock) {
-                        if (isset($fundingBlock->fundingUrl) && $fundingBlock->fundingUrl) {
-                            $xmlFunding = $xml->createElement("podcast:funding", (isset($fundingBlock->fundingTitle) && $fundingBlock->fundingTitle) ? htmlspecialchars($fundingBlock->fundingTitle, ENT_QUOTES | ENT_XML1, 'UTF-8') : '');
-                            $xmlFunding->setAttribute("url", $fundingBlock->fundingUrl);
-                            $xmlChannel->appendChild($xmlFunding);
-                        }
-                    }
-                }
-            }
-
-            // Podcast License
-            $licenseField = Craft::$app->fields->getFieldByHandle('podcastLicense');
-            if ($licenseField) {
-                if (get_class($licenseField) == PlainText::class) {
-                    if (isset($podcast->podcastLicense) && $podcast->getFieldValue('podcastLicense')) {
-                        $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($podcast->podcastLicense, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                        $xmlChannel->appendChild($xmlLicense);
-                    }
-                } elseif (get_class($licenseField) == TableField::class) {
-                    if (isset($podcast->podcastLicense) && $podcast->podcastLicense) {
-                        foreach ($podcast->podcastLicense as $row) {
-                            if (isset($row['licenseTitle']) && $row['licenseTitle']) {
-                                $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($row['licenseTitle'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                if (isset($row['licenseUrl']) && $row['licenseUrl']) {
-                                    $xmlLicense->setAttribute("url", htmlspecialchars($row['licenseUrl'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                }
-                                $xmlChannel->appendChild($xmlLicense);
-                            }
-                            break;
-                        }
-                    }
-                } elseif (get_class($licenseField) == Matrix::class || get_class($licenseField) == SuperTableField::class) {
-                    $licenseBlocks = [];
-                    if (get_class($licenseField) == Matrix::class) {
-                        $blockQuery = \craft\elements\MatrixBlock::find();
-                        $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($podcast)->type('license')->all();
-                    } elseif (get_class($licenseField) == SuperTableField::class) {
-                        $blockQuery = SuperTableBlockElement::find();
-                        $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($podcast)->all();
-                    }
-                    foreach ($licenseBlocks as $licenseBlock) {
-                        if (isset($licenseBlock->licenseTitle) && $licenseBlock->licenseTitle) {
-                            $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($licenseBlock->licenseTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                            if (isset($licenseBlock->licenseUrl) && $licenseBlock->licenseUrl) {
-                                if (is_object($licenseBlock->licenseUrl) && get_class($licenseBlock->licenseUrl) == AssetQuery::class) {
-                                    $licenseUrl = $licenseBlock->licenseUrl->one();
-                                    if ($licenseUrl) {
-                                        $xmlLicense->setAttribute("url",  htmlspecialchars($licenseUrl->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    }
-                                } elseif (!is_object($licenseBlock->licenseUrl)) {
-                                    $xmlLicense->setAttribute("url",  htmlspecialchars($licenseBlock->licenseUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                }
-                            }
-                            $xmlChannel->appendChild($xmlLicense);
-                        }
-                        break;
-                    }
-                }
-            }
-
             // Podcast Explicit
             if (isset($podcast->podcastExplicit)) {
                 if ($podcast->podcastExplicit == '1') {
@@ -537,6 +449,96 @@ class PodcastsController extends Controller
                 $xmlChannel->appendChild($xmlPodcastType);
             }
 
+            // Podcast Funding
+            list($fundingField, $fundingBlockTypeHandle) = GeneralHelper::getFieldDefinition('funding');
+            if ($fundingField) {
+                $fundingFieldHandle = $fundingField->handle;
+                if (get_class($fundingField) == PlainText::class || get_class($fundingField) == Url::class) {
+                    if (isset($podcast->$fundingFieldHandle) && $podcast->$fundingFieldHandle) {
+                        $xmlFunding = $xml->createElement("podcast:funding");
+                        $xmlFunding->setAttribute("url", htmlspecialchars($podcast->$fundingFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlChannel->appendChild($xmlFunding);
+                    }
+                } elseif (get_class($fundingField) == TableField::class) {
+                    if (isset($podcast->$fundingFieldHandle) && $podcast->$fundingFieldHandle) {
+                        foreach ($podcast->$fundingFieldHandle as $row) {
+                            if (isset($row['fundingUrl']) && $row['fundingUrl']) {
+                                $xmlFunding = $xml->createElement("podcast:funding", (isset($row['fundingTitle']) && $row['fundingTitle']) ? htmlspecialchars($row['fundingTitle'], ENT_QUOTES | ENT_XML1, 'UTF-8') : '');
+                                $xmlFunding->setAttribute("url", $row['fundingUrl']);
+                                $xmlChannel->appendChild($xmlFunding);
+                            }
+                        }
+                    }
+                } elseif (get_class($fundingField) == Matrix::class || get_class($fundingField) == SuperTableField::class) {
+                    $fundingBlocks = [];
+                    if (get_class($fundingField) == Matrix::class) {
+                        $blockQuery = \craft\elements\MatrixBlock::find();
+                        $fundingBlocks = $blockQuery->fieldId($fundingField->id)->owner($podcast)->type($fundingBlockTypeHandle)->all();
+                    } elseif (get_class($fundingField) == SuperTableField::class) {
+                        $blockQuery = SuperTableBlockElement::find();
+                        $fundingBlocks = $blockQuery->fieldId($fundingField->id)->owner($podcast)->all();
+                    }
+                    foreach ($fundingBlocks as $fundingBlock) {
+                        if (isset($fundingBlock->fundingUrl) && $fundingBlock->fundingUrl) {
+                            $xmlFunding = $xml->createElement("podcast:funding", (isset($fundingBlock->fundingTitle) && $fundingBlock->fundingTitle) ? htmlspecialchars($fundingBlock->fundingTitle, ENT_QUOTES | ENT_XML1, 'UTF-8') : '');
+                            $xmlFunding->setAttribute("url", $fundingBlock->fundingUrl);
+                            $xmlChannel->appendChild($xmlFunding);
+                        }
+                    }
+                }
+            }
+
+            // Podcast License
+            list($licenseField, $licenseBlockTypeHandle) = GeneralHelper::getFieldDefinition('podcastLicense');
+            if ($licenseField) {
+                $licenseFieldHandle = $licenseField->handle;
+                if (get_class($licenseField) == PlainText::class) {
+                    if (isset($podcast->$licenseFieldHandle) && $podcast->$licenseFieldHandle) {
+                        $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($podcast->$licenseFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlChannel->appendChild($xmlLicense);
+                    }
+                } elseif (get_class($licenseField) == TableField::class) {
+                    if (isset($podcast->$licenseFieldHandle) && $podcast->$licenseFieldHandle) {
+                        foreach ($podcast->$licenseFieldHandle  as $row) {
+                            if (isset($row['licenseTitle']) && $row['licenseTitle']) {
+                                $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($row['licenseTitle'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($row['licenseUrl']) && $row['licenseUrl']) {
+                                    $xmlLicense->setAttribute("url", htmlspecialchars($row['licenseUrl'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                $xmlChannel->appendChild($xmlLicense);
+                            }
+                            break;
+                        }
+                    }
+                } elseif (get_class($licenseField) == Matrix::class || get_class($licenseField) == SuperTableField::class) {
+                    $licenseBlocks = [];
+                    if (get_class($licenseField) == Matrix::class) {
+                        $blockQuery = \craft\elements\MatrixBlock::find();
+                        $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($podcast)->type($licenseBlockTypeHandle)->all();
+                    } elseif (get_class($licenseField) == SuperTableField::class) {
+                        $blockQuery = SuperTableBlockElement::find();
+                        $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($podcast)->all();
+                    }
+                    foreach ($licenseBlocks as $licenseBlock) {
+                        if (isset($licenseBlock->licenseTitle) && $licenseBlock->licenseTitle) {
+                            $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($licenseBlock->licenseTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            if (isset($licenseBlock->licenseUrl) && $licenseBlock->licenseUrl) {
+                                if (is_object($licenseBlock->licenseUrl) && get_class($licenseBlock->licenseUrl) == AssetQuery::class) {
+                                    $licenseUrl = $licenseBlock->licenseUrl->one();
+                                    if ($licenseUrl) {
+                                        $xmlLicense->setAttribute("url",  htmlspecialchars($licenseUrl->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                } elseif (!is_object($licenseBlock->licenseUrl)) {
+                                    $xmlLicense->setAttribute("url",  htmlspecialchars($licenseBlock->licenseUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                            }
+                            $xmlChannel->appendChild($xmlLicense);
+                        }
+                        break;
+                    }
+                }
+            }
+
             // Podcast medium
             if ($podcast->medium) {
                 $xmlPodcastMedium = $xml->createElement("podcast:medium", $podcast->medium);
@@ -544,16 +546,17 @@ class PodcastsController extends Controller
             }
 
             // Podcast person
-            $personField = Craft::$app->fields->getFieldByHandle('podcastPerson');
+            list($personField, $personBlockTypeHandle) = GeneralHelper::getFieldDefinition('podcastPerson');
             if ($personField) {
+                $personFieldHandle = $personField->handle;
                 if (get_class($personField) == PlainText::class) {
-                    if (isset($podcast->podcastPerson) && $podcast->getFieldValue('podcastPerson')) {
-                        $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($podcast->podcastPerson, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    if (isset($podcast->$personFieldHandle) && $podcast->$personFieldHandle) {
+                        $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($podcast->$personFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                         $xmlChannel->appendChild($xmlPodcastPerson);
                     }
                 } elseif (get_class($personField) == TableField::class) {
-                    if (isset($podcast->podcastPerson) && $podcast->podcastPerson) {
-                        foreach ($podcast->podcastPerson as $row) {
+                    if (isset($podcast->$personFieldHandle) && $podcast->$personFieldHandle) {
+                        foreach ($podcast->$personFieldHandle as $row) {
                             if (isset($row['person']) && $row['person']) {
                                 $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($row['person'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                 if (isset($row['personRole']) && $row['personRole']) {
@@ -576,7 +579,7 @@ class PodcastsController extends Controller
                     $personBlocks = [];
                     if (get_class($personField) == Matrix::class) {
                         $blockQuery = \craft\elements\MatrixBlock::find();
-                        $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->type('person')->all();
+                        $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->type($personBlockTypeHandle)->all();
                     } elseif (get_class($personField) == SuperTableField::class) {
                         $blockQuery = SuperTableBlockElement::find();
                         $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->all();
@@ -896,12 +899,12 @@ class PodcastsController extends Controller
                 }
 
                 // Episode soundbite
-                $soundbiteField = Craft::$app->fields->getFieldByHandle('episodeSoundbite');
+                list($soundbiteField, $soundbiteBlockTypeHandle) = GeneralHelper::getFieldDefinition('soundbite');
                 if ($soundbiteField) {
                     $soundbiteBlocks = [];
                     if (get_class($soundbiteField) == Matrix::class) {
                         $blockQuery = \craft\elements\MatrixBlock::find();
-                        $soundbiteBlocks = $blockQuery->fieldId($soundbiteField->id)->owner($episode)->type('soundbite')->all();
+                        $soundbiteBlocks = $blockQuery->fieldId($soundbiteField->id)->owner($episode)->type($soundbiteBlockTypeHandle)->all();
                     } elseif (get_class($soundbiteField) == SuperTableField::class) {
                         $blockQuery = SuperTableBlockElement::find();
                         $soundbiteBlocks = $blockQuery->fieldId($soundbiteField->id)->owner($episode)->all();
@@ -917,11 +920,11 @@ class PodcastsController extends Controller
                 }
 
                 // Episode chapter
-                $chapterField = Craft::$app->fields->getFieldByHandle('episodeChapter');
+                list($chapterField, $chapterBlockTypeHandle) = GeneralHelper::getFieldDefinition('chapter');
                 if ($chapterField) {
                     if (get_class($chapterField) == Matrix::class) {
                         $blockQuery = \craft\elements\MatrixBlock::find();
-                        $chapterBlock = $blockQuery->fieldId($chapterField->id)->owner($episode)->type('chapter')->one();
+                        $chapterBlock = $blockQuery->fieldId($chapterField->id)->owner($episode)->type($chapterBlockTypeHandle)->one();
                     } elseif (get_class($chapterField) == SuperTableField::class) {
                         $blockQuery = SuperTableBlockElement::find();
                         $chapterBlock = $blockQuery->fieldId($chapterField->id)->owner($episode)->one();
@@ -936,16 +939,17 @@ class PodcastsController extends Controller
                 }
 
                 // Episode License
-                $licenseField = Craft::$app->fields->getFieldByHandle('episodeLicense');
+                list($licenseField, $licenseBlockTypeHandle) = GeneralHelper::getFieldDefinition('episodeLicense');
                 if ($licenseField) {
+                    $licenseFieldHandle = $licenseField->handle;
                     if (get_class($licenseField) == PlainText::class) {
-                        if (isset($episode->episodeLicense) && $episode->episodeLicense) {
-                            $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($episode->episodeLicense, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        if (isset($episode->$licenseFieldHandle) && $episode->$licenseFieldHandle) {
+                            $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($episode->$licenseFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                             $xmlItem->appendChild($xmlLicense);
                         }
                     } elseif (get_class($licenseField) == TableField::class) {
-                        if (isset($episode->episodeLicense) && $episode->episodeLicense) {
-                            foreach ($episode->episodeLicense as $row) {
+                        if (isset($episode->$licenseFieldHandle) && $episode->$licenseFieldHandle) {
+                            foreach ($episode->$licenseFieldHandle as $row) {
                                 if (isset($row['licenseTitle']) && $row['licenseTitle']) {
                                     $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($row['licenseTitle'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     if (isset($row['licenseUrl']) && $row['licenseUrl']) {
@@ -960,7 +964,7 @@ class PodcastsController extends Controller
                         $licenseBlocks = [];
                         if (get_class($licenseField) == Matrix::class) {
                             $blockQuery = \craft\elements\MatrixBlock::find();
-                            $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($episode)->type('license')->all();
+                            $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($episode)->type($licenseBlockTypeHandle)->all();
                         } elseif (get_class($licenseField) == SuperTableField::class) {
                             $blockQuery = SuperTableBlockElement::find();
                             $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($episode)->all();
@@ -986,16 +990,17 @@ class PodcastsController extends Controller
                 }
 
                 // podcast:person for episodes
-                $personField = Craft::$app->fields->getFieldByHandle('episodePerson');
+                list($personField, $personBlockTypeHandle) = GeneralHelper::getFieldDefinition('episodePerson');
                 if ($personField) {
+                    $personFieldHandle = $personField->handle;
                     if (get_class($personField) == PlainText::class) {
-                        if (isset($episode->episodePerson) && $episode->getFieldValue('episodePerson')) {
-                            $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($episode->episodePerson, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        if (isset($episode->$personFieldHandle) && $episode->$personFieldHandle) {
+                            $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($episode->$personFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                             $xmlItem->appendChild($xmlPodcastPerson);
                         }
                     } elseif (get_class($personField) == TableField::class) {
-                        if (isset($episode->episodePerson) && $episode->episodePerson) {
-                            foreach ($episode->episodePerson as $row) {
+                        if (isset($episode->$personFieldHandle) && $episode->$personFieldHandle) {
+                            foreach ($episode->$personFieldHandle as $row) {
                                 if (isset($row['person']) && $row['person']) {
                                     $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($row['person'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     if (isset($row['personRole']) && $row['personRole']) {
@@ -1018,7 +1023,7 @@ class PodcastsController extends Controller
                         $personBlocks = [];
                         if (get_class($personField) == Matrix::class) {
                             $blockQuery = \craft\elements\MatrixBlock::find();
-                            $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->type('person')->all();
+                            $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->type($personBlockTypeHandle)->all();
                         } elseif (get_class($personField) == SuperTableField::class) {
                             $blockQuery = SuperTableBlockElement::find();
                             $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->all();

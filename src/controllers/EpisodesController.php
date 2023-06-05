@@ -21,6 +21,7 @@ use Symfony\Component\DomCrawler\Crawler;
 
 use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\elements\Podcast as PodcastElement;
+use vnali\studio\helpers\GeneralHelper;
 
 ;
 use vnali\studio\jobs\importEpisodeJob;
@@ -579,39 +580,43 @@ class EpisodesController extends Controller
 
         $jsonChapter = $cache->getOrSet($rssCacheKey, function() use ($episode) {
             $chaptersArray = [];
-            if (isset($episode->episodeChapter)) {
-                $chapters = $episode->episodeChapter->all();
-                foreach ($chapters as $key => $chapter) {
-                    $chapterArray = [];
-                    if (is_null($chapter->type->handle) || $chapter->type->handle == 'chapter') {
-                        // Start time is required
-                        if ($chapter->startTime === null) {
-                            continue;
-                        }
-                        $chapterArray['startTime'] = $chapter->startTime;
-                        if (isset($chapter->chapterTitle) && $chapter->chapterTitle) {
-                            $chapterArray['title'] = $chapter->chapterTitle;
-                        }
-                        if (isset($chapter->img) && $chapter->img) {
-                            if (!is_object($chapter->img)) {
-                                $chapterArray['img'] = $chapter->img;
-                            } elseif (is_a($chapter->img, AssetQuery::class)) {
-                                $img = $chapter->img->one();
-                                if ($img) {
-                                    $chapterArray['img'] = $img->getUrl();
+            list($chapterField, $chapterBlockTypeHandle) = GeneralHelper::getFieldDefinition('chapter');
+            if ($chapterField) {
+                $chapterFieldHandle = $chapterField->handle;
+                if (isset($episode->$chapterFieldHandle)) {
+                    $chapters = $episode->$chapterFieldHandle->all();
+                    foreach ($chapters as $key => $chapter) {
+                        $chapterArray = [];
+                        if (is_null($chapter->type->handle) || $chapter->type->handle == $chapterBlockTypeHandle) {
+                            // Start time is required
+                            if ($chapter->startTime === null) {
+                                continue;
+                            }
+                            $chapterArray['startTime'] = $chapter->startTime;
+                            if (isset($chapter->chapterTitle) && $chapter->chapterTitle) {
+                                $chapterArray['title'] = $chapter->chapterTitle;
+                            }
+                            if (isset($chapter->img) && $chapter->img) {
+                                if (!is_object($chapter->img)) {
+                                    $chapterArray['img'] = $chapter->img;
+                                } elseif (is_a($chapter->img, AssetQuery::class)) {
+                                    $img = $chapter->img->one();
+                                    if ($img) {
+                                        $chapterArray['img'] = $img->getUrl();
+                                    }
                                 }
                             }
+                            if (isset($chapter->toc) && $chapter->toc) {
+                                $chapterArray['toc'] = $chapter->toc;
+                            }
+                            if (isset($chapter->chapterUrl) && $chapter->chapterUrl) {
+                                $chapterArray['url'] = $chapter->chapterUrl;
+                            }
+                            if (isset($chapter->endTime) && $chapter->endTime) {
+                                $chapterArray['endTime'] = $chapter->endTime;
+                            }
+                            $chaptersArray[] = $chapterArray;
                         }
-                        if (isset($chapter->toc) && $chapter->toc) {
-                            $chapterArray['toc'] = $chapter->toc;
-                        }
-                        if (isset($chapter->chapterUrl) && $chapter->chapterUrl) {
-                            $chapterArray['url'] = $chapter->chapterUrl;
-                        }
-                        if (isset($chapter->endTime) && $chapter->endTime) {
-                            $chapterArray['endTime'] = $chapter->endTime;
-                        }
-                        $chaptersArray[] = $chapterArray;
                     }
                 }
             }

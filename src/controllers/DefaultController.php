@@ -222,12 +222,22 @@ class DefaultController extends Controller
     public function actionGetPageContext(int $elementId): Response
     {
         $elementType = Craft::$app->getElements()->getElementTypeById($elementId);
-        $chapterField = Craft::$app->fields->getFieldByHandle('episodeChapter');
-        $soundbiteField = Craft::$app->fields->getFieldByHandle('episodeSoundbite');
+
+        // Chapter field
+        list($chapterField, $chapterBlockTypeHandle) = GeneralHelper::getFieldDefinition('chapter');
+
+        // Soundbite field
+        list($soundbiteField, $soundbiteBlockTypeHandle) = GeneralHelper::getFieldDefinition('soundbite');
+
+        // Pass data
         $array = [
             'elementType' => $elementType,
-            'chapterField' => $chapterField ? get_class($chapterField) : null,
-            'soundbiteField' => $soundbiteField ? get_class($soundbiteField) : null,
+            'chapterFieldType' => $chapterField ? get_class($chapterField) : null,
+            'chapterFieldHandle' => $chapterField ? $chapterField->handle : null,
+            'chapterBlockTypeHandle' => $chapterBlockTypeHandle ?? null,
+            'soundbiteFieldType' => $soundbiteField ? get_class($soundbiteField) : null,
+            'soundbiteFieldHandle' => $soundbiteField ? $soundbiteField->handle : null,
+            'soundbiteBlockTypeHandle' => $soundbiteBlockTypeHandle ?? null,
         ];
         return $this->asJson($array);
     }

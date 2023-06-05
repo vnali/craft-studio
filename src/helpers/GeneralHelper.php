@@ -16,12 +16,14 @@ use craft\elements\Tag;
 use craft\events\ListVolumesEvent;
 use craft\fields\Categories;
 use craft\fields\Entries;
+use craft\fields\Matrix;
 use craft\fields\Tags;
 use craft\fs\Local;
 use craft\helpers\Assets;
 use craft\helpers\Db;
 use verbb\supertable\SuperTable;
 
+use vnali\studio\models\Settings;
 use vnali\studio\Studio;
 use yii\web\BadRequestHttpException;
 use yii\web\ServerErrorHttpException;
@@ -889,5 +891,100 @@ class GeneralHelper
         }
 
         return array($keywordIds, $keywords);
+    }
+
+    /**
+     * Return field based on needed item
+     *
+     * @param string $fieldItem
+     * @return array
+     */
+    public static function getFieldDefinition(string $fieldItem): array
+    {
+        $field = null;
+        $blockTypeHandle = null;
+        switch ($fieldItem) {
+            case 'chapter':
+                $defaultHandle = 'episodeChapter';
+                $defaultHandle2 = 'episodeData';
+                $defaultBlockType = 'chapter';
+                $handleAttribute = 'chapterField';
+                $blockTypeAttribute = 'chapterBlockType';
+                break;
+            case 'soundbite':
+                $defaultHandle = 'episodeSoundbite';
+                $defaultHandle2 = 'episodeData';
+                $defaultBlockType = 'soundbite';
+                $handleAttribute = 'soundbiteField';
+                $blockTypeAttribute = 'soundbiteBlockType';
+                break;
+            case 'funding':
+                $defaultHandle = 'podcastFunding';
+                $defaultHandle2 = 'podcastData';
+                $defaultBlockType = 'funding';
+                $handleAttribute = 'fundingField';
+                $blockTypeAttribute = 'fundingBlockType';
+                break;
+            case 'podcastLicense':
+                $defaultHandle = 'podcastLicense';
+                $defaultHandle2 = 'podcastData';
+                $defaultBlockType = 'license';
+                $handleAttribute = 'podcastLicenseField';
+                $blockTypeAttribute = 'podcastLicenseBlockType';
+                break;
+            case 'episodeLicense':
+                $defaultHandle = 'episodeLicense';
+                $defaultHandle2 = 'episodeData';
+                $defaultBlockType = 'license';
+                $handleAttribute = 'episodeLicenseField';
+                $blockTypeAttribute = 'episodeLicenseBlockType';
+                break;
+            case 'podcastPerson':
+                $defaultHandle = 'podcastPerson';
+                $defaultHandle2 = 'podcastData';
+                $defaultBlockType = 'person';
+                $handleAttribute = 'podcastPersonField';
+                $blockTypeAttribute = 'podcastPersonBlockType';
+                break;
+            case 'episodePerson':
+                $defaultHandle = 'episodePerson';
+                $defaultHandle2 = 'episodeData';
+                $defaultBlockType = 'person';
+                $handleAttribute = 'episodePersonField';
+                $blockTypeAttribute = 'episodePersonBlockType';
+                break;
+            default:
+                return array($field, $blockTypeHandle);
+        }
+        // First try to get specified field from plugin config
+        /** @var Settings $settings */
+        $settings = Studio::$plugin->getSettings();
+        if ($settings->$handleAttribute) {
+            $fieldHandle = $settings->$handleAttribute;
+            $field = Craft::$app->fields->getFieldByHandle($fieldHandle);
+            if (!$field) {
+                return array($field, $blockTypeHandle);
+            }
+        }
+        // If field is not found based on handle specified on plugin config, try to get based on default handle
+        if ($field === null) {
+            $field = Craft::$app->fields->getFieldByHandle($defaultHandle);
+            if (!$field) {
+                // Give default handle for matrix -defaultHandle2- a chance
+                $field = Craft::$app->fields->getFieldByHandle($defaultHandle2);
+                if (!is_object($field) || (is_object($field) && get_class($field) != Matrix::class)) {
+                    $field = null;
+                }
+            }
+        }
+        // If field is a matrix, search for block type specified on config file. If not use default block type handle
+        if ($field && get_class($field) == Matrix::class) {
+            if ($settings->$blockTypeAttribute) {
+                $blockTypeHandle = $settings->$blockTypeAttribute;
+            } else {
+                $blockTypeHandle = $defaultBlockType;
+            }
+        }
+        return array($field, $blockTypeHandle);
     }
 }
