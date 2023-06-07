@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.9.0 - 2023-06-07
 
 - Added <podcast:person> support ([#11](https://github.com/vnali/craft-studio/discussions/11)).
 - Podcast and episode custom field handles are configurable now ([#12](https://github.com/vnali/craft-studio/discussions/12)).
