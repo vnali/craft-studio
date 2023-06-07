@@ -5,6 +5,7 @@
 - Added <podcast:person> support ([#11](https://github.com/vnali/craft-studio/discussions/11)).
 - Podcast and episode custom field handles are configurable now ([#12](https://github.com/vnali/craft-studio/discussions/12)).
 - Any changes to elements inside the project invalidate the RSS page cache ([#13](https://github.com/vnali/craft-studio/discussions/13)).
+- Fixed a bug where soundbites with start time 0 were not displayed on RSS. 
 
 ## 0.8.0 - 2023-05-29
 

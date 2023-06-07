@@ -910,7 +910,7 @@ class PodcastsController extends Controller
                         $soundbiteBlocks = $blockQuery->fieldId($soundbiteField->id)->owner($episode)->all();
                     }
                     foreach ($soundbiteBlocks as $soundbiteBlock) {
-                        if (isset($soundbiteBlock->startTime) && $soundbiteBlock->startTime && isset($soundbiteBlock->duration) && $soundbiteBlock->duration) {
+                        if (isset($soundbiteBlock->startTime) && isset($soundbiteBlock->duration) && $soundbiteBlock->duration) {
                             $xmlSoundbite = $xml->createElement("podcast:soundbite", (isset($soundbiteBlock->soundbiteTitle) && $soundbiteBlock->soundbiteTitle) ? htmlspecialchars($soundbiteBlock->soundbiteTitle, ENT_QUOTES | ENT_XML1, 'UTF-8') : '');
                             $xmlSoundbite->setAttribute("startTime", $soundbiteBlock->startTime);
                             $xmlSoundbite->setAttribute("duration", $soundbiteBlock->duration);
