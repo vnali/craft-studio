@@ -10,8 +10,9 @@ use craft\events\ConfigEvent;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
-
+use Done\Subtitles\Subtitles;
 use vnali\studio\elements\Episode as EpisodeElement;
+use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\Studio;
 
 use yii\base\Component;
@@ -138,5 +139,88 @@ class episodesService extends Component
             }
         }
         return $episodeNativeFields;
+    }
+
+    /**
+     * Get transcript on different types based on transcript string or episode element
+     *
+     * @param string $type
+     * @param string|null $transcript
+     * @param EpisodeElement|null $episode
+     * @return string|null
+     */
+    public function transcript(string $type, string $transcript = null, EpisodeElement $episode = null): ?string
+    {
+        $captionContent = null;
+        if (!$transcript && $episode) {
+            list($transcriptTextField) = GeneralHelper::getFieldDefinition('transcriptText');
+            if ($transcriptTextField) {
+                $transcript = $episode->{$transcriptTextField->handle};
+            }
+        }
+        if (strcasecmp($type, 'JSON') === 0) {
+            $subtitles = new Subtitles();
+            $subtitles = Subtitles::loadFromString($transcript, 'vtt');
+            $internalFormat = $subtitles->getInternalFormat();
+            $jsonArray = [];
+            $jsonArray['version'] = '1.0.0';
+            if (is_array($internalFormat)) {
+                foreach ($internalFormat as $format) {
+                    $segment = [];
+                    $segment['startTime'] = $format['start'];
+                    $segment['endTime'] = $format['end'];
+                    $body = '';
+                    foreach ($format['lines'] as $key => $line) {
+                        if ($key == 0) {
+                            $lineParts = explode(':', $line);
+                            if (count($lineParts) > 1) {
+                                $segment['speaker'] = $lineParts[0];
+                                $body = $lineParts[1];
+                            } else {
+                                $body = $line;
+                            }
+                        } else {
+                            $body = $body . '<br>' . $line;
+                        }
+                    }
+                    $segment['body'] = $body;
+                    $jsonArray['segments'][] = $segment;
+                }
+            }
+            $captionContent = json_encode($jsonArray, JSON_UNESCAPED_UNICODE);
+        } elseif (strcasecmp($type, 'HTML') === 0) {
+            $subtitles = new Subtitles();
+            $subtitles = Subtitles::loadFromString($transcript, 'vtt');
+            $internalFormat = $subtitles->getInternalFormat();
+            if (is_array($internalFormat)) {
+                foreach ($internalFormat as $format) {
+                    $captionContent = $captionContent . '<time>' . $format['start'] . '</time>';
+                    $body = '';
+                    foreach ($format['lines'] as $key => $line) {
+                        if ($key == 0) {
+                            $lineParts = explode(':', $line);
+                            if (count($lineParts) > 1) {
+                                $captionContent = $captionContent . '<cite>' . $lineParts[0] . '</cite>';
+                                $body = $lineParts[1];
+                            } else {
+                                $body = $line;
+                            }
+                        } else {
+                            $body = $body . '<br>' . $line;
+                        }
+                    }
+                    $captionContent = $captionContent . '<p>' . $body . '</p>';
+                }
+            }
+        } elseif (strcasecmp($type, 'SRT') === 0) {
+            $subtitles = new Subtitles();
+            $subtitles = Subtitles::loadFromString($transcript, 'vtt');
+            $captionContent = $subtitles->content('srt');
+        } elseif (strcasecmp($type, 'VTT') === 0) {
+            $captionContent = $transcript;
+        } elseif (strcasecmp($type, 'TEXT') === 0) {
+            $captionContent = $transcript;
+        }
+        return $captionContent;
     }
 }

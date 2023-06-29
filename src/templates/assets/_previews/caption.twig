@@ -1,0 +1,16 @@
+{% import "_includes/forms" as forms %}
+
+{{ forms.textareaField({
+    first: true,
+    label: "Caption"|t('studio'),
+    id: 'caption',
+    name: 'caption',
+}) }}
+
+{{ forms.selectField({
+    label: "Caption speaker"|t('studio'),
+    id: 'captionSpeaker',
+    name: 'captionSpeaker',
+    class: 'selectize fullwidth selectfield',
+    options: speakers
+}) }}

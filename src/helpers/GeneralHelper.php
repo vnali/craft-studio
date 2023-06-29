@@ -894,7 +894,7 @@ class GeneralHelper
     }
 
     /**
-     * Return field based on needed item
+     * Return field based on item
      *
      * @param string $fieldItem
      * @return array
@@ -953,6 +953,17 @@ class GeneralHelper
                 $handleAttribute = 'episodePersonField';
                 $blockTypeAttribute = 'episodePersonBlockType';
                 break;
+            case 'transcript':
+                $defaultHandle = 'episodeTranscript';
+                $defaultHandle2 = 'episodeData';
+                $defaultBlockType = 'transcript';
+                $handleAttribute = 'transcriptField';
+                $blockTypeAttribute = 'transcriptBlockType';
+                break;
+            case 'transcriptText':
+                $defaultHandle = 'transcriptText';
+                $handleAttribute = 'transcriptTextField';
+                break;
             default:
                 return array($field, $blockTypeHandle);
         }
@@ -969,7 +980,7 @@ class GeneralHelper
         // If field is not found based on handle specified on plugin config, try to get based on default handle
         if ($field === null) {
             $field = Craft::$app->fields->getFieldByHandle($defaultHandle);
-            if (!$field) {
+            if (!$field && isset($defaultHandle2)) {
                 // Give default handle for matrix -defaultHandle2- a chance
                 $field = Craft::$app->fields->getFieldByHandle($defaultHandle2);
                 if (!is_object($field) || (is_object($field) && get_class($field) != Matrix::class)) {
@@ -979,9 +990,9 @@ class GeneralHelper
         }
         // If field is a matrix, search for block type specified on config file. If not use default block type handle
         if ($field && get_class($field) == Matrix::class) {
-            if ($settings->$blockTypeAttribute) {
+            if (isset($blockTypeAttribute) && $settings->$blockTypeAttribute) {
                 $blockTypeHandle = $settings->$blockTypeAttribute;
-            } else {
+            } elseif (isset($defaultBlockType)) {
                 $blockTypeHandle = $defaultBlockType;
             }
         }

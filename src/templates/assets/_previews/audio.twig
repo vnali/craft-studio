@@ -1,7 +1,8 @@
 <div style="height:100%;width:100%;padding:5px;background:rgb(226, 234, 243);overflow-y:auto">
     <p></p>
     <span id="newChapterBtnContainer"></span>&nbsp;&nbsp;
-    <span id="newSoundbiteBtnContainer"></span>
+    <span id="newSoundbiteBtnContainer"></span>&nbsp;&nbsp;
+    <span id="newCaptionBtnContainer"></span>
     <p></p>
     <audio id="audioPreview" controls style="width: 100%;">
         <source src="{{ url }}" type="{{ asset.mimeType }}">
@@ -10,13 +11,11 @@
     <div id="soundbiteContainer">
         <div id="soundbiteText">
             <b id="soundbiteHeader"></b>
-            <br>
         </div>
     </div>
     <div id="chapterContainer">
         <div id="chapterText">
             <b id="chapterHeader"></b>
-            <br>
         </div>
     </div>
 </div>
@@ -30,6 +29,7 @@
         if (!elementId) {
             return;
         }
+
         var data = {
             'elementId' : elementId,
         };
@@ -39,15 +39,20 @@
             url: Craft.getUrl("studio/default/get-page-context" + "?=_" + new Date().getTime()),
             data: data,
             dataType: 'json',
-            success: function (data) {
+            success: function (context) {
 
-                if (data.elementType == 'vnali\\studio\\elements\\Episode') {
+                if (context.elementType == 'vnali\\studio\\elements\\Episode') {
                     var newChapterBtn = '<button type="button" id="new-chapter" class="btn submit">{{ "New Chapter"|t("studio") }}</button>';
                     var newSoundbiteBtn = '<button type="button" id="new-soundbite" class="btn submit start">{{ "Start Soundbite"|t("studio") }}</button>';
+                    var newCaptionBtn = '<button type="button" id="new-caption" class="btn submit start">{{ "Start Caption"|t("studio") }}</button>';
                     
                     $('#newSoundbiteBtnContainer').html(newSoundbiteBtn);
                     $('#newChapterBtnContainer').html(newChapterBtn);
+                    if (context.transcriptTextFieldHandle) {
+                        $('#newCaptionBtnContainer').html(newCaptionBtn);
+                    }
                     
+                    // Chapter
                     var $chapterForm = 
                     $('<form class="modal fitted lazy-create-modal">' + 
                         '<div class="header">' +
@@ -61,24 +66,11 @@
                         '</div>' +
                     '</form>');
 
-                    var $soundbiteForm = 
-                    $('<form class="modal fitted lazy-create-modal">' + 
-                        '<div class="header">' +
-                            '<h1 class="soundbiteHeader"></h1>' +
-                        '</div>' +
-                        '<div class="body">' +
-                            '{{ createSoundbite|e("js") }}' +
-                        '</div>' +
-                        '<div class="footer">' +
-                            '<button type="button" class="btn submit save-soundbite">{{ "save"|t("studio") }}</button>' +
-                        '</div>' +
-                    '</form>');
-
                     $(".modal").on("click", "#new-chapter", function() {
-                        if (data.chapterFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
-                            $("div[data-attribute='" + data.chapterFieldHandle + "']").find(".matrixLayoutContainer, .rowLayoutContainer, .superTable-table").next('.add').activate();
+                        if (context.chapterFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                            $("div[data-attribute='" + context.chapterFieldHandle + "']").find(".matrixLayoutContainer, .rowLayoutContainer, .superTable-table").next('.add').activate();
                         } else {
-                            $("div[data-attribute='" + data.chapterFieldHandle + "'] button[data-type='" + data.chapterBlockTypeHandle + "']").click();
+                            $("div[data-attribute='" + context.chapterFieldHandle + "'] button[data-type='" + context.chapterBlockTypeHandle + "']").click();
                         }
 
                         // Get hh:mm:ss format
@@ -94,10 +86,10 @@
                             startTimeFixed = assetAudio.currentTime.toFixed(3);
                         }
 
-                        if (data.chapterFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
-                            $("div[data-attribute='" + data.chapterFieldHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
+                        if (context.chapterFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                            $("div[data-attribute='" + context.chapterFieldHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
                         } else {
-                            $("div[data-attribute='" + data.chapterFieldHandle + "'] div[data-type='" + data.chapterBlockTypeHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
+                            $("div[data-attribute='" + context.chapterFieldHandle + "'] div[data-type='" + context.chapterBlockTypeHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
                         }
                         assetAudio.pause();
 
@@ -117,13 +109,13 @@
 
                         $('.save-chapter').on('click', function (ev) {
                             chapterTitle = $('#chapterTitle').val();
-                            if (data.chapterFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
-                                $("div[data-attribute='" + data.chapterFieldHandle + "'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
+                            if (context.chapterFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='" + context.chapterFieldHandle + "'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
                             } else {
-                                $("div[data-attribute='" + data.chapterFieldHandle + "'] div[data-type='" + data.chapterBlockTypeHandle + "'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
+                                $("div[data-attribute='" + context.chapterFieldHandle + "'] div[data-type='" + context.chapterBlockTypeHandle + "'] div[data-attribute='chapterTitle']:last input").val(chapterTitle);
                             }
                             if (!$("#chapterHeader").val()) {
-                                $("#chapterHeader").html("{{ 'Chapter'|t('studio') }}:");
+                                $("#chapterHeader").html("{{ 'Chapter'|t('studio') }}:<br>");
                             }
                             $("#chapterText").append(hhmmss + '-' + chapterTitle + '</br>');
                             assetAudio.play();
@@ -136,6 +128,20 @@
                         });
                     });
 
+                    // Soundbite
+                    var $soundbiteForm = 
+                    $('<form class="modal fitted lazy-create-modal">' + 
+                        '<div class="header">' +
+                            '<h1 class="soundbiteHeader"></h1>' +
+                        '</div>' +
+                        '<div class="body">' +
+                            '{{ createSoundbite|e("js") }}' +
+                        '</div>' +
+                        '<div class="footer">' +
+                            '<button type="button" class="btn submit save-soundbite">{{ "save"|t("studio") }}</button>' +
+                        '</div>' +
+                    '</form>');
+
                     var startSoundbite;
                     var stopSoundbite
                     var soundbiteModal;
@@ -146,10 +152,10 @@
                             $("#new-soundbite").addClass('stop').removeClass('start');
                             startSoundbite = assetAudio.currentTime;
                             assetAudio.play();
-                            if (data.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
-                                $("div[data-attribute='" + data.soundbiteFieldHandle + "']").find(".matrixLayoutContainer, .rowLayoutContainer, .superTable-table").next('.add').activate();
+                            if (context.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='" + context.soundbiteFieldHandle + "']").find(".matrixLayoutContainer, .rowLayoutContainer, .superTable-table").next('.add').activate();
                             } else {
-                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] button[data-type='" + data.soundbiteBlockTypeHandle + "']").click();
+                                $("div[data-attribute='" + context.soundbiteFieldHandle + "'] button[data-type='" + context.soundbiteBlockTypeHandle + "']").click();
                             }
 
                             // start time
@@ -159,10 +165,10 @@
                                 startTimeFixed = startSoundbite.toFixed(3);
                             }
 
-                            if (data.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
-                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
+                            if (context.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='" + context.soundbiteFieldHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
                             } else {
-                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-type='" + data.soundbiteBlockTypeHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
+                                $("div[data-attribute='" + context.soundbiteFieldHandle + "'] div[data-type='" + context.soundbiteBlockTypeHandle + "'] div[data-attribute='startTime']:last input").val(startTimeFixed);
                             }
                         } else if ($("#new-soundbite").hasClass('stop')) {
                             $("#new-soundbite").addClass('start').removeClass('stop');
@@ -197,22 +203,22 @@
                                 $(".soundbiteHeader").html("{{ 'Duration'|t('studio')}}" + ': ' + hhmmss);
                             }, 100);
 
-                            if (data.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
-                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-attribute='duration']:last input").val(durationFixed);
+                            if (context.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='" + context.soundbiteFieldHandle + "'] div[data-attribute='duration']:last input").val(durationFixed);
                             } else {
-                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-type='" + data.soundbiteBlockTypeHandle + "'] div[data-attribute='duration']:last input").val(durationFixed);
+                                $("div[data-attribute='" + context.soundbiteFieldHandle + "'] div[data-type='" + context.soundbiteBlockTypeHandle + "'] div[data-attribute='duration']:last input").val(durationFixed);
                             }
                         }
 
                         $('.save-soundbite').on('click', function (ev) {
                             soundbiteTitle = $('#soundbiteTitle').val();
-                            if (data.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
-                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-attribute='soundbiteTitle']:last input").val(soundbiteTitle);
+                            if (context.soundbiteFieldType == 'verbb\\supertable\\fields\\SuperTableField') {
+                                $("div[data-attribute='" + context.soundbiteFieldHandle + "'] div[data-attribute='soundbiteTitle']:last input").val(soundbiteTitle);
                             } else {
-                                $("div[data-attribute='" + data.soundbiteFieldHandle + "'] div[data-type='" + data.soundbiteBlockTypeHandle + "'] div[data-attribute='soundbiteTitle']:last input").val(soundbiteTitle);
+                                $("div[data-attribute='" + context.soundbiteFieldHandle + "'] div[data-type='" + context.soundbiteBlockTypeHandle + "'] div[data-attribute='soundbiteTitle']:last input").val(soundbiteTitle);
                             }
                             if (!$("#soundbiteHeader").val()) {
-                                $("#soundbiteHeader").html("{{ 'Soundbite'|t('studio') }}:");
+                                $("#soundbiteHeader").html("{{ 'Soundbite'|t('studio') }}:<br>");
                             }
                             $("#soundbiteText").append(startSoundbite + ' - ' + stopSoundbite + ' - ' + soundbiteTitle + '</br>');
                             assetAudio.play();
@@ -221,6 +227,166 @@
 
                         $soundbiteForm.find('.cancel-btn').on('click', function () {
                             soundbiteModal.hide();
+                            assetAudio.play();
+                        });
+                    });
+
+                    // Caption
+                    var $captionForm = 
+                    $('<form class="modal fitted lazy-create-modal">' + 
+                        '<div class="header">' +
+                            '<h1 class="captionHeader"></h1>' +
+                        '</div>' +
+                        '<div class="body">' +
+                            '{{ createCaption|e("js") }}' +
+                            '<button type="button" class="btn submit add-speaker">{{ "Add Speaker"|t("studio") }}</button>' +
+                        '</div>' +
+                        '<div class="footer">' +
+                            '<button type="button" class="btn submit save-caption">{{ "save"|t("studio") }}</button>' +
+                        '</div>' +
+                    '</form>');
+
+                    var startCaption;
+                    var stopCaption
+                    var captionModal;
+                    $(".modal").on("click", "#new-caption", function() {
+                        if (typeof select !== 'undefined') {
+                            select.destroy();
+                        }
+                        if ($("#new-caption").hasClass('start')) {
+                            $("#new-caption").html('{{ "Stop Caption"|t("studio") }}');
+                            $("#new-caption").addClass('stop').removeClass('start');
+                            startCaption = assetAudio.currentTime;
+                            assetAudio.play();
+
+                            // start time
+                            if (Number.isInteger(startCaption)) {
+                                startCaption = startCaption;
+                            } else {
+                                startCaption = startCaption.toFixed(3);
+                            }
+                        } else if ($("#new-caption").hasClass('stop')) {
+                            $("#new-caption").addClass('start').removeClass('stop');
+                            $("#new-caption").html('{{ "Start Caption"|t("studio") }}');
+                            stopCaption = assetAudio.currentTime;
+                            assetAudio.pause();
+
+                            duration = stopCaption - startCaption;
+                            // Get hh:mm:ss format
+                            seconds = Math.floor(duration);
+                            const date = new Date(null);
+                            date.setSeconds(seconds);
+                            const hhmmss = date.toISOString().slice(11, 19);
+
+                            if (Number.isInteger(duration)) {
+                                durationFixed = duration;
+                            } else {
+                                durationFixed = duration.toFixed(3);
+                            }
+
+                            captionModal = new Garnish.Modal($captionForm, {
+                                onHide: function () {
+                                    captionModal.destroy();
+                                    delete captionModal;
+                                },
+                            });
+
+                            setTimeout(function () {
+                                $captionForm.find('.text:first').focus();
+                                captionModal.updateSizeAndPosition();
+
+                                $(".captionHeader").html("{{ 'Duration'|t('studio')}}" + ': ' + hhmmss);
+                            }, 100);
+
+                            // Update speakers
+                            
+                            // Destroy drop down if exist, otherwise selectize wont work if modal open for second time
+                            $('#captionSpeaker').selectize()[0].selectize.destroy();
+
+                            var $select = $('#captionSpeaker').selectize({
+                                dropdownParent: 'body',
+                                create: true,
+                            });
+
+                            var select = $select.get(0).selectize;
+                            $.each(context.speakers, function(i, item) {
+                                select.addOption({
+                                    value: item.value,
+                                    text: item.label
+                                });
+                            });
+                            
+                            speakers = $("body").data("speakers");
+                            if (typeof speakers !== "undefined") {
+                                var storedSpeakers = JSON.parse(speakers);
+                                $.each(storedSpeakers, function(i, item) {
+                                    select.addOption({
+                                        value: item,
+                                        text: item
+                                    });
+                                });
+                            }
+                            //
+                        }
+
+                        $('.add-speaker').on('click', function (ev) {
+                            var textareaVal = '';
+                            if ($('#caption').val()) {
+                                textareaVal = $('#caption').val() + '\n';
+                            }
+                            $('#caption').val(textareaVal + '<v ' + $('#captionSpeaker').val() + '></v>');
+                        });
+
+                        // New caption
+                        $('.save-caption').on('click', function (ev) {
+                            speaker = $('#captionSpeaker').val();
+                            caption = $('#caption').val();
+                            $('#caption').val('');
+                            
+                            // Save as json
+                            var segment = {
+                                speaker: speaker,
+                                startTime: startCaption,
+                                endTime: stopCaption,
+                                body: caption 
+                            };
+
+                            // Pass new caption and current caption and get SRT format
+                            var caption = $('#fields-' + context.transcriptTextFieldHandle).val();
+                            window.csrfTokenName = "{{ craft.app.config.general.csrfTokenName|e('js') }}";
+                            window.csrfTokenValue = "{{ craft.app.request.csrfToken|e('js') }}";
+                            var data = {
+                                'newCaption' : JSON.stringify(segment),
+                                'caption': caption
+                            };
+                            data[csrfTokenName] = csrfTokenValue;
+                            $.ajax({
+                                method: "POST",
+                                url: Craft.getUrl("studio/episodes/transcript-content" + "?=_" + new Date().getTime()),
+                                data: data,
+                                success: function (captionContent) {
+                                    // Keep srt in field
+                                    $('#fields-' + context.transcriptTextFieldHandle).val(captionContent);
+                                }
+                            });
+
+                            // Keep new speaker if there is a new one
+                            if (typeof storedSpeakers === "undefined") {
+                                storedSpeakers = [];
+                            }
+                            if (speaker && jQuery.inArray(speaker, storedSpeakers) === -1) {
+                                storedSpeakers.push(speaker);
+                            }
+                            $("body").data("speakers", JSON.stringify(storedSpeakers));
+                            //
+
+                            select.destroy();
+                            captionModal.hide();
+                        });
+
+                        $captionForm.find('.cancel-btn').on('click', function () {
+                            captionModal.hide();
+                            select.destroy();
                             assetAudio.play();
                         });
                     });

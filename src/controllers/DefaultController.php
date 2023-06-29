@@ -8,7 +8,15 @@ namespace vnali\studio\controllers;
 
 use Craft;
 use craft\base\LocalFsInterface;
+use craft\elements\db\EntryQuery;
+use craft\elements\db\UserQuery;
+use craft\fields\Matrix;
+use craft\fields\PlainText;
+use craft\fields\Table;
 use craft\web\Controller;
+use verbb\supertable\elements\SuperTableBlockElement;
+use verbb\supertable\fields\SuperTableField;
+use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\helpers\Id3;
 use vnali\studio\helpers\Time;
@@ -229,6 +237,155 @@ class DefaultController extends Controller
         // Soundbite field
         list($soundbiteField, $soundbiteBlockTypeHandle) = GeneralHelper::getFieldDefinition('soundbite');
 
+        // Transcript text field
+        list($transcriptTextField) = GeneralHelper::getFieldDefinition('transcriptText');
+
+        $speakers = [];
+
+        if ($transcriptTextField) {
+            $episode = Craft::$app->elements->getElementById($elementId);
+            $fieldLayout = $episode->getFieldLayout();
+    
+            $transcriptTextIncluded = $fieldLayout->isFieldIncluded($transcriptTextField->handle);
+            if ($transcriptTextIncluded) {
+                // Speakers
+                // TODO: we should not suggest all person and person roles as speaker
+                list($personField, $personBlockTypeHandle) = GeneralHelper::getFieldDefinition('episodePerson');
+                if ($personField) {
+                    $personFieldHandle = $personField->handle;
+                    if (get_class($personField) == PlainText::class) {
+                        if (isset($episode->$personFieldHandle) && $episode->$personFieldHandle) {
+                            $speaker = [];
+                            $speaker['value'] = $episode->$personFieldHandle;
+                            $speaker['label'] = $episode->$personFieldHandle;
+                            $speakers[] = $speaker;
+                        }
+                    } elseif (get_class($personField) == Table::class) {
+                        if (isset($episode->$personFieldHandle) && $episode->$personFieldHandle) {
+                            foreach ($episode->$personFieldHandle as $row) {
+                                if (isset($row['person']) && $row['person']) {
+                                    $speaker = [];
+                                    $speaker['value'] = $row['person'];
+                                    $speaker['label'] = $row['person'];
+                                    $speakers[] = $speaker;
+                                }
+                            }
+                        }
+                    } elseif (get_class($personField) == Matrix::class || get_class($personField) == SuperTableField::class) {
+                        $personBlocks = [];
+                        if (get_class($personField) == Matrix::class) {
+                            $blockQuery = \craft\elements\MatrixBlock::find();
+                            $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->type($personBlockTypeHandle)->all();
+                        } elseif (get_class($personField) == SuperTableField::class) {
+                            $blockQuery = SuperTableBlockElement::find();
+                            $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->all();
+                        }
+                        foreach ($personBlocks as $personBlock) {
+                            if (isset($personBlock->person) && $personBlock->person) {
+                                // Person Value
+                                if (!is_object($personBlock->person)) {
+                                    $speaker = [];
+                                    $speaker['value'] = $personBlock->person;
+                                    $speaker['label'] = $personBlock->person;
+                                    $speakers[] = $speaker;
+                                } else {
+                                    if (get_class($personBlock->person) == UserQuery::class || get_class($personBlock->person) == EntryQuery::class) {
+                                        $person = $personBlock->person->one();
+                                        if ($person) {
+                                            if (get_class($personBlock->person) == UserQuery::class) {
+                                                if ($person->fullName) {
+                                                    $speaker = [];
+                                                    $speaker['value'] = $person->fullName;
+                                                    $speaker['label'] = $person->fullName;
+                                                    $speakers[] = $speaker;
+                                                }
+                                            } elseif (get_class($personBlock->person) == EntryQuery::class) {
+                                                if (isset($person->title) && $person->title) {
+                                                    $speaker = [];
+                                                    $speaker['value'] = $person->title;
+                                                    $speaker['label'] = $person->title;
+                                                    $speakers[] = $speaker;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!$speakers) {
+                    // If speakers from episodePerson is empty, try podcastPerson
+                    /** @var EpisodeElement $episode */
+                    $podcast = $episode->getPodcast();
+                    list($personField, $personBlockTypeHandle) = GeneralHelper::getFieldDefinition('podcastPerson');
+                    if ($personField) {
+                        $personFieldHandle = $personField->handle;
+                        if (get_class($personField) == PlainText::class) {
+                            if (isset($podcast->$personFieldHandle) && $podcast->$personFieldHandle) {
+                                $speaker = [];
+                                $speaker['value'] = $podcast->$personFieldHandle;
+                                $speaker['label'] = $podcast->$personFieldHandle;
+                                $speakers[] = $speaker;
+                            }
+                        } elseif (get_class($personField) == Table::class) {
+                            if (isset($podcast->$personFieldHandle) && $podcast->$personFieldHandle) {
+                                foreach ($podcast->$personFieldHandle as $row) {
+                                    if (isset($row['person']) && $row['person']) {
+                                        $speaker = [];
+                                        $speaker['value'] = $row['person'];
+                                        $speaker['label'] = $row['person'];
+                                        $speakers[] = $speaker;
+                                    }
+                                }
+                            }
+                        } elseif (get_class($personField) == Matrix::class || get_class($personField) == SuperTableField::class) {
+                            $personBlocks = [];
+                            if (get_class($personField) == Matrix::class) {
+                                $blockQuery = \craft\elements\MatrixBlock::find();
+                                $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->type($personBlockTypeHandle)->all();
+                            } elseif (get_class($personField) == SuperTableField::class) {
+                                $blockQuery = SuperTableBlockElement::find();
+                                $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->all();
+                            }
+                            foreach ($personBlocks as $personBlock) {
+                                if (isset($personBlock->person) && $personBlock->person) {
+                                    // Person Value
+                                    if (!is_object($personBlock->person)) {
+                                        $speaker = [];
+                                        $speaker['value'] = $personBlock->person;
+                                        $speaker['label'] = $personBlock->person;
+                                        $speakers[] = $speaker;
+                                    } else {
+                                        if (get_class($personBlock->person) == UserQuery::class || get_class($personBlock->person) == EntryQuery::class) {
+                                            $person = $personBlock->person->one();
+                                            if ($person) {
+                                                if (get_class($personBlock->person) == UserQuery::class) {
+                                                    if ($person->fullName) {
+                                                        $speaker = [];
+                                                        $speaker['value'] = $person->fullName;
+                                                        $speaker['label'] = $person->fullName;
+                                                        $speakers[] = $speaker;
+                                                    }
+                                                } elseif (get_class($personBlock->person) == EntryQuery::class) {
+                                                    if (isset($person->title) && $person->title) {
+                                                        $speaker = [];
+                                                        $speaker['value'] = $person->title;
+                                                        $speaker['label'] = $person->title;
+                                                        $speakers[] = $speaker;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Pass data
         $array = [
             'elementType' => $elementType,
@@ -238,6 +395,8 @@ class DefaultController extends Controller
             'soundbiteFieldType' => $soundbiteField ? get_class($soundbiteField) : null,
             'soundbiteFieldHandle' => $soundbiteField ? $soundbiteField->handle : null,
             'soundbiteBlockTypeHandle' => $soundbiteBlockTypeHandle ?? null,
+            'transcriptTextFieldHandle' => ($transcriptTextField && $transcriptTextIncluded) ? $transcriptTextField->handle : null,
+            'speakers' => $speakers,
         ];
         return $this->asJson($array);
     }

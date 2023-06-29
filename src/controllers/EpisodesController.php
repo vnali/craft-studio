@@ -10,6 +10,10 @@ use Craft;
 use craft\base\Element;
 use craft\db\Table;
 use craft\elements\db\AssetQuery;
+use craft\fields\Checkboxes;
+use craft\fields\Dropdown;
+use craft\fields\MultiSelect;
+use craft\fields\RadioButtons;
 use craft\helpers\Cp;
 use craft\helpers\Db;
 use craft\helpers\ElementHelper;
@@ -17,13 +21,13 @@ use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\UrlManager;
 use craft\web\View;
+
+use Done\Subtitles\Subtitles;
 use Symfony\Component\DomCrawler\Crawler;
 
 use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\elements\Podcast as PodcastElement;
 use vnali\studio\helpers\GeneralHelper;
-
-;
 use vnali\studio\jobs\importEpisodeJob;
 use vnali\studio\models\ImportEpisodeRSS;
 use vnali\studio\records\PodcastEpisodeSettingsRecord;
@@ -38,7 +42,7 @@ use yii\web\ServerErrorHttpException;
 
 class EpisodesController extends Controller
 {
-    protected int|bool|array $allowAnonymous = ['chapter'];
+    protected int|bool|array $allowAnonymous = ['chapter', 'transcript'];
 
     /**
      * @inheritdoc
@@ -262,7 +266,7 @@ class EpisodesController extends Controller
                 $urlManager->setRouteParams([
                     'settings' => $settings,
                 ]);
-    
+
                 return null;
             }
         }
@@ -637,5 +641,179 @@ class EpisodesController extends Controller
             'studio/episodes/_jsonChapter',
             $variables
         );
+    }
+
+    /**
+     * Get transcript based on episode id, site and type
+     *
+     * @param integer $episodeId
+     * @param string|null $site
+     * @param string $type
+     * @return string|null
+     */
+    public function actionTranscript(int $episodeId, ?string $site = null, string $type): ?string
+    {
+        $cache = Craft::$app->getCache();
+        if ($site) {
+            $site = Craft::$app->sites->getSiteByHandle($site);
+        }
+
+        // If site is not passed or not found use default site
+        if (!$site) {
+            $site = Craft::$app->sites->getCurrentSite();
+        }
+        $siteId = $site->id;
+        /** @var EpisodeElement|null $episode */
+        $episode = EpisodeElement::find()->id($episodeId)->status(null)->siteId($siteId)->one();
+
+        // Check if selected type is allowed
+        $isSelected = false;
+        list($transcriptField, $transcriptBlockTypeHandle) = GeneralHelper::getFieldDefinition('transcript');
+        if ($transcriptField) {
+            if (get_class($transcriptField) == Checkboxes::class || get_class($transcriptField) == MultiSelect::class) {
+                foreach ($episode->{$transcriptField->handle}->getOptions() as $option) {
+                    if ($option->selected) {
+                        if ($type == $option->value) {
+                            $isSelected = true;
+                            break;
+                        }
+                    }
+                }
+            } elseif (get_class($transcriptField) == RadioButtons::class || get_class($transcriptField) == Dropdown::class) {
+                $selectedOption = $episode->{$transcriptField->handle}->value;
+                if ($type == $selectedOption) {
+                    $isSelected = true;
+                }
+            }
+        }
+
+        if (!$isSelected) {
+            throw new ForbiddenHttpException('You are not allowed to see this type');
+        }
+
+        //
+
+        $podcast = $episode->getPodcast();
+        $generalSettings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcast->id, $siteId);
+        $userSession = Craft::$app->getUser();
+        $currentUser = $userSession->getIdentity();
+
+        if (!$episode) {
+            throw new ServerErrorHttpException('Invalid episode');
+        }
+
+        $siteStatuses = ElementHelper::siteStatusesForElement($podcast, true);
+        $podcastEnabled = $siteStatuses[$podcast->siteId];
+
+        $siteStatuses = ElementHelper::siteStatusesForElement($episode, true);
+        $episodeEnabled = $siteStatuses[$episode->siteId];
+
+        if ((!$podcastEnabled || !$episodeEnabled) && (!$currentUser || (!$currentUser->can("studio-viewPodcast-" . $episode->getPodcast()->uid) && !$currentUser->can("studio-managePodcasts")))) {
+            throw new ForbiddenHttpException('User is not authorized to view this page.');
+        }
+
+        if ($generalSettings->publishRSS && !$generalSettings->allowAllToSeeRSS) {
+            if (!$currentUser || (!$currentUser->can('studio-viewPublishedRSS-' . $podcast->uid) && !$currentUser->can("studio-managePodcasts"))) {
+                throw new ForbiddenHttpException('User is not authorized to view this page.');
+            }
+        }
+
+        if (!$generalSettings->publishRSS) {
+            if (!$currentUser || (!$currentUser->can('studio-viewNotPublishedRSS-' . $podcast->uid) && !$currentUser->can("studio-managePodcasts"))) {
+                throw new ForbiddenHttpException('User is not authorized to view this page.');
+            }
+        }
+
+        $rssCacheKey = 'studio-plugin-' . $siteId . '-' . $episode->id . $type;
+        $variables['type'] = $type;
+        $variables['transcript'] = $cache->getOrSet($rssCacheKey, function() use ($type, $episode) {
+            $captionContent = null;
+            $captionContent = Studio::$plugin->episodes->transcript($type, null, $episode);
+            return $captionContent;
+        }, 0, new TagDependency(['tags' => ['studio-plugin', 'element::' . PodcastElement::class . '::*', 'element::' . EpisodeElement::class . '::*']]));
+        return $variables['transcript'];
+    }
+
+    /**
+     * Download transcript
+     *
+     * @return Response
+     */
+    public function actionTranscriptDownload(): Response
+    {
+        $captionContent = null;
+        $type = $this->request->getRequiredBodyParam('type');
+        $caption = $this->request->getRequiredBodyParam('caption');
+        if (!$caption) {
+            Craft::$app->getSession()->setError(Craft::t('studio', 'There is no caption available'));
+            return $this->redirectToPostedUrl();
+        }
+        $captionContent = Studio::$plugin->episodes->transcript($type, $caption);
+        switch ($type) {
+            case 'JSON':
+                $extension = 'json';
+                break;
+            case 'SRT':
+                $extension = 'srt';
+                break;
+            case 'VTT':
+                $extension = 'vtt';
+                break;
+            case 'TEXT':
+                $extension = 'txt';
+                break;
+            default:
+                Craft::$app->getSession()->setError(Craft::t('studio', 'The type is not valid'));
+                break;
+        }
+        if (!$captionContent) {
+            Craft::$app->getSession()->setNotice(Craft::t('studio', 'The content is empty'));
+        }
+        if (isset($extension)) {
+            $this->response->sendContentAsFile($captionContent, 'caption.' . $extension);
+            return $this->response;
+        } else {
+            return $this->redirectToPostedUrl();
+        }
+    }
+
+    /**
+     * Get transcript content
+     *
+     * @return string
+     */
+    public function actionTranscriptContent(): string
+    {
+        $captionContent = null;
+        $caption = $this->request->getRequiredBodyParam('newCaption');
+        $vtt = $this->request->getRequiredBodyParam('caption');
+        $vtt = Subtitles::loadFromString($vtt, 'vtt');
+        $internalFormat = $vtt->getInternalFormat();
+        if (is_array($internalFormat)) {
+            $internalFormat2 = [];
+            foreach ($internalFormat as $format) {
+                $format2 = $format;
+                $format2['lines'] = [];
+                foreach ($format['lines'] as $line) {
+                    $lineParts = explode(':', $line);
+                    if (count($lineParts) > 1) {
+                        $vttLine = '<v ' . $lineParts[0] . '>' . $lineParts[1] . '</v>';
+                        $format2['lines'][] = $vttLine;
+                    } else {
+                        $format2['lines'][] = $line;
+                    }
+                }
+                $internalFormat2[] = $format2;
+            }
+            $vtt->setInternalFormat($internalFormat2);
+        }
+        $caption = json_decode($caption);
+        if ($caption) {
+            $body = $caption->body;
+            $bodyArray = explode('\n', $body);
+            $vtt->add($caption->startTime, $caption->endTime, $bodyArray);
+            $captionContent = $vtt->content('vtt');
+        }
+        return $captionContent;
     }
 }

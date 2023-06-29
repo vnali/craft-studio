@@ -52,6 +52,7 @@ use vnali\studio\fields\PodcastField;
 use vnali\studio\fields\PodcastMediumField;
 use vnali\studio\fields\PodcastTypeField;
 use vnali\studio\gql\directives\SecToTime;
+use vnali\studio\gql\directives\Transcript;
 use vnali\studio\gql\interfaces\elements\EpisodeInterface;
 use vnali\studio\gql\interfaces\elements\PodcastInterface;
 use vnali\studio\gql\queries\EpisodeQuery;
@@ -468,6 +469,7 @@ class Studio extends Plugin
         // Register the GraphQL directive
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_DIRECTIVES, function(RegisterGqlDirectivesEvent $event) {
             $event->directives[] = SecToTime::class;
+            $event->directives[] = Transcript::class;
         });
 
         Event::on(
@@ -548,6 +550,8 @@ class Studio extends Plugin
                 $event->rules['studio/default/get-page-context'] = 'studio/default/get-page-context';
                 $event->rules['studio/episodes/import-from-asset-index'] = 'studio/episodes/import-from-asset-index';
                 $event->rules['studio/episodes/import-from-rss'] = 'studio/episodes/import-from-rss';
+                $event->rules['studio/episodes/transcript-download'] = 'studio/episodes/transcript-download';
+                $event->rules['studio/episodes/transcript-content'] = 'studio/episodes/transcript-content';
                 $event->rules['studio/episodes/<podcastHandle>'] = ['template' => 'studio/episodes'];
                 $event->rules['studio/episodes/<podcastHandle>/new'] = 'studio/episodes/create';
                 $event->rules['studio/episodes/edit/<elementId:\d+>'] = 'elements/edit';
@@ -572,6 +576,7 @@ class Studio extends Plugin
             function(RegisterUrlRulesEvent $event) {
                 $event->rules['podcasts/rss'] = 'studio/podcasts/rss';
                 $event->rules['episodes/chapter'] = 'studio/episodes/chapter';
+                $event->rules['episodes/transcript'] = 'studio/episodes/transcript';
             }
         );
     }

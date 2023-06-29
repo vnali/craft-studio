@@ -1293,6 +1293,48 @@ class Episode extends Element
             Html::tag('div', $id3Metadata . $id3ImageMetadata . $metaButton, ['class' => 'meta']) .
             Html::endTag('fieldset');
 
+        // Transcript text field
+        list($transcriptTextField) = GeneralHelper::getFieldDefinition('transcriptText');
+        $transcriptTextFieldHandle = $transcriptTextField ? $transcriptTextField->handle : null;
+        // Add required rule for native fields based on episode field layout
+        $fieldLayout = $this->getFieldLayout();
+
+        if ($transcriptTextFieldHandle && $fieldLayout->isFieldIncluded($transcriptTextFieldHandle)) {
+            $option = [
+                'id' => 'json-caption',
+                'class' => ['btn', 'secondary', 'create-caption'],
+            ];
+            $json = Html::tag('div', 'JSON', $option);
+
+            $option = [
+                'id' => 'rss-caption',
+                'class' => ['btn', 'secondary', 'create-caption'],
+            ];
+            $rss = Html::tag('div', 'SRT', $option);
+
+            $option = [
+                'id' => 'vtt-caption',
+                'class' => ['btn', 'secondary', 'create-caption'],
+            ];
+            $vtt = Html::tag('div', 'VTT', $option);
+
+            $option = [
+                'id' => 'text-caption',
+                'class' => ['btn', 'secondary', 'create-caption'],
+            ];
+            $text = Html::tag('div', 'TEXT', $option);
+
+            $option = ['class' => 'meta'];
+            Html::addCssStyle($option, 'padding-bottom:10px');
+            $caption = Html::beginTag('fieldset') .
+                Html::tag('legend', Craft::t('studio', 'Transcript'), ['class' => 'h6']) .
+                Html::tag('div', '<div style="padding-top:10px">' . Craft::t('studio', 'Download') . ':</div>
+                <hr style="margin:5px">' . $json . '&nbsp;' . $rss . '&nbsp;' . $vtt . '&nbsp;' . $text . '</br>', $option) .
+                Html::endTag('fieldset');
+        } else {
+            $caption = '';
+        }
+
         $view = Craft::$app->getView();
         $js = <<<JS
             $('#meta-btn').on('click', () => {
@@ -1315,10 +1357,26 @@ class Episode extends Element
                 \$form.submit();
                 \$form.remove();
             });
+
+            $('.create-caption').on('click', function(e) {
+                var caption = $("#fields-$transcriptTextFieldHandle").val();
+                var type = $(e.target).text();
+                const \$form = Craft.createForm().appendTo(Garnish.\$bod);
+                \$form.append(Craft.getCsrfInput());
+                $('<input/>', {type: 'hidden', name: 'action', value: 'studio/episodes/transcript-download'}).appendTo(\$form);
+                $('<input/>', {type: 'hidden', name: 'elementId', value: $this->id }).appendTo(\$form);
+                $('<input/>', {type: 'hidden', name: 'type', value: type}).appendTo(\$form);
+                $('<input/>', {type: 'hidden', name: 'caption', value: caption}).appendTo(\$form);
+                $('<input/>', {type: 'submit', value: 'Submit'}).appendTo(\$form);
+                \$form.submit();
+                \$form.remove();
+            });
 JS;
         $view->registerJs($js);
 
-        return parent::statusFieldHtml() . $getId3;
+        $view->registerCSS('body .selectize-dropdown .create { background-color: #606d7b !important; color: #fff !important;}');
+
+        return parent::statusFieldHtml() . $getId3 . $caption;
     }
 
     /**

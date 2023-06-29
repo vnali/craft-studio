@@ -39,6 +39,12 @@ class Settings extends Model
 
     public ?string $episodePersonBlockType = null;
 
+    public ?string $transcriptTextField = null;
+
+    public ?string $transcriptField = null;
+
+    public ?string $transcriptBlockType = null;
+
     public function rules(): array
     {
         $rules = parent::rules();

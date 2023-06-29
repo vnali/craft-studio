@@ -12,11 +12,16 @@ use craft\db\Table;
 use craft\elements\db\AssetQuery;
 use craft\elements\db\EntryQuery;
 use craft\elements\db\UserQuery;
+use craft\fields\Assets;
 use craft\fields\Categories;
+use craft\fields\Checkboxes;
 use craft\fields\data\SingleOptionFieldData;
+use craft\fields\Dropdown;
 use craft\fields\Entries;
 use craft\fields\Matrix;
+use craft\fields\MultiSelect;
 use craft\fields\PlainText;
+use craft\fields\RadioButtons;
 use craft\fields\Table as TableField;
 use craft\fields\Tags;
 use craft\fields\Url;
@@ -1133,6 +1138,121 @@ class PodcastsController extends Controller
                                 }
                                 if ($xmlPodcastPerson) {
                                     $xmlItem->appendChild($xmlPodcastPerson);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Episode transcript
+                list($transcriptField, $transcriptBlockTypeHandle) = GeneralHelper::getFieldDefinition('transcript');
+                if ($transcriptField) {
+                    $transcriptFieldHandle = $transcriptField->handle;
+                    if (get_class($transcriptField) == Checkboxes::class || get_class($transcriptField) == MultiSelect::class) {
+                        foreach ($episode->$transcriptFieldHandle->getOptions() as $option) {
+                            if ($option->selected) {
+                                $type = $option->value;
+                                switch ($type) {
+                                    case 'text':
+                                        $mimeType = 'text/plain';
+                                        break;
+                                    case 'html':
+                                        $mimeType = 'text/html';
+                                        break;
+                                    case 'vtt':
+                                        $mimeType = 'text/vtt';
+                                        break;
+                                    case 'json':
+                                        $mimeType = 'application/json';
+                                        break;
+                                    case 'srt':
+                                        $mimeType = 'application/x-subrip';
+                                        break;
+                                    default:
+                                        $mimeType = null;
+                                        break;
+                                }
+                                if ($mimeType) {
+                                    $xmlTranscript = $xml->createElement("podcast:transcript");
+                                    $xmlTranscript->setAttribute("url", Craft::getAlias("@web") . "/episodes/transcript?episodeId=" . $episode->id . '&site=' . $site->handle . "&type=" . $type);
+                                    $xmlTranscript->setAttribute("type", $mimeType);
+                                    $xmlItem->appendChild($xmlTranscript);
+                                }
+                            }
+                        }
+                    } elseif (get_class($transcriptField) == RadioButtons::class || get_class($transcriptField) == Dropdown::class) {
+                        $type = $episode->$transcriptFieldHandle->value;
+                        switch ($type) {
+                            case 'text':
+                                $mimeType = 'text/plain';
+                                break;
+                            case 'html':
+                                $mimeType = 'text/html';
+                                break;
+                            case 'vtt':
+                                $mimeType = 'text/vtt';
+                                break;
+                            case 'json':
+                                $mimeType = 'application/json';
+                                break;
+                            case 'srt':
+                                $mimeType = 'application/x-subrip';
+                                break;
+                            default:
+                                $mimeType = null;
+                                break;
+                        }
+                        if ($mimeType) {
+                            $xmlTranscript = $xml->createElement("podcast:transcript");
+                            $xmlTranscript->setAttribute("url", Craft::getAlias("@web") . "/episodes/transcript?episodeId=" . $episode->id . '&site=' . $site->handle . "&type=" . $type);
+                            $xmlTranscript->setAttribute("type", $mimeType);
+                            $xmlItem->appendChild($xmlTranscript);
+                        }
+                    } elseif (get_class($transcriptField) == Assets::class) {
+                        if (isset($episode->$transcriptFieldHandle) && $episode->$transcriptFieldHandle) {
+                            $transcripts = $episode->$transcriptFieldHandle->all();
+                            foreach ($transcripts as $transcript) {
+                                $xmlTranscript = $xml->createElement("podcast:transcript");
+                                $xmlTranscript->setAttribute("url", htmlspecialchars($transcript->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlTranscript->setAttribute("type", $transcript->mimeType);
+                                $xmlItem->appendChild($xmlTranscript);
+                            }
+                        }
+                    } elseif (get_class($transcriptField) == Matrix::class || get_class($transcriptField) == SuperTableField::class) {
+                        $transcriptBlocks = [];
+                        if (get_class($transcriptField) == Matrix::class) {
+                            $blockQuery = \craft\elements\MatrixBlock::find();
+                            $transcriptBlocks = $blockQuery->fieldId($transcriptField->id)->owner($episode)->type($transcriptBlockTypeHandle)->all();
+                        } elseif (get_class($transcriptField) == SuperTableField::class) {
+                            $blockQuery = SuperTableBlockElement::find();
+                            $transcriptBlocks = $blockQuery->fieldId($transcriptField->id)->owner($episode)->all();
+                        }
+                        foreach ($transcriptBlocks as $transcriptBlock) {
+                            $xmlTranscript = null;
+                            if (isset($transcriptBlock->transcript) && $transcriptBlock->transcript) {
+                                if (is_object($transcriptBlock->transcript) && get_class($transcriptBlock->transcript) == AssetQuery::class) {
+                                    $transcriptFiles = $transcriptBlock->transcript->all();
+                                    if ($transcriptFiles) {
+                                        foreach ($transcriptFiles as $transcriptFile) {
+                                            $xmlTranscript = $xml->createElement("podcast:transcript");
+                                            $xmlTranscript->setAttribute("url",  htmlspecialchars($transcriptFile->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            $xmlTranscript->setAttribute("type", $transcriptFile->mimeType);
+                                            $xmlItem->appendChild($xmlTranscript);
+                                        }
+                                    }
+                                } elseif (!is_object($transcriptBlock->transcript)) {
+                                    $xmlTranscript = $xml->createElement("podcast:transcript");
+                                    $xmlTranscript->setAttribute("url", $transcriptBlock->transcript);
+                                    if (isset($transcriptBlock->mimeType)) {
+                                        $mimeType = $transcriptBlock->mimeType;
+                                        if (is_object($mimeType) && (get_class($mimeType) == SingleOptionFieldData::class)) {
+                                            $type = $mimeType->value;
+                                            $xmlTranscript->setAttribute("type", $type);
+                                        } elseif (!is_object($mimeType)) {
+                                            $xmlTranscript->setAttribute("type", $mimeType);
+                                        }
+                                    }
+                                    $xmlItem->appendChild($xmlTranscript);
                                 }
                             }
                         }

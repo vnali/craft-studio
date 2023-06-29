@@ -30,5 +30,8 @@ return [
         //'episodeLicenseBlockType' => 'episodeLicense',
         //'episodePersonField' => 'episodeExtraData',
         //'episodePersonBlockType' => 'episodePerson',
+        //'transcriptField' => 'episodeExtraData',
+        //'transcriptBlockType' => 'transcript',
+        //'transcriptTextField' => 'transcriptTxt',
     ],
 ];

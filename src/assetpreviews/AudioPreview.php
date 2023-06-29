@@ -26,6 +26,15 @@ class AudioPreview extends AssetPreviewHandler
         }
 
         $view = Craft::$app->view;
+
+        $variables['speakers'] = [
+            ['value' => '', 'label' => Craft::t('studio', 'Select/Create speaker')],
+        ];
+
+        $view->startJsBuffer();
+        $variables['createCaption'] = $view->renderTemplate('studio/assets/_previews/caption.twig', $variables);
+        $variables['createCaptionJs'] = $view->clearJsBuffer(false);
+
         $view->startJsBuffer();
         $variables['createChapter'] = $view->renderTemplate('studio/assets/_previews/chapter.twig');
         $variables['createChapterJs'] = $view->clearJsBuffer(false);
