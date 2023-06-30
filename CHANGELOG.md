@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.10.0 - 2023-06-30
 
 - Added <podcast:transcript> support ([#14](https://github.com/vnali/craft-studio/discussions/14)).
 - Added a new simple tool for making transcripts ([#14](https://github.com/vnali/craft-studio/discussions/14)).
