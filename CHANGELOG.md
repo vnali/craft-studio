@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.11.0 - 2023-07-03
 
 - Added <podcast:trailer> support ([#15](https://github.com/vnali/craft-studio/discussions/15)).
 
