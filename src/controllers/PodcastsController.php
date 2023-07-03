@@ -544,6 +544,65 @@ class PodcastsController extends Controller
                 }
             }
 
+            // Podcast Trailer
+            list($trailerField, $trailerBlockTypeHandle) = GeneralHelper::getFieldDefinition('trailer');
+            if ($trailerField) {
+                if (get_class($trailerField) == Matrix::class || get_class($trailerField) == SuperTableField::class) {
+                    $trailerBlocks = [];
+                    if (get_class($trailerField) == Matrix::class) {
+                        $blockQuery = \craft\elements\MatrixBlock::find();
+                        $trailerBlocks = $blockQuery->fieldId($trailerField->id)->owner($podcast)->type($trailerBlockTypeHandle)->all();
+                    } elseif (get_class($trailerField) == SuperTableField::class) {
+                        $blockQuery = SuperTableBlockElement::find();
+                        $trailerBlocks = $blockQuery->fieldId($trailerField->id)->owner($podcast)->all();
+                    }
+                    foreach ($trailerBlocks as $trailerBlock) {
+                        if (isset($trailerBlock->trailerTitle) && $trailerBlock->trailerTitle && isset($trailerBlock->trailerUrl) && $trailerBlock->trailerUrl && isset($trailerBlock->pubdate) && $trailerBlock->pubdate) {
+                            $xmlTrailer = $xml->createElement("podcast:trailer", htmlspecialchars($trailerBlock->trailerTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            // Length attribute
+                            $length = false;
+                            if (isset($trailerBlock->length) && $trailerBlock->length) {
+                                $length = true;
+                                $xmlTrailer->setAttribute("length", $trailerBlock->length);
+                            }
+                            // Type attribute
+                            $type = false;
+                            if (isset($trailerBlock->mimeType)) {
+                                if (is_object($trailerBlock->mimeType) && get_class($trailerBlock->mimeType) == SingleOptionFieldData::class && $trailerBlock->mimeType->value) {
+                                    $type = true;
+                                    $xmlTrailer->setAttribute("type", htmlspecialchars($trailerBlock->mimeType->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                } elseif (!is_object($trailerBlock->mimeType) && $trailerBlock->mimeType) {
+                                    $type = true;
+                                    $xmlTrailer->setAttribute("type", htmlspecialchars($trailerBlock->mimeType, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                            }
+                            if (is_object($trailerBlock->trailerUrl) && get_class($trailerBlock->trailerUrl) == AssetQuery::class) {
+                                $trailerUrl = $trailerBlock->trailerUrl->one();
+                                if ($trailerUrl) {
+                                    $url = $trailerUrl->getUrl();
+                                    $xmlTrailer->setAttribute("url",  htmlspecialchars($url, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (!$length) {
+                                        $xmlTrailer->setAttribute("length", (string)$trailerUrl->size);
+                                    }
+                                    if (!$type) {
+                                        $xmlTrailer->setAttribute("type", FileHelper::getMimeTypeByExtension($url));
+                                    }
+                                }
+                            } elseif (!is_object($trailerBlock->trailerUrl)) {
+                                $xmlTrailer->setAttribute("url",  htmlspecialchars($trailerBlock->trailerUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            }
+                            if (isset($trailerBlock->pubdate)) {
+                                $xmlTrailer->setAttribute("pubdate",  htmlspecialchars($trailerBlock->pubdate->format('D, d M Y H:i:s T'), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            }
+                            if (isset($trailerBlock->season) && $trailerBlock->season) {
+                                $xmlTrailer->setAttribute("season",  htmlspecialchars($trailerBlock->season, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            }
+                            $xmlChannel->appendChild($xmlTrailer);
+                        }
+                    }
+                }
+            }
+
             // Podcast medium
             if ($podcast->medium) {
                 $xmlPodcastMedium = $xml->createElement("podcast:medium", $podcast->medium);

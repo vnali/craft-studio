@@ -33,5 +33,7 @@ return [
         //'transcriptField' => 'episodeExtraData',
         //'transcriptBlockType' => 'transcript',
         //'transcriptTextField' => 'transcriptTxt',
+        //'trailerField' => 'podcastData',
+        //'trailerBlockType' => 'trailer',
     ],
 ];

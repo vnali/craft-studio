@@ -964,6 +964,13 @@ class GeneralHelper
                 $defaultHandle = 'transcriptText';
                 $handleAttribute = 'transcriptTextField';
                 break;
+            case 'trailer':
+                $defaultHandle = 'podcastTrailer';
+                $defaultHandle2 = 'podcastData';
+                $defaultBlockType = 'trailer';
+                $handleAttribute = 'trailerField';
+                $blockTypeAttribute = 'trailerBlockType';
+                break;
             default:
                 return array($field, $blockTypeHandle);
         }

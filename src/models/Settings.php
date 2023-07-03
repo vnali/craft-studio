@@ -45,6 +45,10 @@ class Settings extends Model
 
     public ?string $transcriptBlockType = null;
 
+    public ?string $trailerField = null;
+
+    public ?string $trailerBlockType = null;
+
     public function rules(): array
     {
         $rules = parent::rules();
