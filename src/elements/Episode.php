@@ -948,7 +948,7 @@ class Episode extends Element
         $tabs = $episodeFieldLayout->getTabs();
         foreach ($tabs as $key => $tab) {
             foreach ($tab->elements as $key => $element) {
-                if (get_class($element) != CustomField::class && (in_array($element->attribute, $lightSwitchFields) && (!$this->{$element->attribute}))) {
+                if (get_class($element) != CustomField::class && isset($element->attribute) && (in_array($element->attribute, $lightSwitchFields) && (!$this->{$element->attribute}))) {
                     $this->{$element->attribute} = false;
                 }
             }
