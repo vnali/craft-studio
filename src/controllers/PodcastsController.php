@@ -12,6 +12,7 @@ use craft\db\Table;
 use craft\elements\db\AssetQuery;
 use craft\elements\db\EntryQuery;
 use craft\elements\db\UserQuery;
+use craft\elements\Asset;
 use craft\fields\Assets;
 use craft\fields\Categories;
 use craft\fields\Checkboxes;
@@ -264,7 +265,7 @@ class PodcastsController extends Controller
         $tz = Craft::$app->getTimeZone();
         $variables = [];
         $rssCacheKey = 'studio-plugin-' . $siteId . '-' . $podcast->id . '-' . $tz;
-        $variables = $cache->getOrSet($rssCacheKey, function() use ($podcast, $site, $tz, $variables) {
+        $variables = $cache->getOrSet($rssCacheKey, function () use ($podcast, $site, $tz, $variables) {
             $podcastFormat = $podcast->getPodcastFormat();
             $podcastMapping = json_decode($podcastFormat->mapping, true);
             $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
@@ -563,7 +564,31 @@ class PodcastsController extends Controller
             // Podcast Trailer
             list($trailerField, $trailerBlockTypeHandle) = GeneralHelper::getFieldDefinition('trailer');
             if ($trailerField) {
-                if (get_class($trailerField) == Matrix::class || get_class($trailerField) == SuperTableField::class) {
+                $trailerFieldHandle = $trailerField->handle;
+                if (get_class($trailerField) == Assets::class) {
+                    if (isset($podcast->$trailerFieldHandle) && $podcast->$trailerFieldHandle) {
+                        $trailers = $podcast->$trailerFieldHandle->all();
+                        foreach ($trailers as $trailer) {
+                            /** @var Asset $trailer */
+                            if (isset($trailer->trailerTitle) && $trailer->trailerTitle) {
+                                $trailerTitle = $trailer->trailerTitle;
+                            } elseif (isset($trailer->title) && $trailer->title) {
+                                $trailerTitle = $trailer->title;
+                            }
+                            if (isset($trailerTitle) && isset($trailer->pubdate) && $trailer->pubdate) {
+                                $xmlTrailer = $xml->createElement("podcast:trailer", htmlspecialchars($trailerTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlTrailer->setAttribute("url", htmlspecialchars($trailer->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($trailer->season) && $trailer->season) {
+                                    $xmlTrailer->setAttribute("season",  htmlspecialchars($trailer->season, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                $xmlTrailer->setAttribute("pubdate",  htmlspecialchars($trailer->pubdate->format('D, d M Y H:i:s T'), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlTrailer->setAttribute("length", (string)$trailer->size);
+                                $xmlTrailer->setAttribute("type", FileHelper::getMimeTypeByExtension($trailer->getUrl()));
+                                $xmlChannel->appendChild($xmlTrailer);
+                            }
+                        }
+                    }
+                } elseif (get_class($trailerField) == Matrix::class || get_class($trailerField) == SuperTableField::class) {
                     $trailerBlocks = [];
                     if (get_class($trailerField) == Matrix::class) {
                         $blockQuery = \craft\elements\MatrixBlock::find();
