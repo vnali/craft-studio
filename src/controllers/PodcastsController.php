@@ -502,6 +502,22 @@ class PodcastsController extends Controller
                         $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($podcast->$licenseFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                         $xmlChannel->appendChild($xmlLicense);
                     }
+                } elseif (get_class($licenseField) == Assets::class) {
+                    if (isset($podcast->$licenseFieldHandle) && $podcast->$licenseFieldHandle) {
+                        $license = $podcast->$licenseFieldHandle->one();
+                        if ($license) {
+                            if (isset($license->licenseTitle) && $license->licenseTitle) {
+                                $licenseTitle = $license->licenseTitle;
+                            } elseif (isset($license->title) && $license->title) {
+                                $licenseTitle = $license->title;
+                            }
+                            if (isset($licenseTitle)) {
+                                $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($licenseTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlLicense->setAttribute("url", htmlspecialchars($license->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlChannel->appendChild($xmlLicense);
+                            }
+                        }
+                    }
                 } elseif (get_class($licenseField) == TableField::class) {
                     if (isset($podcast->$licenseFieldHandle) && $podcast->$licenseFieldHandle) {
                         foreach ($podcast->$licenseFieldHandle  as $row) {
@@ -1149,6 +1165,22 @@ class PodcastsController extends Controller
                         if (isset($episode->$licenseFieldHandle) && $episode->$licenseFieldHandle) {
                             $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($episode->$licenseFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                             $xmlItem->appendChild($xmlLicense);
+                        }
+                    } elseif (get_class($licenseField) == Assets::class) {
+                        if (isset($episode->$licenseFieldHandle) && $episode->$licenseFieldHandle) {
+                            $license = $episode->$licenseFieldHandle->one();
+                            if ($license) {
+                                if (isset($license->licenseTitle) && $license->licenseTitle) {
+                                    $licenseTitle = $license->licenseTitle;
+                                } elseif (isset($license->title) && $license->title) {
+                                    $licenseTitle = $license->title;
+                                }
+                                if (isset($licenseTitle)) {
+                                    $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($licenseTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    $xmlLicense->setAttribute("url", htmlspecialchars($license->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    $xmlItem->appendChild($xmlLicense);
+                                }
+                            }
                         }
                     } elseif (get_class($licenseField) == TableField::class) {
                         if (isset($episode->$licenseFieldHandle) && $episode->$licenseFieldHandle) {

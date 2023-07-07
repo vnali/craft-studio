@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added <podcast:alternateEnclosure> support.
+- The ([podcast:license](https://github.com/vnali/craft-studio/discussions/9)) tag can be created via Asset fields now.
 
 ## 0.11.0 - 2023-07-03
 
