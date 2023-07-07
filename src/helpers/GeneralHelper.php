@@ -971,6 +971,13 @@ class GeneralHelper
                 $handleAttribute = 'trailerField';
                 $blockTypeAttribute = 'trailerBlockType';
                 break;
+            case 'enclosure':
+                $defaultHandle = 'episodeEnclosure';
+                $defaultHandle2 = 'episodeData';
+                $defaultBlockType = 'enclosure';
+                $handleAttribute = 'enclosureField';
+                $blockTypeAttribute = 'enclosureBlockType';
+                break;
             default:
                 return array($field, $blockTypeHandle);
         }

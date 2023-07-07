@@ -807,6 +807,145 @@ class PodcastsController extends Controller
                     $xmlEnclosure->setAttribute("type", FileHelper::getMimeTypeByExtension($assetFileUrl));
                 }
 
+                // Episode Enclosure
+                list($enclosureField, $enclosureBlockTypeHandle) = GeneralHelper::getFieldDefinition('enclosure');
+                if ($enclosureField) {
+                    $enclosureFieldHandle = $enclosureField->handle;
+                    $enclosureBlocks = [];
+                    if (get_class($enclosureField) == Assets::class) {
+                        if (isset($episode->$enclosureFieldHandle) && $episode->$enclosureFieldHandle) {
+                            $enclosures = $episode->$enclosureFieldHandle->all();
+                            foreach ($enclosures as $enclosure) {
+                                $xmlEnclosure = $xml->createElement("podcast:alternateEnclosure");
+                                $xmlEnclosure->setAttribute("type", $enclosure->mimeType);
+                                $xmlEnclosure->setAttribute("length", $enclosure->size);
+                                if (isset($enclosure->enclosureTitle) && $enclosure->enclosureTitle) {
+                                    $xmlEnclosure->setAttribute("title", $enclosure->enclosureTitle);
+                                }
+                                if (isset($enclosure->enclosureBitrate) && $enclosure->enclosureBitrate) {
+                                    if (is_object($enclosure->enclosureBitrate) && get_class($enclosure->enclosureBitrate) == SingleOptionFieldData::class && $enclosure->enclosureBitrate->value) {
+                                        $xmlEnclosure->setAttribute("bitrate", htmlspecialchars($enclosure->enclosureBitrate->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } elseif (!is_object($enclosure->enclosureBitrate)) {
+                                        $xmlEnclosure->setAttribute("bitrate", htmlspecialchars($enclosure->enclosureBitrate, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                }
+                                if (isset($enclosure->enclosureHeight) && $enclosure->enclosureHeight) {
+                                    $xmlEnclosure->setAttribute("height", $enclosure->enclosureHeight);
+                                }
+                                if (isset($enclosure->enclosureLang) && $enclosure->enclosureLang) {
+                                    if (is_object($enclosure->enclosureLang) && get_class($enclosure->enclosureLang) == SingleOptionFieldData::class && $enclosure->enclosureLang->value) {
+                                        $xmlEnclosure->setAttribute("lang", htmlspecialchars($enclosure->enclosureLang->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } elseif (!is_object($enclosure->enclosureLang)) {
+                                        $xmlEnclosure->setAttribute("lang", htmlspecialchars($enclosure->enclosureLang, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                }
+                                if (isset($enclosure->enclosureCodecs) && $enclosure->enclosureCodecs) {
+                                    if (is_object($enclosure->enclosureCodecs) && get_class($enclosure->enclosureCodecs) == SingleOptionFieldData::class && $enclosure->enclosureCodecs->value) {
+                                        $xmlEnclosure->setAttribute("codecs", htmlspecialchars($enclosure->enclosureCodecs->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } elseif (!is_object($enclosure->enclosureCodecs)) {
+                                        $xmlEnclosure->setAttribute("codecs", htmlspecialchars($enclosure->enclosureCodecs, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                }
+                                if (isset($enclosure->enclosureRel) && $enclosure->enclosureRel) {
+                                    if (is_object($enclosure->enclosureRel) && get_class($enclosure->enclosureRel) == SingleOptionFieldData::class && $enclosure->enclosureRel->value) {
+                                        $xmlEnclosure->setAttribute("rel", htmlspecialchars($enclosure->enclosureRel->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } elseif (!is_object($enclosure->enclosureRel)) {
+                                        $xmlEnclosure->setAttribute("rel", htmlspecialchars($enclosure->enclosureRel, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                }
+                                if (isset($enclosure->enclosureDefault) && $enclosure->enclosureDefault) {
+                                    $xmlEnclosure->setAttribute("default", "true");
+                                }
+                                $xmlSource = $xml->createElement("podcast:source");
+                                $xmlSource->setAttribute("uri", htmlspecialchars($enclosure->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlEnclosure->appendChild($xmlSource);
+                                $xmlItem->appendChild($xmlEnclosure);
+                            }
+                        }
+                    } elseif (get_class($enclosureField) == Matrix::class) {
+                        $blockQuery = \craft\elements\MatrixBlock::find();
+                        $enclosureBlocks = $blockQuery->fieldId($enclosureField->id)->owner($episode)->type($enclosureBlockTypeHandle)->all();
+                    } elseif (get_class($enclosureField) == SuperTableField::class) {
+                        $blockQuery = SuperTableBlockElement::find();
+                        $enclosureBlocks = $blockQuery->fieldId($enclosureField->id)->owner($episode)->all();
+                    }
+                    foreach ($enclosureBlocks as $enclosureBlock) {
+                        if (isset($enclosureBlock->sources)) {
+                            $xmlEnclosure = $xml->createElement("podcast:alternateEnclosure");
+                            if (isset($enclosureBlock->enclosureTitle) && $enclosureBlock->enclosureTitle) {
+                                $xmlEnclosure->setAttribute("title", $enclosureBlock->enclosureTitle);
+                            }
+                            if (isset($enclosureBlock->enclosureBitrate) && $enclosureBlock->enclosureBitrate) {
+                                if (is_object($enclosureBlock->enclosureBitrate) && get_class($enclosureBlock->enclosureBitrate) == SingleOptionFieldData::class && $enclosureBlock->enclosureBitrate->value) {
+                                    $xmlEnclosure->setAttribute("bitrate", htmlspecialchars($enclosureBlock->enclosureBitrate->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                } elseif (!is_object($enclosureBlock->enclosureBitrate)) {
+                                    $xmlEnclosure->setAttribute("bitrate", htmlspecialchars($enclosureBlock->enclosureBitrate, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                            }
+                            if (isset($enclosureBlock->enclosureHeight) && $enclosureBlock->enclosureHeight) {
+                                $xmlEnclosure->setAttribute("height", $enclosureBlock->enclosureHeight);
+                            }
+                            if (isset($enclosureBlock->enclosureLang) && $enclosureBlock->enclosureLang) {
+                                if (is_object($enclosureBlock->enclosureLang) && get_class($enclosureBlock->enclosureLang) == SingleOptionFieldData::class && $enclosureBlock->enclosureLang->value) {
+                                    $xmlEnclosure->setAttribute("lang", htmlspecialchars($enclosureBlock->enclosureLang->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                } elseif (!is_object($enclosureBlock->enclosureLang)) {
+                                    $xmlEnclosure->setAttribute("lang", htmlspecialchars($enclosureBlock->enclosureLang, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                            }
+                            if (isset($enclosureBlock->enclosureCodecs) && $enclosureBlock->enclosureCodecs) {
+                                if (is_object($enclosureBlock->enclosureCodecs) && get_class($enclosureBlock->enclosureCodecs) == SingleOptionFieldData::class && $enclosureBlock->enclosureCodecs->value) {
+                                    $xmlEnclosure->setAttribute("codecs", htmlspecialchars($enclosureBlock->enclosureCodecs->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                } elseif (!is_object($enclosureBlock->enclosureCodecs)) {
+                                    $xmlEnclosure->setAttribute("codecs", htmlspecialchars($enclosureBlock->enclosureCodecs, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                            }
+                            if (isset($enclosureBlock->enclosureRel) && $enclosureBlock->enclosureRel) {
+                                if (is_object($enclosureBlock->enclosureRel) && get_class($enclosureBlock->enclosureRel) == SingleOptionFieldData::class && $enclosureBlock->enclosureRel->value) {
+                                    $xmlEnclosure->setAttribute("rel", htmlspecialchars($enclosureBlock->enclosureRel->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                } elseif (!is_object($enclosureBlock->enclosureRel)) {
+                                    $xmlEnclosure->setAttribute("rel", htmlspecialchars($enclosureBlock->enclosureRel, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                            }
+                            if (isset($enclosureBlock->enclosureDefault) && $enclosureBlock->enclosureDefault) {
+                                $xmlEnclosure->setAttribute("default", "true");
+                            }
+                            $enclosures = $enclosureBlock->sources->all();
+                            foreach ($enclosures as $key => $enclosure) {
+                                if ($key == 0) {
+                                    if (isset($enclosure->mimeType)) {
+                                        $xmlEnclosure->setAttribute("type", $enclosure->mimeType);
+                                    }
+                                    if (isset($enclosure->size)) {
+                                        $xmlEnclosure->setAttribute("length", $enclosure->size);
+                                    }
+                                }
+                                $xmlSource = $xml->createElement("podcast:source");
+                                $xmlSource->setAttribute("uri", htmlspecialchars($enclosure->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlEnclosure->appendChild($xmlSource);
+                            }
+                            if (isset($enclosureBlock->otherSources) && $enclosureBlock->otherSources) {
+                                if (is_array($enclosureBlock->otherSources)) {
+                                    foreach ($enclosureBlock->otherSources as $source) {
+                                        $xmlSource = $xml->createElement("podcast:source");
+                                        if (isset($source['uri']) && $source['uri']) {
+                                            $xmlSource->setAttribute("uri", htmlspecialchars($source['uri'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($source['contentType']) && $source['contentType']) {
+                                            $xmlSource->setAttribute("contentType", htmlspecialchars($source['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        $xmlEnclosure->appendChild($xmlSource);
+                                    }
+                                } else {
+                                    $xmlSource = $xml->createElement("podcast:source");
+                                    $xmlSource->setAttribute("uri", htmlspecialchars($enclosureBlock->otherSources, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    $xmlEnclosure->appendChild($xmlSource);
+                                }
+                            }
+                            $xmlItem->appendChild($xmlEnclosure);
+                        }
+                    }
+                }
+
                 // Episode Link
                 if ($episode->url) {
                     $episodeLink = $xml->createElement("link", htmlspecialchars($episode->url, ENT_QUOTES | ENT_XML1, 'UTF-8'));

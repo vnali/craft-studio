@@ -49,6 +49,10 @@ class Settings extends Model
 
     public ?string $trailerBlockType = null;
 
+    public ?string $enclosureField = null;
+
+    public ?string $enclosureBlockType = null;
+
     public function rules(): array
     {
         $rules = parent::rules();
