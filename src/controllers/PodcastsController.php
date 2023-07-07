@@ -9,10 +9,10 @@ namespace vnali\studio\controllers;
 use Craft;
 use craft\base\Element;
 use craft\db\Table;
+use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\elements\db\EntryQuery;
 use craft\elements\db\UserQuery;
-use craft\elements\Asset;
 use craft\fields\Assets;
 use craft\fields\Categories;
 use craft\fields\Checkboxes;
@@ -265,7 +265,7 @@ class PodcastsController extends Controller
         $tz = Craft::$app->getTimeZone();
         $variables = [];
         $rssCacheKey = 'studio-plugin-' . $siteId . '-' . $podcast->id . '-' . $tz;
-        $variables = $cache->getOrSet($rssCacheKey, function () use ($podcast, $site, $tz, $variables) {
+        $variables = $cache->getOrSet($rssCacheKey, function() use ($podcast, $site, $tz, $variables) {
             $podcastFormat = $podcast->getPodcastFormat();
             $podcastMapping = json_decode($podcastFormat->mapping, true);
             $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
