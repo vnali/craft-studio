@@ -4,7 +4,7 @@
 
 > {warning} The `trailerUrl` field handle should be changed to `trailer`.
 
-- Added <podcast:alternateEnclosure> support.
+- Added <podcast:alternateEnclosure> support ([#16](https://github.com/vnali/craft-studio/discussions/16)).
 - The `trailerUrl` field handle that is used for the URL attribute of a podcast:trailer should be changed to `trailer` for clarity because it can be an asset or a URL.
 - The ([podcast:trailer](https://github.com/vnali/craft-studio/discussions/15)) tag can be created via Asset fields now.
 - When a trailer item is an asset inside a matrix block or super table fields, the assets' length and mime type metadata are used for length and type attributes. The length and mimeType custom fields are only used when the trailer item is not an asset.
