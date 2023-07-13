@@ -861,7 +861,9 @@ class PodcastsController extends Controller
                                 $xmlEnclosure->setAttribute("type", $enclosure->mimeType);
                                 $xmlEnclosure->setAttribute("length", $enclosure->size);
                                 if (isset($enclosure->enclosureTitle) && $enclosure->enclosureTitle) {
-                                    $xmlEnclosure->setAttribute("title", $enclosure->enclosureTitle);
+                                    $xmlEnclosure->setAttribute("title", htmlspecialchars($enclosure->enclosureTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                } elseif (isset($enclosure->title) && $enclosure->title) {
+                                    $xmlEnclosure->setAttribute("title", htmlspecialchars($enclosure->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                 }
                                 if (isset($enclosure->enclosureBitrate) && $enclosure->enclosureBitrate) {
                                     if (is_object($enclosure->enclosureBitrate) && get_class($enclosure->enclosureBitrate) == SingleOptionFieldData::class && $enclosure->enclosureBitrate->value) {
@@ -911,10 +913,14 @@ class PodcastsController extends Controller
                         $enclosureBlocks = $blockQuery->fieldId($enclosureField->id)->owner($episode)->all();
                     }
                     foreach ($enclosureBlocks as $enclosureBlock) {
-                        if (isset($enclosureBlock->sources)) {
+                        $type = false;
+                        $length = false;
+                        if ((isset($enclosureBlock->sources) && is_object($enclosureBlock->sources) && get_class($enclosureBlock->sources) == AssetQuery::class &&
+                        $enclosureBlock->sources->all()) ||
+                        (isset($enclosureBlock->otherSources) && $enclosureBlock->otherSources)) {
                             $xmlEnclosure = $xml->createElement("podcast:alternateEnclosure");
                             if (isset($enclosureBlock->enclosureTitle) && $enclosureBlock->enclosureTitle) {
-                                $xmlEnclosure->setAttribute("title", $enclosureBlock->enclosureTitle);
+                                $xmlEnclosure->setAttribute("title", htmlspecialchars($enclosureBlock->enclosureTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                             }
                             if (isset($enclosureBlock->enclosureBitrate) && $enclosureBlock->enclosureBitrate) {
                                 if (is_object($enclosureBlock->enclosureBitrate) && get_class($enclosureBlock->enclosureBitrate) == SingleOptionFieldData::class && $enclosureBlock->enclosureBitrate->value) {
@@ -954,9 +960,11 @@ class PodcastsController extends Controller
                             foreach ($enclosures as $key => $enclosure) {
                                 if ($key == 0) {
                                     if (isset($enclosure->mimeType)) {
+                                        $type = true;
                                         $xmlEnclosure->setAttribute("type", $enclosure->mimeType);
                                     }
                                     if (isset($enclosure->size)) {
+                                        $length = true;
                                         $xmlEnclosure->setAttribute("length", $enclosure->size);
                                     }
                                 }
@@ -965,6 +973,21 @@ class PodcastsController extends Controller
                                 $xmlEnclosure->appendChild($xmlSource);
                             }
                             if (isset($enclosureBlock->otherSources) && $enclosureBlock->otherSources) {
+                                if (!$type && isset($enclosureBlock->enclosureType) && $enclosureBlock->enclosureType) {
+                                    if (is_object($enclosureBlock->enclosureType) && get_class($enclosureBlock->enclosureType) == SingleOptionFieldData::class && $enclosureBlock->enclosureType->value) {
+                                        $type = true;
+                                        $xmlEnclosure->setAttribute("type",  htmlspecialchars($enclosureBlock->enclosureType->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } elseif (!is_object($enclosureBlock->enclosureType)) {
+                                        $type = true;
+                                        $xmlEnclosure->setAttribute("type",  htmlspecialchars($enclosureBlock->enclosureType, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                }
+                                if (!$type) {
+                                    continue;
+                                }
+                                if (!$length && isset($enclosureBlock->enclosureLength) && $enclosureBlock->enclosureLength) {
+                                    $xmlEnclosure->setAttribute("length", $enclosureBlock->enclosureLength);
+                                }
                                 if (is_array($enclosureBlock->otherSources)) {
                                     foreach ($enclosureBlock->otherSources as $source) {
                                         $xmlSource = $xml->createElement("podcast:source");
