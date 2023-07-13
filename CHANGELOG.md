@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+> {warning} The `trailerUrl` field handle should be changed to `trailer`.
+
 - Added <podcast:alternateEnclosure> support.
-- The ([podcast:license](https://github.com/vnali/craft-studio/discussions/9)) tag can be created via Asset fields now.
+- The `trailerUrl` field handle that is used for the URL attribute of a podcast:trailer should be changed to `trailer` for clarity because it can be an asset or a URL.
 - The ([podcast:trailer](https://github.com/vnali/craft-studio/discussions/15)) tag can be created via Asset fields now.
+- When a trailer item is an asset inside a matrix block or super table fields, the assets' length and mime type metadata are used for length and type attributes. The length and mimeType custom fields are only used when the trailer item is not an asset.
+- The ([podcast:license](https://github.com/vnali/craft-studio/discussions/9)) tag can be created via Asset fields now.
+- Fixed a bug where podcast:trailer was generated even if there was not any trailer file.
 
 ## 0.11.0 - 2023-07-03
 
