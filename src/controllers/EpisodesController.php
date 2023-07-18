@@ -23,6 +23,9 @@ use craft\web\UrlManager;
 use craft\web\View;
 
 use Done\Subtitles\Subtitles;
+use doublesecretagency\googlemaps\models\Address as GoogleMapAddressModel;
+use studioespresso\easyaddressfield\models\EasyAddressFieldModel;
+
 use Symfony\Component\DomCrawler\Crawler;
 
 use vnali\studio\elements\Episode as EpisodeElement;
@@ -619,7 +622,55 @@ class EpisodesController extends Controller
                             if (isset($chapter->endTime) && $chapter->endTime) {
                                 $chapterArray['endTime'] = $chapter->endTime;
                             }
-                            $chaptersArray[] = $chapterArray;
+                            // Location
+                            if (isset($chapter->location)) {
+                                if (!is_object($chapter->location) && $chapter->location) {
+                                    if (!is_array($chapter->location)) {
+                                        $chapterArray['location']['name'] = $chapter->location;
+                                    } else {
+                                        foreach ($chapter->location as $row) {
+                                            if (isset($row['location']) && $row['location']) {
+                                                $loc = [];
+                                                $loc['name'] = $row['location'];
+                                                if (isset($row['geo']) && $row['geo']) {
+                                                    $geo = $row['geo'];
+                                                    $loc['geo'] = $geo;
+                                                } elseif (isset($row['lat']) && $row['lat'] && isset($row['lon']) && $row['lon']) {
+                                                    $geo = 'geo:' . $row['lat'] . ',' . $row['lon'];
+                                                    $loc['geo'] = $geo;
+                                                }
+                                                if (isset($row['osm']) && $row['osm']) {
+                                                    $loc['osm'] = $row['osm'];
+                                                }
+                                                $chapterArray['location'] = $loc;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } elseif (is_object($chapter->location) && get_class($chapter->location) == EasyAddressFieldModel::class) {
+                                    if (isset($chapter->location->name) && $chapter->location->name) {
+                                        $loc = [];
+                                        $loc['name'] = $chapter->location->name;
+                                        if (isset($chapter->location->latitude) && $chapter->location->latitude && isset($chapter->location->longitude) && $chapter->location->longitude) {
+                                            $geo = 'geo:' . $chapter->location->latitude . ',' . $chapter->location->longitude;
+                                            $loc['geo'] = $geo;
+                                        }
+                                        $chapterArray['location'] = $loc;
+                                    }
+                                } elseif (is_object($chapter->location) && get_class($chapter->location) == GoogleMapAddressModel::class) {
+                                    if (isset($chapter->location->name) && $chapter->location->name) {
+                                        $loc = [];
+                                        $loc['name'] = $chapter->location->name;
+                                        if (isset($chapter->location->lat) && $chapter->location->lat && isset($chapter->location->lng) && $chapter->location->lng) {
+                                            $geo = 'geo:' . $chapter->location->lat . ',' . $chapter->location->lng;
+                                            $loc['geo'] = $geo;
+                                        }
+                                        $chapterArray['location'] = $loc;
+                                    }
+                                }
+                                //
+                                $chaptersArray[] = $chapterArray;
+                            }
                         }
                     }
                 }

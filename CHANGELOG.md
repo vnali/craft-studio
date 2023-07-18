@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added <podcast:location> support.
+- <podcast:chapters> supports location attribute now.
 
 ## 0.12.0 - 2023-07-13
 
