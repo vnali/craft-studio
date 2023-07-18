@@ -53,6 +53,14 @@ class Settings extends Model
 
     public ?string $enclosureBlockType = null;
 
+    public ?string $podcastLocationField = null;
+
+    public ?string $podcastLocationBlockType = null;
+
+    public ?string $episodeLocationField = null;
+
+    public ?string $episodeLocationBlockType = null;
+
     public function rules(): array
     {
         $rules = parent::rules();
