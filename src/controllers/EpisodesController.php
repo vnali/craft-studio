@@ -629,9 +629,9 @@ class EpisodesController extends Controller
                                         $chapterArray['location']['name'] = $chapter->location;
                                     } else {
                                         foreach ($chapter->location as $row) {
-                                            if (isset($row['location']) && $row['location']) {
+                                            if (isset($row['name']) && $row['name']) {
                                                 $loc = [];
-                                                $loc['name'] = $row['location'];
+                                                $loc['name'] = $row['name'];
                                                 if (isset($row['geo']) && $row['geo']) {
                                                     $geo = $row['geo'];
                                                     $loc['geo'] = $geo;

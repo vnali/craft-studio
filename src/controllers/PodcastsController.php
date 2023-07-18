@@ -471,8 +471,8 @@ class PodcastsController extends Controller
                 } elseif (get_class($locationField) == TableField::class) {
                     if (isset($podcast->$locationFieldHandle) && $podcast->$locationFieldHandle) {
                         foreach ($podcast->$locationFieldHandle as $row) {
-                            if (isset($row['location']) && $row['location']) {
-                                $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($row['location'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            if (isset($row['name']) && $row['name']) {
+                                $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($row['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                 if (isset($row['geo']) && $row['geo']) {
                                     $xmlLocation->setAttribute("geo", htmlspecialchars($row['geo'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                 } elseif (isset($row['lat']) && $row['lat'] && isset($row['lon']) && $row['lon']) {
@@ -516,15 +516,6 @@ class PodcastsController extends Controller
                     foreach ($locationBlocks as $locationBlock) {
                         if (isset($locationBlock->location) && $locationBlock->location) {
                             if (is_object($locationBlock->location) && get_class($locationBlock->location) == EasyAddressFieldModel::class) {
-                                if (isset($locationBlock->location->name) && $locationBlock->location->name) {
-                                    $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    if (isset($locationBlock->location->latitude) && $locationBlock->location->latitude && isset($locationBlock->location->longitude) && $locationBlock->location->longitude) {
-                                        $geo = 'geo:' . $locationBlock->location->latitude . ',' . $locationBlock->location->longitude;
-                                        $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    }
-                                    $xmlChannel->appendChild($xmlLocation);
-                                }
-                            } elseif (is_object($locationBlock->location) && get_class($locationBlock->location) == EasyAddressFieldModel::class) {
                                 if (isset($locationBlock->location->name) && $locationBlock->location->name) {
                                     $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     if (isset($locationBlock->location->latitude) && $locationBlock->location->latitude && isset($locationBlock->location->longitude) && $locationBlock->location->longitude) {
@@ -1268,8 +1259,8 @@ class PodcastsController extends Controller
                     } elseif (get_class($locationField) == TableField::class) {
                         if (isset($episode->$locationFieldHandle) && $episode->$locationFieldHandle) {
                             foreach ($episode->$locationFieldHandle as $row) {
-                                if (isset($row['location']) && $row['location']) {
-                                    $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($row['location'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($row['name']) && $row['name']) {
+                                    $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($row['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     if (isset($row['geo']) && $row['geo']) {
                                         $xmlLocation->setAttribute("geo", htmlspecialchars($row['geo'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     } elseif (isset($row['lat']) && $row['lat'] && isset($row['lon']) && $row['lon']) {
@@ -1313,15 +1304,6 @@ class PodcastsController extends Controller
                         foreach ($locationBlocks as $locationBlock) {
                             if (isset($locationBlock->location) && $locationBlock->location) {
                                 if (is_object($locationBlock->location) && get_class($locationBlock->location) == EasyAddressFieldModel::class) {
-                                    if (isset($locationBlock->location->name) && $locationBlock->location->name) {
-                                        $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                        if (isset($locationBlock->location->latitude) && $locationBlock->location->latitude && isset($locationBlock->location->longitude) && $locationBlock->location->longitude) {
-                                            $geo = 'geo:' . $locationBlock->location->latitude . ',' . $locationBlock->location->longitude;
-                                            $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                        }
-                                        $xmlItem->appendChild($xmlLocation);
-                                    }
-                                } elseif (is_object($locationBlock->location) && get_class($locationBlock->location) == EasyAddressFieldModel::class) {
                                     if (isset($locationBlock->location->name) && $locationBlock->location->name) {
                                         $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         if (isset($locationBlock->location->latitude) && $locationBlock->location->latitude && isset($locationBlock->location->longitude) && $locationBlock->location->longitude) {
