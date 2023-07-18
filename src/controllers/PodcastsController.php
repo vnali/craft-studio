@@ -36,6 +36,10 @@ use craft\web\Controller;
 use craft\web\UrlManager;
 use craft\web\View;
 use DOMDocument;
+use doublesecretagency\googlemaps\fields\AddressField as GoogleMapAddressField;
+use doublesecretagency\googlemaps\models\Address as GoogleMapAddressModel;
+use studioespresso\easyaddressfield\fields\EasyAddressFieldField;
+use studioespresso\easyaddressfield\models\EasyAddressFieldModel;
 use verbb\supertable\elements\SuperTableBlockElement;
 use verbb\supertable\fields\SuperTableField;
 use vnali\studio\elements\db\EpisodeQuery;
@@ -453,6 +457,98 @@ class PodcastsController extends Controller
             if ($podcast->podcastType) {
                 $xmlPodcastType = $xml->createElement("itunes:type", $podcast->podcastType);
                 $xmlChannel->appendChild($xmlPodcastType);
+            }
+
+            // Podcast Location
+            list($locationField, $locationBlockTypeHandle) = GeneralHelper::getFieldDefinition('podcastLocation');
+            if ($locationField) {
+                $locationFieldHandle = $locationField->handle;
+                if (get_class($locationField) == PlainText::class) {
+                    if (isset($podcast->$locationFieldHandle) && $podcast->$locationFieldHandle) {
+                        $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($podcast->$locationFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlChannel->appendChild($xmlLocation);
+                    }
+                } elseif (get_class($locationField) == TableField::class) {
+                    if (isset($podcast->$locationFieldHandle) && $podcast->$locationFieldHandle) {
+                        foreach ($podcast->$locationFieldHandle as $row) {
+                            if (isset($row['location']) && $row['location']) {
+                                $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($row['location'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($row['geo']) && $row['geo']) {
+                                    $xmlLocation->setAttribute("geo", htmlspecialchars($row['geo'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                } elseif (isset($row['lat']) && $row['lat'] && isset($row['lon']) && $row['lon']) {
+                                    $geo = 'geo:' . $row['lat'] . ',' . $row['lon'];
+                                    $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                if (isset($row['osm']) && $row['osm']) {
+                                    $xmlLocation->setAttribute("osm", htmlspecialchars($row['osm'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                $xmlChannel->appendChild($xmlLocation);
+                            }
+                        }
+                    }
+                } elseif (get_class($locationField) == EasyAddressFieldField::class) {
+                    if (isset($podcast->$locationFieldHandle->name) && $podcast->$locationFieldHandle->name) {
+                        $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($podcast->$locationFieldHandle->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        if (isset($podcast->$locationFieldHandle->latitude) && $podcast->$locationFieldHandle->latitude && isset($podcast->$locationFieldHandle->longitude) && $podcast->$locationFieldHandle->longitude) {
+                            $geo = 'geo:' . $podcast->$locationFieldHandle->latitude . ',' . $podcast->$locationFieldHandle->longitude;
+                            $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        }
+                        $xmlChannel->appendChild($xmlLocation);
+                    }
+                } elseif (get_class($locationField) == GoogleMapAddressField::class) {
+                    if (isset($podcast->$locationFieldHandle->name) && $podcast->$locationFieldHandle->name) {
+                        $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($podcast->$locationFieldHandle->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        if (isset($podcast->$locationFieldHandle->lat) && $podcast->$locationFieldHandle->lat && isset($podcast->$locationFieldHandle->lng) && $podcast->$locationFieldHandle->lng) {
+                            $geo = 'geo:' . $podcast->$locationFieldHandle->lat . ',' . $podcast->$locationFieldHandle->lng;
+                            $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        }
+                        $xmlChannel->appendChild($xmlLocation);
+                    }
+                } elseif (get_class($locationField) == Matrix::class || get_class($locationField) == SuperTableField::class) {
+                    $locationBlocks = [];
+                    if (get_class($locationField) == Matrix::class) {
+                        $blockQuery = \craft\elements\MatrixBlock::find();
+                        $locationBlocks = $blockQuery->fieldId($locationField->id)->owner($podcast)->type($locationBlockTypeHandle)->all();
+                    } elseif (get_class($locationField) == SuperTableField::class) {
+                        $blockQuery = SuperTableBlockElement::find();
+                        $locationBlocks = $blockQuery->fieldId($locationField->id)->owner($podcast)->all();
+                    }
+                    foreach ($locationBlocks as $locationBlock) {
+                        if (isset($locationBlock->location) && $locationBlock->location) {
+                            if (is_object($locationBlock->location) && get_class($locationBlock->location) == EasyAddressFieldModel::class) {
+                                if (isset($locationBlock->location->name) && $locationBlock->location->name) {
+                                    $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($locationBlock->location->latitude) && $locationBlock->location->latitude && isset($locationBlock->location->longitude) && $locationBlock->location->longitude) {
+                                        $geo = 'geo:' . $locationBlock->location->latitude . ',' . $locationBlock->location->longitude;
+                                        $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    $xmlChannel->appendChild($xmlLocation);
+                                }
+                            } elseif (is_object($locationBlock->location) && get_class($locationBlock->location) == EasyAddressFieldModel::class) {
+                                if (isset($locationBlock->location->name) && $locationBlock->location->name) {
+                                    $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($locationBlock->location->latitude) && $locationBlock->location->latitude && isset($locationBlock->location->longitude) && $locationBlock->location->longitude) {
+                                        $geo = 'geo:' . $locationBlock->location->latitude . ',' . $locationBlock->location->longitude;
+                                        $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    $xmlChannel->appendChild($xmlLocation);
+                                }
+                            } elseif (is_object($locationBlock->location) && get_class($locationBlock->location) == GoogleMapAddressModel::class) {
+                                if (isset($locationBlock->location->name) && $locationBlock->location->name) {
+                                    $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($locationBlock->location->lat) && $locationBlock->location->lat && isset($locationBlock->location->lng) && $locationBlock->location->lng) {
+                                        $geo = 'geo:' . $locationBlock->location->lat . ',' . $locationBlock->location->lng;
+                                        $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    $xmlChannel->appendChild($xmlLocation);
+                                }
+                            } elseif (!is_object($locationBlock->location)) {
+                                $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlChannel->appendChild($xmlLocation);
+                            }
+                        }
+                    }
+                }
             }
 
             // Podcast Funding
@@ -1158,6 +1254,98 @@ class PodcastsController extends Controller
                 if ($episode->episodeGUID) {
                     $xmlEpisodeGUID = $xml->createElement("guid", $episode->episodeGUID);
                     $xmlItem->appendChild($xmlEpisodeGUID);
+                }
+
+                // Episode Location
+                list($locationField, $locationBlockTypeHandle) = GeneralHelper::getFieldDefinition('episodeLocation');
+                if ($locationField) {
+                    $locationFieldHandle = $locationField->handle;
+                    if (get_class($locationField) == PlainText::class) {
+                        if (isset($episode->$locationFieldHandle) && $episode->$locationFieldHandle) {
+                            $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($episode->$locationFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            $xmlItem->appendChild($xmlLocation);
+                        }
+                    } elseif (get_class($locationField) == TableField::class) {
+                        if (isset($episode->$locationFieldHandle) && $episode->$locationFieldHandle) {
+                            foreach ($episode->$locationFieldHandle as $row) {
+                                if (isset($row['location']) && $row['location']) {
+                                    $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($row['location'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($row['geo']) && $row['geo']) {
+                                        $xmlLocation->setAttribute("geo", htmlspecialchars($row['geo'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } elseif (isset($row['lat']) && $row['lat'] && isset($row['lon']) && $row['lon']) {
+                                        $geo = 'geo:' . $row['lat'] . ',' . $row['lon'];
+                                        $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    if (isset($row['osm']) && $row['osm']) {
+                                        $xmlLocation->setAttribute("osm", htmlspecialchars($row['osm'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    $xmlItem->appendChild($xmlLocation);
+                                }
+                            }
+                        }
+                    } elseif (get_class($locationField) == EasyAddressFieldField::class) {
+                        if (isset($episode->$locationFieldHandle->name) && $episode->$locationFieldHandle->name) {
+                            $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($episode->$locationFieldHandle->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            if (isset($episode->$locationFieldHandle->latitude) && $episode->$locationFieldHandle->latitude && isset($episode->$locationFieldHandle->longitude) && $episode->$locationFieldHandle->longitude) {
+                                $geo = 'geo:' . $episode->$locationFieldHandle->latitude . ',' . $episode->$locationFieldHandle->longitude;
+                                $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            }
+                            $xmlItem->appendChild($xmlLocation);
+                        }
+                    } elseif (get_class($locationField) == GoogleMapAddressField::class) {
+                        if (isset($episode->$locationFieldHandle->name) && $episode->$locationFieldHandle->name) {
+                            $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($episode->$locationFieldHandle->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            if (isset($episode->$locationFieldHandle->lat) && $episode->$locationFieldHandle->lat && isset($episode->$locationFieldHandle->lng) && $episode->$locationFieldHandle->lng) {
+                                $geo = 'geo:' . $episode->$locationFieldHandle->lat . ',' . $episode->$locationFieldHandle->lng;
+                                $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            }
+                            $xmlItem->appendChild($xmlLocation);
+                        }
+                    } elseif (get_class($locationField) == Matrix::class || get_class($locationField) == SuperTableField::class) {
+                        $locationBlocks = [];
+                        if (get_class($locationField) == Matrix::class) {
+                            $blockQuery = \craft\elements\MatrixBlock::find();
+                            $locationBlocks = $blockQuery->fieldId($locationField->id)->owner($episode)->type($locationBlockTypeHandle)->all();
+                        } elseif (get_class($locationField) == SuperTableField::class) {
+                            $blockQuery = SuperTableBlockElement::find();
+                            $locationBlocks = $blockQuery->fieldId($locationField->id)->owner($episode)->all();
+                        }
+                        foreach ($locationBlocks as $locationBlock) {
+                            if (isset($locationBlock->location) && $locationBlock->location) {
+                                if (is_object($locationBlock->location) && get_class($locationBlock->location) == EasyAddressFieldModel::class) {
+                                    if (isset($locationBlock->location->name) && $locationBlock->location->name) {
+                                        $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        if (isset($locationBlock->location->latitude) && $locationBlock->location->latitude && isset($locationBlock->location->longitude) && $locationBlock->location->longitude) {
+                                            $geo = 'geo:' . $locationBlock->location->latitude . ',' . $locationBlock->location->longitude;
+                                            $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        $xmlItem->appendChild($xmlLocation);
+                                    }
+                                } elseif (is_object($locationBlock->location) && get_class($locationBlock->location) == EasyAddressFieldModel::class) {
+                                    if (isset($locationBlock->location->name) && $locationBlock->location->name) {
+                                        $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        if (isset($locationBlock->location->latitude) && $locationBlock->location->latitude && isset($locationBlock->location->longitude) && $locationBlock->location->longitude) {
+                                            $geo = 'geo:' . $locationBlock->location->latitude . ',' . $locationBlock->location->longitude;
+                                            $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        $xmlItem->appendChild($xmlLocation);
+                                    }
+                                } elseif (is_object($locationBlock->location) && get_class($locationBlock->location) == GoogleMapAddressModel::class) {
+                                    if (isset($locationBlock->location->name) && $locationBlock->location->name) {
+                                        $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location->name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        if (isset($locationBlock->location->lat) && $locationBlock->location->lat && isset($locationBlock->location->lng) && $locationBlock->location->lng) {
+                                            $geo = 'geo:' . $locationBlock->location->lat . ',' . $locationBlock->location->lng;
+                                            $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        $xmlItem->appendChild($xmlLocation);
+                                    }
+                                } elseif (!is_object($locationBlock->location)) {
+                                    $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    $xmlItem->appendChild($xmlLocation);
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Episode soundbite

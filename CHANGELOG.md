@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- Added <podcast:location> support.
+
 ## 0.12.0 - 2023-07-13
 
 > {warning} The `trailerUrl` field handle should be changed to `trailer`.

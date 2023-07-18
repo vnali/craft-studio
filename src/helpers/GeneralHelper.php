@@ -978,6 +978,20 @@ class GeneralHelper
                 $handleAttribute = 'enclosureField';
                 $blockTypeAttribute = 'enclosureBlockType';
                 break;
+            case 'podcastLocation':
+                $defaultHandle = 'podcastLocation';
+                $defaultHandle2 = 'podcastData';
+                $defaultBlockType = 'location';
+                $handleAttribute = 'podcastLocationField';
+                $blockTypeAttribute = 'podcastLocationBlockType';
+                break;
+            case 'episodeLocation':
+                $defaultHandle = 'episodeLocation';
+                $defaultHandle2 = 'episodeData';
+                $defaultBlockType = 'location';
+                $handleAttribute = 'episodeLocationField';
+                $blockTypeAttribute = 'episodeLocationBlockType';
+                break;
             default:
                 return array($field, $blockTypeHandle);
         }

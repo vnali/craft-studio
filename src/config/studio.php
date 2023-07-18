@@ -37,5 +37,9 @@ return [
         //'trailerBlockType' => 'trailer',
         //'enclosureField' => 'altEnclosure',
         //'enclosureBlockType' => 'enclosure',
+        //'podcastLocationField' => 'podcastLocation',
+        //'podcastLocationBlockType' => 'location',
+        //'episodeLocationField' => 'episodeLocation',
+        //'episodeLocationBlockType' => 'location',
     ],
 ];
