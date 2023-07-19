@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Added <podcast:location> support.
-- <podcast:chapters> supports location attribute now.
+- Added <podcast:location> support ([#17](https://github.com/vnali/craft-studio/discussions/17)).
+- The <podcast:chapters> ([#4](https://github.com/vnali/craft-studio/discussions/4)) supports location attribute now.
 
 ## 0.12.0 - 2023-07-13
 
