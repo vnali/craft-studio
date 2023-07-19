@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.13.0 - 2023-07-19
 
 - Added <podcast:location> support ([#17](https://github.com/vnali/craft-studio/discussions/17)).
 - The <podcast:chapters> ([#4](https://github.com/vnali/craft-studio/discussions/4)) supports location attribute now.
