@@ -483,6 +483,7 @@ class PodcastsController extends Controller
                                     $xmlLocation->setAttribute("osm", htmlspecialchars($row['osm'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                 }
                                 $xmlChannel->appendChild($xmlLocation);
+                                break;
                             }
                         }
                     }
@@ -523,6 +524,7 @@ class PodcastsController extends Controller
                                         $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     }
                                     $xmlChannel->appendChild($xmlLocation);
+                                    break;
                                 }
                             } elseif (is_object($locationBlock->location) && get_class($locationBlock->location) == GoogleMapAddressModel::class) {
                                 if (isset($locationBlock->location->name) && $locationBlock->location->name) {
@@ -532,10 +534,12 @@ class PodcastsController extends Controller
                                         $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     }
                                     $xmlChannel->appendChild($xmlLocation);
+                                    break;
                                 }
                             } elseif (!is_object($locationBlock->location)) {
                                 $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                 $xmlChannel->appendChild($xmlLocation);
+                                break;
                             }
                         }
                     }
@@ -1271,6 +1275,7 @@ class PodcastsController extends Controller
                                         $xmlLocation->setAttribute("osm", htmlspecialchars($row['osm'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     }
                                     $xmlItem->appendChild($xmlLocation);
+                                    break;
                                 }
                             }
                         }
@@ -1311,6 +1316,7 @@ class PodcastsController extends Controller
                                             $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         }
                                         $xmlItem->appendChild($xmlLocation);
+                                        break;
                                     }
                                 } elseif (is_object($locationBlock->location) && get_class($locationBlock->location) == GoogleMapAddressModel::class) {
                                     if (isset($locationBlock->location->name) && $locationBlock->location->name) {
@@ -1320,10 +1326,12 @@ class PodcastsController extends Controller
                                             $xmlLocation->setAttribute("geo", htmlspecialchars($geo, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         }
                                         $xmlItem->appendChild($xmlLocation);
+                                        break;
                                     }
                                 } elseif (!is_object($locationBlock->location)) {
                                     $xmlLocation = $xml->createElement("podcast:location", htmlspecialchars($locationBlock->location, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     $xmlItem->appendChild($xmlLocation);
+                                    break;
                                 }
                             }
                         }
