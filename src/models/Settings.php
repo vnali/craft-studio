@@ -61,6 +61,10 @@ class Settings extends Model
 
     public ?string $episodeLocationBlockType = null;
 
+    public ?string $liveItemField = null;
+
+    public ?string $liveItemBlockType = null;
+
     public function rules(): array
     {
         $rules = parent::rules();

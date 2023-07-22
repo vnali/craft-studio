@@ -992,6 +992,13 @@ class GeneralHelper
                 $handleAttribute = 'episodeLocationField';
                 $blockTypeAttribute = 'episodeLocationBlockType';
                 break;
+            case 'liveItem':
+                $defaultHandle = 'podcastLiveItem';
+                $defaultHandle2 = 'podcastData';
+                $defaultBlockType = 'liveItem';
+                $handleAttribute = 'liveItemField';
+                $blockTypeAttribute = 'liveItemBlockType';
+                break;
             default:
                 return array($field, $blockTypeHandle);
         }

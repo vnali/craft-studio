@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- Added <podcast:liveItem> support ([#18](https://github.com/vnali/craft-studio/discussions/18)).
+
 ## 0.13.0 - 2023-07-19
 
 - Added <podcast:location> support ([#17](https://github.com/vnali/craft-studio/discussions/17)).

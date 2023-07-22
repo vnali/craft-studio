@@ -41,5 +41,7 @@ return [
         //'podcastLocationBlockType' => 'location',
         //'episodeLocationField' => 'episodeLocation',
         //'episodeLocationBlockType' => 'location',
+        //'liveItemField' => 'podcastLiveItem',
+        //'liveItemBlockType' => 'liveItem',
     ],
 ];
