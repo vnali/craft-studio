@@ -43,5 +43,6 @@ return [
         //'episodeLocationBlockType' => 'location',
         //'liveItemField' => 'podcastLiveItem',
         //'liveItemBlockType' => 'liveItem',
+        //'socialInteractField' => 'episodeSocialInteract',
     ],
 ];

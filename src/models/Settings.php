@@ -65,6 +65,8 @@ class Settings extends Model
 
     public ?string $liveItemBlockType = null;
 
+    public ?string $socialInteractField = null;
+
     public function rules(): array
     {
         $rules = parent::rules();

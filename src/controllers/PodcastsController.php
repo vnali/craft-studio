@@ -1994,6 +1994,46 @@ class PodcastsController extends Controller
                     }
                 }
 
+                // Episode Social Interact
+                list($socialInteractField) = GeneralHelper::getFieldDefinition('socialInteract');
+                if ($socialInteractField) {
+                    $socialInteractFieldHandle = $socialInteractField->handle;
+                    if (isset($episode->$socialInteractFieldHandle) && is_array($episode->$socialInteractFieldHandle)) {
+                        $protocolDisable = null;
+                        foreach ($episode->$socialInteractFieldHandle as $row) {
+                            if ((isset($row['uri']) && $row['uri'] && isset($row['protocol']) && $row['protocol']) ||
+                            (isset($row['protocol']) && $row['protocol'] == 'disabled')) {
+                                if ($row['protocol'] == 'disabled') {
+                                    if ($protocolDisable !== false) {
+                                        $protocolDisable = true;
+                                    }
+                                    continue;
+                                } else {
+                                    $protocolDisable = false;
+                                    $xmlSocialInteract = $xml->createElement("podcast:socialInteract");
+                                    $xmlSocialInteract->setAttribute("protocol", htmlspecialchars($row['protocol'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                $xmlSocialInteract->setAttribute("uri", htmlspecialchars($row['uri'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($row['priority']) && $row['priority']) {
+                                    $xmlSocialInteract->setAttribute("priority", htmlspecialchars($row['priority'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                if (isset($row['accountId']) && $row['accountId']) {
+                                    $xmlSocialInteract->setAttribute("accountId", htmlspecialchars($row['accountId'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                if (isset($row['accountUrl']) && $row['accountUrl']) {
+                                    $xmlSocialInteract->setAttribute("accountUrl", htmlspecialchars($row['accountUrl'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                $xmlItem->appendChild($xmlSocialInteract);
+                            }
+                        }
+                        if ($protocolDisable) {
+                            $xmlSocialInteract = $xml->createElement("podcast:socialInteract");
+                            $xmlSocialInteract->setAttribute("protocol", "disabled");
+                            $xmlItem->appendChild($xmlSocialInteract);
+                        }
+                    }
+                }
+
                 $xmlChannel->appendChild($xmlItem);
             }
 

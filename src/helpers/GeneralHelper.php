@@ -999,6 +999,11 @@ class GeneralHelper
                 $handleAttribute = 'liveItemField';
                 $blockTypeAttribute = 'liveItemBlockType';
                 break;
+            case 'socialInteract':
+                $defaultHandle = 'episodeSocialInteract';
+                $defaultHandle2 = 'episodeData';
+                $handleAttribute = 'socialInteractField';
+                break;
             default:
                 return array($field, $blockTypeHandle);
         }
