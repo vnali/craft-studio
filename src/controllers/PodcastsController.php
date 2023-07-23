@@ -1170,6 +1170,28 @@ class PodcastsController extends Controller
                 }
             }
 
+            // Podcast txt
+            list($txtField) = GeneralHelper::getFieldDefinition('podcastTxt');
+            if ($txtField) {
+                $txtFieldHandle = $txtField->handle;
+                if (isset($podcast->$txtFieldHandle) && $podcast->$txtFieldHandle) {
+                    if (is_array($podcast->$txtFieldHandle)) {
+                        foreach ($podcast->$txtFieldHandle as $row) {
+                            if (isset($row['txt']) && $row['txt']) {
+                                $xmlTxt = $xml->createElement("podcast:txt", htmlspecialchars($row['txt'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($row['purpose']) && $row['purpose']) {
+                                    $xmlTxt->setAttribute("purpose", htmlspecialchars($row['purpose'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                $xmlChannel->appendChild($xmlTxt);
+                            }
+                        }
+                    } elseif (!is_object($podcast->$txtFieldHandle)) {
+                        $xmlTxt = $xml->createElement("podcast:txt", htmlspecialchars($podcast->$txtFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        $xmlChannel->appendChild($xmlTxt);
+                    }
+                }
+            }
+
             $fieldHandle = null;
             $fieldContainer = null;
 
@@ -2002,7 +2024,8 @@ class PodcastsController extends Controller
                         $protocolDisable = null;
                         foreach ($episode->$socialInteractFieldHandle as $row) {
                             if ((isset($row['uri']) && $row['uri'] && isset($row['protocol']) && $row['protocol']) ||
-                            (isset($row['protocol']) && $row['protocol'] == 'disabled')) {
+                                (isset($row['protocol']) && $row['protocol'] == 'disabled')
+                            ) {
                                 if ($row['protocol'] == 'disabled') {
                                     if ($protocolDisable !== false) {
                                         $protocolDisable = true;
@@ -2030,6 +2053,28 @@ class PodcastsController extends Controller
                             $xmlSocialInteract = $xml->createElement("podcast:socialInteract");
                             $xmlSocialInteract->setAttribute("protocol", "disabled");
                             $xmlItem->appendChild($xmlSocialInteract);
+                        }
+                    }
+                }
+
+                // Episode txt
+                list($txtField) = GeneralHelper::getFieldDefinition('episodeTxt');
+                if ($txtField) {
+                    $txtFieldHandle = $txtField->handle;
+                    if (isset($episode->$txtFieldHandle) && $episode->$txtFieldHandle) {
+                        if (is_array($episode->$txtFieldHandle)) {
+                            foreach ($episode->$txtFieldHandle as $row) {
+                                if (isset($row['txt']) && $row['txt']) {
+                                    $xmlTxt = $xml->createElement("podcast:txt", htmlspecialchars($row['txt'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($row['purpose']) && $row['purpose']) {
+                                        $xmlTxt->setAttribute("purpose", htmlspecialchars($row['purpose'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    $xmlItem->appendChild($xmlTxt);
+                                }
+                            }
+                        } elseif (!is_object($episode->$txtFieldHandle)) {
+                            $xmlTxt = $xml->createElement("podcast:txt", htmlspecialchars($episode->$txtFieldHandle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            $xmlItem->appendChild($xmlTxt);
                         }
                     }
                 }

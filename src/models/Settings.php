@@ -67,6 +67,10 @@ class Settings extends Model
 
     public ?string $socialInteractField = null;
 
+    public ?string $podcastTxtField = null;
+
+    public ?string $episodeTxtField = null;
+
     public function rules(): array
     {
         $rules = parent::rules();

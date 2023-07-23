@@ -4,6 +4,7 @@
 
 - Added <podcast:liveItem> support ([#18](https://github.com/vnali/craft-studio/discussions/18)).
 - Added <podcast:socialInteract> support ([#19](https://github.com/vnali/craft-studio/discussions/19)).
+- Added <podcast:txt> support ([#20](https://github.com/vnali/craft-studio/discussions/20)).
 
 ## 0.13.0 - 2023-07-19
 

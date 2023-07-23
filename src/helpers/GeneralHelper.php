@@ -1004,6 +1004,14 @@ class GeneralHelper
                 $defaultHandle2 = 'episodeData';
                 $handleAttribute = 'socialInteractField';
                 break;
+            case 'podcastTxt':
+                $defaultHandle = 'podcastTxt';
+                $handleAttribute = 'podcastTxtField';
+                break;
+            case 'episodeTxt':
+                $defaultHandle = 'episodeTxt';
+                $handleAttribute = 'episodeTxtField';
+                break;
             default:
                 return array($field, $blockTypeHandle);
         }

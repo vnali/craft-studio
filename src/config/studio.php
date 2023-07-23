@@ -44,5 +44,7 @@ return [
         //'liveItemField' => 'podcastLiveItem',
         //'liveItemBlockType' => 'liveItem',
         //'socialInteractField' => 'episodeSocialInteract',
+        //'podcastTxtField' => 'podcastTxt',
+        //'episodeTxtField' => 'episodeTxt',
     ],
 ];
