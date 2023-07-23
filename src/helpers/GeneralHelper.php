@@ -1001,7 +1001,6 @@ class GeneralHelper
                 break;
             case 'socialInteract':
                 $defaultHandle = 'episodeSocialInteract';
-                $defaultHandle2 = 'episodeData';
                 $handleAttribute = 'socialInteractField';
                 break;
             case 'podcastTxt':
