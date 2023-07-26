@@ -71,6 +71,14 @@ class Settings extends Model
 
     public ?string $episodeTxtField = null;
 
+    public ?string $podcastValueField = null;
+
+    public ?string $podcastValueBlockType = null;
+
+    public ?string $episodeValueField = null;
+
+    public ?string $episodeValueBlockType = null;
+
     public function rules(): array
     {
         $rules = parent::rules();

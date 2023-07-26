@@ -46,5 +46,7 @@ return [
         //'socialInteractField' => 'episodeSocialInteract',
         //'podcastTxtField' => 'podcastTxt',
         //'episodeTxtField' => 'episodeTxt',
+        //'podcastValueField' => 'podcastValue',
+        //'episodeValueField' => 'episodeValue',
     ],
 ];

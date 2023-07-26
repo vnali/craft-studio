@@ -1011,6 +1011,20 @@ class GeneralHelper
                 $defaultHandle = 'episodeTxt';
                 $handleAttribute = 'episodeTxtField';
                 break;
+            case 'podcastValue':
+                $defaultHandle = 'podcastValue';
+                $defaultHandle2 = 'podcastData';
+                $defaultBlockType = 'value';
+                $handleAttribute = 'podcastValueField';
+                $blockTypeAttribute = 'podcastValueBlockType';
+                break;
+            case 'episodeValue':
+                $defaultHandle = 'episodeValue';
+                $defaultHandle2 = 'episodeData';
+                $defaultBlockType = 'value';
+                $handleAttribute = 'episodeValueField';
+                $blockTypeAttribute = 'episodeValueBlockType';
+                break;
             default:
                 return array($field, $blockTypeHandle);
         }
