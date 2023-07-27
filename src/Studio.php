@@ -89,7 +89,7 @@ class Studio extends Plugin
      */
     public static Studio $plugin;
 
-    public string $schemaVersion = '0.8.0';
+    public string $schemaVersion = '0.14.0';
 
     /**
      * @inheritdoc
@@ -259,6 +259,14 @@ class Studio extends Plugin
                     }
                     $event->fields[] = [
                         'class' => TitleField::class,
+                    ];
+                    $event->fields[] = [
+                        'class' => GUIDField::class,
+                        'attribute' => 'podcastGUID',
+                        'requirable' => true,
+                        'mandatory' => false,
+                        'label' => Craft::t('studio', 'GUID'),
+                        'translatable' => $podcastNativeFieldSettings['podcastGUID']['translatable'] ?? false,
                     ];
                     $event->fields[] = [
                         'class' => TextField::class,

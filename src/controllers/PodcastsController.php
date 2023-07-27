@@ -312,6 +312,12 @@ class PodcastsController extends Controller
             $lastBuildDate = $xml->createElement("lastBuildDate", $lastBuildDate);
             $xmlChannel->appendChild($lastBuildDate);
 
+            // Podcast GUID
+            if ($podcast->podcastGUID) {
+                $xmlPodcastGUID = $xml->createElement("podcast:guid", $podcast->podcastGUID);
+                $xmlChannel->appendChild($xmlPodcastGUID);
+            }
+
             // Podcast Link
             if ($podcast->podcastLink) {
                 $podcastLink = $xml->createElement("link", htmlspecialchars($podcast->podcastLink, ENT_QUOTES | ENT_XML1, 'UTF-8'));

@@ -122,6 +122,11 @@ class PodcastInterface extends Element
                 'type' => Type::string(),
                 'description' => 'Podcast Medium',
             ],
+            'podcastGUID' => [
+                'name' => 'podcastGUID',
+                'type' => Type::STRING(),
+                'description' => 'GUID',
+            ],
         ]), self::getName());
     }
 }

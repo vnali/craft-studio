@@ -26,8 +26,9 @@ use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use craft\web\CpScreenResponseBehavior;
 
-use Throwable;
+use Ramsey\Uuid\Uuid;
 
+use Throwable;
 use vnali\studio\elements\actions\ImportEpisodeFromAssetIndex;
 use vnali\studio\elements\actions\ImportEpisodeFromRSS;
 use vnali\studio\elements\actions\PodcastEpisodeSettings;
@@ -96,6 +97,11 @@ class Podcast extends Element
      * @var bool|null Podcast is explicit
      */
     public ?bool $podcastExplicit = null;
+
+    /**
+     * @var string|null Podcast GUID
+     */
+    public ?string $podcastGUID = null;
 
     /**
      * @var bool|null Podcast new feed URL
@@ -857,6 +863,16 @@ class Podcast extends Element
                     ])
                     ->execute();
             }
+            if (!$this->podcastGUID && $podcastFieldLayout->isFieldIncluded('podcastGUID')) {
+                $baseUrl = $this->getSite()->baseUrl;
+                $url = $baseUrl . 'podcasts/rss?podcastId=' . $this->id . '&site=' . $this->getSite()->handle;
+                // Remove protocol scheme
+                $protocol = ["http://", "https://"];
+                $url = str_replace($protocol, "", $url);
+                //
+                $uuid5 = Uuid::uuid5('ead4c236-bf58-58c6-a2c6-a6b28d128cb6', $url);
+                $this->podcastGUID = $uuid5;
+            }
             \Craft::$app->db->createCommand()
                 ->insert('{{%studio_i18n}}', [
                     'elementId' => $this->id,
@@ -874,6 +890,7 @@ class Podcast extends Element
                     'podcastRedirectTo' => $this->podcastRedirectTo,
                     'podcastIsNewFeedUrl' => $this->podcastIsNewFeedUrl,
                     'medium' => $this->medium,
+                    'podcastGUID' => $this->podcastGUID,
                 ])
                 ->execute();
         } else {
@@ -917,6 +934,7 @@ class Podcast extends Element
                         'podcastRedirectTo' => $this->podcastRedirectTo,
                         'podcastIsNewFeedUrl' => $this->podcastIsNewFeedUrl,
                         'medium' => $this->medium,
+                        'podcastGUID' => $this->podcastGUID,
                     ])
                     ->execute();
             }
@@ -981,6 +999,7 @@ class Podcast extends Element
             'podcastIsNewFeedUrl' => ['label' => Craft::t('studio', 'New Feed URL')],
             'copyright' => ['label' => Craft::t('studio', 'Copyright')],
             'medium' => ['label' => Craft::t('studio', 'Medium')],
+            'podcastGUID' => ['label' => Craft::t('studio', 'GUID')],
         ];
         return $attributes;
     }
@@ -1130,6 +1149,7 @@ class Podcast extends Element
         $rules[] = [['authorName', 'ownerName', 'copyright'], 'string', 'max' => ['255']];
         $rules[] = [['ownerEmail'], 'email'];
         $rules[] = [['podcastRedirectTo', 'podcastLink'], 'url'];
+        $rules[] = [['podcastGUID'], 'string', 'max' => 36];
 
         return $rules;
     }

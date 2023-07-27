@@ -122,6 +122,7 @@ class Install extends Migration
                 'episodeSeason' => $this->smallInteger(),
                 'seasonName' => $this->string(),
                 'episodeGUID' => $this->string(1000),
+                'podcastGUID' => $this->string(36),
                 'podcastBlock' => $this->boolean(),
                 'podcastLink' => $this->string(1000),
                 'podcastComplete' => $this->boolean(),

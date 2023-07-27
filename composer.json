@@ -28,7 +28,8 @@
         "james-heinrich/getid3": "^1.9.19",
         "symfony/dom-crawler": "^6.0.0",
         "symfony/css-selector": "^6.0.0",
-        "mantas-done/subtitles": "v1.0.9"
+        "mantas-done/subtitles": "v1.0.9",
+        "ramsey/uuid": "^4.7.4"
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",

@@ -202,6 +202,7 @@ class PodcastFormat extends Model
             'medium' => Craft::t('studio', 'Podcast Medium'),
             'podcastRedirectTo' => Craft::t('studio', 'Redirect to'),
             'podcastIsNewFeedUrl' => Craft::t('studio', 'Is New Feed URL'),
+            'podcastGUID' => Craft::t('studio', 'Podcast GUID'),
         ];
         return $podcastAttributes;
     }

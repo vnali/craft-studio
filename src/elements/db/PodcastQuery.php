@@ -146,6 +146,7 @@ class PodcastQuery extends ElementQuery
             'studio_podcast.uploaderId',
             'studio_i18n.medium',
             'studio_i18n.locked',
+            'studio_i18n.podcastGUID',
         ]);
 
         $this->query->innerJoin(['studio_i18n' => '{{%studio_i18n}}'], '[[studio_i18n.elementId]] = [[studio_podcast.id]] and [[studio_i18n.siteId]]=subquery.siteId');
