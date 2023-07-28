@@ -2,11 +2,14 @@
 
 ## Unreleased
 
+> {warning} Changing one `person` field to `userPerson`, `entryPerson`, `tablePerson`, `textPerson` fields for creating podcast:person.
+
 - Added <podcast:liveItem> support ([#18](https://github.com/vnali/craft-studio/discussions/18)).
 - Added <podcast:socialInteract> support ([#19](https://github.com/vnali/craft-studio/discussions/19)).
 - Added <podcast:txt> support ([#20](https://github.com/vnali/craft-studio/discussions/20)).
 - Added <podcast:guid> support ([#21](https://github.com/vnali/craft-studio/discussions/21)).
 - Added <podcast:value> support ([#22](https://github.com/vnali/craft-studio/discussions/22)).
+- For generating the podcast:person [#11](https://github.com/vnali/craft-studio/discussions/11) via the matrix, instead of one `person` field, there can be `userPerson`, `entryPerson`, `tablePerson`, `textPerson` fields. so the user can use one of these fields when creating each person/block.
 
 ## 0.13.0 - 2023-07-19
 
