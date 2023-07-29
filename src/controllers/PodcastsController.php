@@ -895,9 +895,7 @@ class PodcastsController extends Controller
                                     }
                                 }
                             }
-                            if ($xmlPodcastPerson) {
-                                $xmlChannel->appendChild($xmlPodcastPerson);
-                            }
+                            $xmlChannel->appendChild($xmlPodcastPerson);
                         }
                     }
                 }
@@ -1033,15 +1031,14 @@ class PodcastsController extends Controller
                                 if (isset($block->enclosureDefault) && $block->enclosureDefault) {
                                     $xmlLiveItemAlternateEnclosure->setAttribute("default", "true");
                                 }
-                                if (isset($block->sources) && is_array($block->sources)) {
-                                    foreach ($block->sources as $key => $row) {
-                                        if (isset($row['uri']) && $row['uri'] && isset($row['type']) && $row['type']) {
+                                if (isset($block->otherSources) && is_array($block->otherSources)) {
+                                    foreach ($block->otherSources as $key => $row) {
+                                        if (isset($row['uri']) && $row['uri'] && isset($row['contentType']) && $row['contentType']) {
                                             if ($key == 0) {
-                                                $xmlLiveItemAlternateEnclosure->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                $xmlLiveItemAlternateEnclosure->setAttribute("type", htmlspecialchars($row['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                             }
                                             $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
                                             $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($row['uri'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            $xmlLiveItemAlternateEnclosureSource->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                             $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
                                         }
                                     }
@@ -1310,15 +1307,14 @@ class PodcastsController extends Controller
                                     if (isset($block->enclosureDefault) && $block->enclosureDefault) {
                                         $xmlLiveItemAlternateEnclosure->setAttribute("default", "true");
                                     }
-                                    if (isset($block->sources) && is_array($block->sources)) {
-                                        foreach ($block->sources as $key => $row) {
-                                            if (isset($row['uri']) && $row['uri'] && isset($row['type']) && $row['type']) {
+                                    if (isset($block->otherSources) && is_array($block->otherSources)) {
+                                        foreach ($block->otherSources as $key => $row) {
+                                            if (isset($row['uri']) && $row['uri'] && isset($row['contentType']) && $row['contentType']) {
                                                 if ($key == 0) {
-                                                    $xmlLiveItemAlternateEnclosure->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    $xmlLiveItemAlternateEnclosure->setAttribute("type", htmlspecialchars($row['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                 }
                                                 $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
                                                 $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($row['uri'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                $xmlLiveItemAlternateEnclosureSource->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                 $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
                                             }
                                         }
@@ -1729,20 +1725,20 @@ class PodcastsController extends Controller
                             if (isset($enclosureBlock->enclosureDefault) && $enclosureBlock->enclosureDefault) {
                                 $xmlEnclosure->setAttribute("default", "true");
                             }
-                            $enclosures = $enclosureBlock->sources->all();
-                            foreach ($enclosures as $key => $enclosure) {
+                            $sources = $enclosureBlock->sources->all();
+                            foreach ($sources as $key => $source) {
                                 if ($key == 0) {
-                                    if (isset($enclosure->mimeType)) {
+                                    if (isset($source->mimeType)) {
                                         $type = true;
-                                        $xmlEnclosure->setAttribute("type", $enclosure->mimeType);
+                                        $xmlEnclosure->setAttribute("type", $source->mimeType);
                                     }
-                                    if (isset($enclosure->size)) {
+                                    if (isset($source->size)) {
                                         $length = true;
-                                        $xmlEnclosure->setAttribute("length", $enclosure->size);
+                                        $xmlEnclosure->setAttribute("length", $source->size);
                                     }
                                 }
                                 $xmlSource = $xml->createElement("podcast:source");
-                                $xmlSource->setAttribute("uri", htmlspecialchars($enclosure->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlSource->setAttribute("uri", htmlspecialchars($source->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                 $xmlEnclosure->appendChild($xmlSource);
                             }
                             if (isset($enclosureBlock->otherSources) && $enclosureBlock->otherSources) {
@@ -2261,7 +2257,7 @@ class PodcastsController extends Controller
                                         $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     }
                                 }
-    
+
                                 // if Role and Group is defined via entry
                                 if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
                                     if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
@@ -2284,9 +2280,7 @@ class PodcastsController extends Controller
                                         }
                                     }
                                 }
-                                if ($xmlPodcastPerson) {
-                                    $xmlItem->appendChild($xmlPodcastPerson);
-                                }
+                                $xmlItem->appendChild($xmlPodcastPerson);
                             }
                         }
                     }
