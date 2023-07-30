@@ -145,6 +145,22 @@ class Studio extends Plugin
             }
         );
 
+        Event::on(
+            Element::class,
+            Element::EVENT_AFTER_DELETE,
+            function(Event $event) {
+                TagDependency::invalidate(Craft::$app->getCache(), 'studio-plugin');
+            }
+        );
+
+        Event::on(
+            Element::class,
+            Element::EVENT_AFTER_RESTORE,
+            function(Event $event) {
+                TagDependency::invalidate(Craft::$app->getCache(), 'studio-plugin');
+            }
+        );
+
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_INNER_HTML, [PodcastElement::class, 'updatePodcastElementHtml']);
 
         Event::on(
