@@ -9,6 +9,7 @@
 - Added <podcast:txt> support ([#20](https://github.com/vnali/craft-studio/discussions/20)).
 - Added <podcast:guid> support ([#21](https://github.com/vnali/craft-studio/discussions/21)).
 - Added <podcast:value> support ([#22](https://github.com/vnali/craft-studio/discussions/22)).
+- Added OP3 analytics service support ([#23](https://github.com/vnali/craft-studio/discussions/23)).
 - For generating the podcast:person [#11](https://github.com/vnali/craft-studio/discussions/11) via the matrix, instead of one `person` field, there can be `userPerson`, `entryPerson`, `tablePerson`, `textPerson` fields. so the user can use one of these fields when creating each person/block.
 - Fixed a bug where deleted and restored elements were displayed in the podcast rss.
 

@@ -1059,4 +1059,24 @@ class GeneralHelper
         }
         return array($field, $blockTypeHandle);
     }
+
+    public static function prefixUrl($url, $podcast, $siteId)
+    {
+        $generalSettings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcast->id, $siteId);
+        if ($generalSettings->enableOP3) {
+            $scheme = parse_url($url, PHP_URL_SCHEME);
+            if (isset($podcast->podcastGUID) && $podcast->podcastGUID) {
+                $prefix = 'https://op3.dev/e,pg=' . $podcast->podcastGUID . '/';
+            } else {
+                $prefix = 'https://op3.dev/e/';
+            }
+            if ($scheme == 'http') {
+                $url = $prefix . $url;
+            } elseif ($scheme == 'https') {
+                $url = str_replace('https://', '', $url);
+                $url = $prefix . $url;
+            }
+        }
+        return $url;
+    }
 }

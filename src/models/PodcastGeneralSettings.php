@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) vnali
  */
@@ -15,6 +16,11 @@ class PodcastGeneralSettings extends Model
      * @var bool|null If podcast RSS should be available for all without checking permission
      */
     public ?bool $allowAllToSeeRSS = null;
+
+    /**
+     * @var bool|null If OP3 should be enabled for podcast
+     */
+    public ?bool $enableOP3 = null;
 
     /**
      * @var bool|null If podcast RSS should be published
@@ -39,13 +45,13 @@ class PodcastGeneralSettings extends Model
     {
         $rules = parent::rules();
         $rules[] = [['podcastId'], 'required'];
-        $rules[] = [['podcastId'], function($attribute, $params, $validator) {
+        $rules[] = [['podcastId'], function ($attribute, $params, $validator) {
             $podcast = Podcast::find()->siteId($this->siteId)->status(null)->where(['studio_podcast.id' => $this->podcastId])->one();
             if (!$podcast) {
                 $this->addError($attribute, 'The podcast is not valid');
             }
         }, 'skipOnEmpty' => true];
-        $rules[] = [['publishRSS', 'allowAllToSeeRSS'], 'in', 'range' => [0, 1]];
+        $rules[] = [['publishRSS', 'allowAllToSeeRSS', 'enableOP3'], 'in', 'range' => [0, 1]];
         $rules[] = [['siteId'], SiteIdValidator::class];
         return $rules;
     }

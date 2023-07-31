@@ -197,6 +197,7 @@ class Install extends Migration
                 'siteId' => $this->integer(),
                 'publishRSS' => $this->boolean()->defaultValue(false),
                 'allowAllToSeeRSS' => $this->boolean()->defaultValue(false),
+                'enableOP3' => $this->boolean()->defaultValue(false),
                 'userId' => $this->integer(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),

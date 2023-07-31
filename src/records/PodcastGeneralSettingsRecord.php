@@ -15,6 +15,7 @@ use craft\db\ActiveRecord;
  * @property int $siteId
  * @property bool $publishRSS
  * @property bool $allowAllToSeeRSS
+ * @property bool $enableOP3
  * @property int $userId
  */
 class PodcastGeneralSettingsRecord extends ActiveRecord

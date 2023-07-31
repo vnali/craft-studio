@@ -49,6 +49,16 @@
             on: settings.allowAllToSeeRSS is defined ? settings.allowAllToSeeRSS
         }) }}
 
+        {{ forms.lightswitchField({
+            label: 'Enable OP3'|t('studio'),
+            id: 'enableOP3',
+            name: 'enableOP3',
+            required: false,
+            errors: settings.getErrors('enableOP3'),
+            value: 1,
+            on: settings.enableOP3 is defined ? settings.enableOP3
+        }) }}
+
         <div><b>{{ 'Site'|t('studio') }}</b></div> 
         {{ site.name|t('app') }}
 

@@ -266,6 +266,7 @@ class podcastsService extends Component
             $podcastGeneralSettings->siteId = $record->siteId;
             $podcastGeneralSettings->publishRSS = $record->publishRSS;
             $podcastGeneralSettings->allowAllToSeeRSS = $record->allowAllToSeeRSS;
+            $podcastGeneralSettings->enableOP3 = $record->enableOP3;
             $tz = Craft::$app->getTimeZone();
             $dateUpdated = new DateTime($record->dateUpdated, new \DateTimeZone("UTC"));
             $tzTime = new DateTimeZone($tz);

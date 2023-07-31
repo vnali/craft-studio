@@ -952,7 +952,8 @@ class PodcastsController extends Controller
                             foreach ($liveItemBlock->enclosure as $row) {
                                 if (isset($row['url']) && $row['url'] && isset($row['type']) && $row['type']) {
                                     $xmlLiveItemEnclosure = $xml->createElement("enclosure");
-                                    $xmlLiveItemEnclosure->setAttribute("url", htmlspecialchars($row['url'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    $prefixUrl = GeneralHelper::prefixUrl($row['url'], $podcast, $site->id);
+                                    $xmlLiveItemEnclosure->setAttribute("url", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     $xmlLiveItemEnclosure->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     $xmlPodcastLiveItem->appendChild($xmlLiveItemEnclosure);
                                     break;
@@ -985,7 +986,8 @@ class PodcastsController extends Controller
                                         $xmlLiveItemAlternateEnclosure->setAttribute("default", "true");
                                     }
                                     $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
-                                    $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($row['uri'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    $prefixUrl = GeneralHelper::prefixUrl($row['uri'], $podcast, $site->id);
+                                    $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     $xmlLiveItemAlternateEnclosureSource->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
                                     $xmlPodcastLiveItem->appendChild($xmlLiveItemAlternateEnclosure);
@@ -1038,7 +1040,8 @@ class PodcastsController extends Controller
                                                 $xmlLiveItemAlternateEnclosure->setAttribute("type", htmlspecialchars($row['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                             }
                                             $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
-                                            $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($row['uri'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            $prefixUrl = GeneralHelper::prefixUrl($row['uri'], $podcast, $site->id);
+                                            $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                             $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
                                         }
                                     }
@@ -1228,7 +1231,8 @@ class PodcastsController extends Controller
                                 foreach ($liveItemBlock->enclosure as $row) {
                                     if (isset($row['url']) && $row['url'] && isset($row['type']) && $row['type']) {
                                         $xmlLiveItemEnclosure = $xml->createElement("enclosure");
-                                        $xmlLiveItemEnclosure->setAttribute("url", htmlspecialchars($row['url'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $prefixUrl = GeneralHelper::prefixUrl($row['url'], $podcast, $site->id);
+                                        $xmlLiveItemEnclosure->setAttribute("url", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         $xmlLiveItemEnclosure->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         $xmlPodcastLiveItem->appendChild($xmlLiveItemEnclosure);
                                         break;
@@ -1261,7 +1265,8 @@ class PodcastsController extends Controller
                                             $xmlLiveItemAlternateEnclosure->setAttribute("default", "true");
                                         }
                                         $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
-                                        $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($row['uri'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $prefixUrl = GeneralHelper::prefixUrl($row['uri'], $podcast, $site->id);
+                                        $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         $xmlLiveItemAlternateEnclosureSource->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
                                         $xmlPodcastLiveItem->appendChild($xmlLiveItemAlternateEnclosure);
@@ -1314,7 +1319,8 @@ class PodcastsController extends Controller
                                                     $xmlLiveItemAlternateEnclosure->setAttribute("type", htmlspecialchars($row['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                 }
                                                 $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
-                                                $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($row['uri'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                $prefixUrl = GeneralHelper::prefixUrl($row['uri'], $podcast, $site->id);
+                                                $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                 $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
                                             }
                                         }
@@ -1609,7 +1615,8 @@ class PodcastsController extends Controller
                 list($assetFilename, $assetFilePath, $assetFileUrl, $blockId, $asset) = GeneralHelper::getElementAsset($episode, $fieldContainer, $fieldHandle);
                 $xmlEnclosure = $xml->createElement("enclosure");
                 if ($assetFileUrl && $asset) {
-                    $xmlEnclosure->setAttribute("url", htmlspecialchars($assetFileUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                    $prefixUrl = GeneralHelper::prefixUrl($assetFileUrl, $podcast, $site->id);
+                    $xmlEnclosure->setAttribute("url", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                     $xmlItem->appendChild($xmlEnclosure);
 
                     $xmlEnclosure->setAttribute("length", $asset->size);
@@ -1668,7 +1675,8 @@ class PodcastsController extends Controller
                                     $xmlEnclosure->setAttribute("default", "true");
                                 }
                                 $xmlSource = $xml->createElement("podcast:source");
-                                $xmlSource->setAttribute("uri", htmlspecialchars($enclosure->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $prefixUrl = GeneralHelper::prefixUrl($enclosure->getUrl(), $podcast, $site->id);
+                                $xmlSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                 $xmlEnclosure->appendChild($xmlSource);
                                 $xmlItem->appendChild($xmlEnclosure);
                             }
@@ -1738,7 +1746,8 @@ class PodcastsController extends Controller
                                     }
                                 }
                                 $xmlSource = $xml->createElement("podcast:source");
-                                $xmlSource->setAttribute("uri", htmlspecialchars($source->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $prefixUrl = GeneralHelper::prefixUrl($source->getUrl(), $podcast, $site->id);
+                                $xmlSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                 $xmlEnclosure->appendChild($xmlSource);
                             }
                             if (isset($enclosureBlock->otherSources) && $enclosureBlock->otherSources) {
@@ -1761,7 +1770,8 @@ class PodcastsController extends Controller
                                     foreach ($enclosureBlock->otherSources as $source) {
                                         $xmlSource = $xml->createElement("podcast:source");
                                         if (isset($source['uri']) && $source['uri']) {
-                                            $xmlSource->setAttribute("uri", htmlspecialchars($source['uri'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            $prefixUrl = GeneralHelper::prefixUrl($source['uri'], $podcast, $site->id);
+                                            $xmlSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         }
                                         if (isset($source['contentType']) && $source['contentType']) {
                                             $xmlSource->setAttribute("contentType", htmlspecialchars($source['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
@@ -1770,7 +1780,8 @@ class PodcastsController extends Controller
                                     }
                                 } else {
                                     $xmlSource = $xml->createElement("podcast:source");
-                                    $xmlSource->setAttribute("uri", htmlspecialchars($enclosureBlock->otherSources, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    $prefixUrl = GeneralHelper::prefixUrl($enclosureBlock->otherSources, $podcast, $site->id);
+                                    $xmlSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     $xmlEnclosure->appendChild($xmlSource);
                                 }
                             }
@@ -2788,6 +2799,11 @@ class PodcastsController extends Controller
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
         $settings->publishRSS = Craft::$app->getRequest()->getBodyParam('publishRSS', $settings->publishRSS);
         $settings->allowAllToSeeRSS = Craft::$app->getRequest()->getBodyParam('allowAllToSeeRSS', $settings->allowAllToSeeRSS);
+        $op3 = Craft::$app->getRequest()->getBodyParam('enableOP3', $settings->enableOP3);
+        if ($op3 !== $settings->enableOP3) {
+            TagDependency::invalidate(Craft::$app->getCache(), 'studio-plugin');
+        }
+        $settings->enableOP3 = $op3;
         $settings->siteId = Craft::$app->getRequest()->getBodyParam('siteId');
 
         if (!$settings->validate()) {
@@ -2811,9 +2827,11 @@ class PodcastsController extends Controller
             'siteId' => $siteId,
             'publishRSS' => $settings->publishRSS,
             'allowAllToSeeRSS' => $settings->allowAllToSeeRSS,
+            'enableOP3' => $settings->enableOP3,
         ], [
             'publishRSS' => $settings->publishRSS,
             'allowAllToSeeRSS' => $settings->allowAllToSeeRSS,
+            'enableOP3' => $settings->enableOP3,
         ]);
 
         Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast general settings saved'));
