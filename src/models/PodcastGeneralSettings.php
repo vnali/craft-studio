@@ -45,7 +45,7 @@ class PodcastGeneralSettings extends Model
     {
         $rules = parent::rules();
         $rules[] = [['podcastId'], 'required'];
-        $rules[] = [['podcastId'], function ($attribute, $params, $validator) {
+        $rules[] = [['podcastId'], function($attribute, $params, $validator) {
             $podcast = Podcast::find()->siteId($this->siteId)->status(null)->where(['studio_podcast.id' => $this->podcastId])->one();
             if (!$podcast) {
                 $this->addError($attribute, 'The podcast is not valid');

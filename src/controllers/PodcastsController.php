@@ -1768,15 +1768,15 @@ class PodcastsController extends Controller
                                 }
                                 if (is_array($enclosureBlock->otherSources)) {
                                     foreach ($enclosureBlock->otherSources as $source) {
-                                        $xmlSource = $xml->createElement("podcast:source");
                                         if (isset($source['uri']) && $source['uri']) {
+                                            $xmlSource = $xml->createElement("podcast:source");
                                             $prefixUrl = GeneralHelper::prefixUrl($source['uri'], $podcast, $site->id);
                                             $xmlSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            if (isset($source['contentType']) && $source['contentType']) {
+                                                $xmlSource->setAttribute("contentType", htmlspecialchars($source['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            $xmlEnclosure->appendChild($xmlSource);
                                         }
-                                        if (isset($source['contentType']) && $source['contentType']) {
-                                            $xmlSource->setAttribute("contentType", htmlspecialchars($source['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                        }
-                                        $xmlEnclosure->appendChild($xmlSource);
                                     }
                                 } else {
                                     $xmlSource = $xml->createElement("podcast:source");

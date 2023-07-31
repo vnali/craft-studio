@@ -11,7 +11,8 @@
 - Added <podcast:value> support ([#22](https://github.com/vnali/craft-studio/discussions/22)).
 - Added OP3 analytics service support ([#23](https://github.com/vnali/craft-studio/discussions/23)).
 - For generating the podcast:person [#11](https://github.com/vnali/craft-studio/discussions/11) via the matrix, instead of one `person` field, there can be `userPerson`, `entryPerson`, `tablePerson`, `textPerson` fields. so the user can use one of these fields when creating each person/block.
-- Fixed a bug where deleted and restored elements were displayed in the podcast rss.
+- Fixed a bug where deleted elements were displayed in the podcast rss.
+- Fixed a bug where alternate enclosure's sources tag was created without uri attribute.
 
 ## 0.13.0 - 2023-07-19
 
