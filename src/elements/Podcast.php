@@ -300,13 +300,20 @@ class Podcast extends Element
                         'label' => $label,
                     ],
                 ]);
+            case 'OP3':
+                if (isset($this->podcastGUID) && $this->podcastGUID) {
+                    return '<a href="https://op3.dev/show/' . $this->podcastGUID . '">OP3</a>';
+                } else {
+                    return Craft::t('studio', 'Podcast GUID is not set');
+                }
+                // no break
             case 'RSS':
                 //TODO: let user choose if wants slug instead of id in URL
                 $RSSLabel = '';
                 $elementId = $this->id;
                 if (!$this->getIsDraft()) {
                     $record = PodcastGeneralSettingsRecord::find()->where(['podcastId' => $this->id, 'siteId' => $this->siteId])->one();
-                    
+
                     $siteStatuses = ElementHelper::siteStatusesForElement($this, true);
                     $enabled = $siteStatuses[$this->siteId];
                     /** @var PodcastGeneralSettingsRecord|null $record */
@@ -1000,6 +1007,7 @@ class Podcast extends Element
             'copyright' => ['label' => Craft::t('studio', 'Copyright')],
             'medium' => ['label' => Craft::t('studio', 'Medium')],
             'podcastGUID' => ['label' => Craft::t('studio', 'GUID')],
+            'OP3' => ['label' => Craft::t('studio', 'OP3')],
         ];
         return $attributes;
     }
