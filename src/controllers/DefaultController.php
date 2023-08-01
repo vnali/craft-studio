@@ -225,9 +225,10 @@ class DefaultController extends Controller
      * Get page context
      *
      * @param int $elementId
+     * @param int $siteId
      * @return Response
      */
-    public function actionGetPageContext(int $elementId): Response
+    public function actionGetPageContext(int $elementId, int $siteId): Response
     {
         $elementType = Craft::$app->getElements()->getElementTypeById($elementId);
 
@@ -243,7 +244,7 @@ class DefaultController extends Controller
         $speakers = [];
 
         if ($transcriptTextField) {
-            $episode = Craft::$app->elements->getElementById($elementId);
+            $episode = Craft::$app->elements->getElementById($elementId, EpisodeElement::class, $siteId);
             $fieldLayout = $episode->getFieldLayout();
     
             $transcriptTextIncluded = $fieldLayout->isFieldIncluded($transcriptTextField->handle);
