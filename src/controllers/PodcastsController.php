@@ -783,119 +783,134 @@ class PodcastsController extends Controller
                         $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->all();
                     }
                     foreach ($personBlocks as $personBlock) {
-                        $name = null;
-                        $personHref = null;
-                        $personImg = null;
+                        $personsArray = [];
                         if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
-                            $person = $personBlock->userPerson->one();
-                            if ($person->fullName) {
-                                $name = $person->fullName;
-                                if (isset($person->personHref) && $person->personHref) {
-                                    $personHref = $person->personHref;
-                                }
-                                if ($person->photoId) {
-                                    $photo = Craft::$app->getAssets()->getAssetById($person->photoId);
-                                    if ($photo) {
-                                        $photoId = true;
-                                        $personImg = $photo->getUrl();
+                            $persons = $personBlock->userPerson->all();
+                            foreach ($persons as $person) {
+                                if ($person->fullName) {
+                                    $personArray = [];
+                                    $personArray['name'] = $person->fullName;
+                                    if (isset($person->personHref) && $person->personHref) {
+                                        $personArray['personHref'] = $person->personHref;
                                     }
-                                } elseif (isset($person->personImg) && $person->personImg) {
-                                    if (!is_object($person->personImg)) {
-                                        $personImg = $person->personImg;
-                                    } else {
-                                        if (get_class($person->personImg) == AssetQuery::class) {
-                                            $personImg = $person->personImg->one();
-                                            if ($personImg) {
-                                                $personImg = $personImg->getUrl();
-                                            } else {
-                                                $personImg = null;
+                                    if ($person->photoId) {
+                                        $photo = Craft::$app->getAssets()->getAssetById($person->photoId);
+                                        if ($photo) {
+                                            $personArray['personImg'] = $photo->getUrl();
+                                        }
+                                    } elseif (isset($person->personImg) && $person->personImg) {
+                                        if (!is_object($person->personImg)) {
+                                            $personArray['personImg'] = $person->personImg;
+                                        } else {
+                                            if (get_class($person->personImg) == AssetQuery::class) {
+                                                $personImg = $person->personImg->one();
+                                                if ($personImg) {
+                                                    $personArray['personImg'] = $personImg->getUrl();
+                                                } else {
+                                                    $personArray['personImg'] = null;
+                                                }
                                             }
                                         }
                                     }
+                                    $personsArray[] = $personArray;
                                 }
                             }
-                        } elseif (isset($personBlock->entryPerson) && get_class($personBlock->entryPerson) == EntryQuery::class && $personBlock->entryPerson->one()) {
-                            $person = $personBlock->entryPerson->one();
-                            if (isset($person->title) && $person->title) {
-                                $name = $person->title;
-                                if (isset($person->personHref) && $person->personHref) {
-                                    $personHref = $person->personHref;
-                                }
-                                if (isset($person->personImg) && $person->personImg) {
-                                    if (!is_object($person->personImg)) {
-                                        $personImg = $person->personImg;
-                                    } else {
-                                        if (get_class($person->personImg) == AssetQuery::class) {
-                                            $personImg = $person->personImg->one();
-                                            if ($personImg) {
-                                                $personImg = $personImg->getUrl();
-                                            } else {
-                                                $personImg = null;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } elseif (isset($personBlock->tablePerson) && is_array($personBlock->tablePerson) && isset($personBlock->tablePerson[0]['person']) && $personBlock->tablePerson[0]['person']) {
-                            $person = $personBlock->tablePerson[0];
-                            if (isset($person['person']) && $person['person']) {
-                                $name = $person['person'];
-                                if (isset($person['personHref']) && $person['personHref']) {
-                                    $personHref = $person['personHref'];
-                                }
-                                if (isset($person['personImg']) && $person['personImg']) {
-                                    $personImg = $person['personImg'];
-                                }
-                            }
-                        } elseif (isset($personBlock->textPerson) && !is_object($personBlock->textPerson)) {
-                            $name = $personBlock->textPerson;
                         }
-                        if ($name) {
-                            $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                            if (isset($personImg)) {
-                                $xmlPodcastPerson->setAttribute("img", htmlspecialchars($personImg, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                            }
-                            if (isset($personHref)) {
-                                $xmlPodcastPerson->setAttribute("href", htmlspecialchars($personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                            }
-                            if (isset($personBlock->personRole) && $personBlock->personRole) {
-                                if (is_object($personBlock->personRole) && get_class($personBlock->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
-                                    $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                } elseif (!is_object($personBlock->personRole)) {
-                                    $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                }
-                            }
-                            if (isset($personBlock->personGroup) && $personBlock->personGroup) {
-                                if (is_object($personBlock->personGroup) && get_class($personBlock->personGroup) == SingleOptionFieldData::class && $personBlock->personGroup->value) {
-                                    $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                } elseif (!is_object($personBlock->personGroup)) {
-                                    $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                }
-                            }
-
-                            // if Role and Group is defined via entry
-                            if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
-                                if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
-                                    $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
-                                    if ($podcastTaxonomy) {
-                                        if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
-                                            if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $podcastTaxonomy->personRole->value) {
-                                                $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            } elseif (!is_object($podcastTaxonomy->personRole)) {
-                                                $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                        if (isset($personBlock->entryPerson) && get_class($personBlock->entryPerson) == EntryQuery::class && $personBlock->entryPerson->one()) {
+                            $persons = $personBlock->entryPerson->all();
+                            foreach ($persons as $person) {
+                                if (isset($person->title) && $person->title) {
+                                    $personArray = [];
+                                    $personArray['name'] = $person->title;
+                                    if (isset($person->personHref) && $person->personHref) {
+                                        $personArray['personHref'] = $person->personHref;
+                                    }
+                                    if (isset($person->personImg) && $person->personImg) {
+                                        if (!is_object($person->personImg)) {
+                                            $personArray['personImg'] = $person->personImg;
+                                        } else {
+                                            if (get_class($person->personImg) == AssetQuery::class) {
+                                                $personImg = $person->personImg->one();
+                                                if ($personImg) {
+                                                    $personArray['personImg'] = $personImg->getUrl();
+                                                } else {
+                                                    $personArray['personImg'] = null;
+                                                }
                                             }
                                         }
-                                        if (isset($podcastTaxonomy->personGroup) && $podcastTaxonomy->personGroup) {
-                                            if (is_object($podcastTaxonomy->personGroup) && get_class($podcastTaxonomy->personGroup) == SingleOptionFieldData::class && $podcastTaxonomy->personGroup->value) {
-                                                $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            } elseif (!is_object($podcastTaxonomy->personGroup)) {
-                                                $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    $personsArray[] = $personArray;
+                                }
+                            }
+                        }
+                        if (isset($personBlock->tablePerson) && is_array($personBlock->tablePerson) && isset($personBlock->tablePerson[0]['person']) && $personBlock->tablePerson[0]['person']) {
+                            foreach ($personBlock->tablePerson as $person) {
+                                if (isset($person['person']) && $person['person']) {
+                                    $personArray = [];
+                                    $personArray['name'] = $person['person'];
+                                    if (isset($person['personHref']) && $person['personHref']) {
+                                        $personArray['personHref'] = $person['personHref'];
+                                    }
+                                    if (isset($person['personImg']) && $person['personImg']) {
+                                        $personArray['personImg'] = $person['personImg'];
+                                    }
+                                    $personsArray[] = $personArray;
+                                }
+                            }
+                        }
+                        if (isset($personBlock->textPerson) && !is_object($personBlock->textPerson)) {
+                            $personArray = [];
+                            $personArray['name'] = $personBlock->textPerson;
+                            $personsArray[] = $personArray;
+                        }
+                        foreach ($personsArray as $personArray) {
+                            if ($personArray['name']) {
+                                $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($personArray['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($personArray['personImg'])) {
+                                    $xmlPodcastPerson->setAttribute("img", htmlspecialchars($personArray['personImg'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                if (isset($personArray['personHref'])) {
+                                    $xmlPodcastPerson->setAttribute("href", htmlspecialchars($personArray['personHref'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                if (isset($personBlock->personRole) && $personBlock->personRole) {
+                                    if (is_object($personBlock->personRole) && get_class($personBlock->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
+                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } elseif (!is_object($personBlock->personRole)) {
+                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                }
+                                if (isset($personBlock->personGroup) && $personBlock->personGroup) {
+                                    if (is_object($personBlock->personGroup) && get_class($personBlock->personGroup) == SingleOptionFieldData::class && $personBlock->personGroup->value) {
+                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    } elseif (!is_object($personBlock->personGroup)) {
+                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                }
+
+                                // if Role and Group is defined via entry
+                                if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
+                                    if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
+                                        $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
+                                        if ($podcastTaxonomy) {
+                                            if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
+                                                if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $podcastTaxonomy->personRole->value) {
+                                                    $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                } elseif (!is_object($podcastTaxonomy->personRole)) {
+                                                    $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                            }
+                                            if (isset($podcastTaxonomy->personGroup) && $podcastTaxonomy->personGroup) {
+                                                if (is_object($podcastTaxonomy->personGroup) && get_class($podcastTaxonomy->personGroup) == SingleOptionFieldData::class && $podcastTaxonomy->personGroup->value) {
+                                                    $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                } elseif (!is_object($podcastTaxonomy->personGroup)) {
+                                                    $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
                                             }
                                         }
                                     }
                                 }
+                                $xmlChannel->appendChild($xmlPodcastPerson);
                             }
-                            $xmlChannel->appendChild($xmlPodcastPerson);
                         }
                     }
                 }
@@ -908,284 +923,305 @@ class PodcastsController extends Controller
                     $blockQuery = \craft\elements\MatrixBlock::find();
                     $liveItemBlocks = $blockQuery->fieldId($liveItemField->id)->owner($podcast)->type($liveItemBlockTypeHandle)->all();
                     foreach ($liveItemBlocks as $liveItemBlock) {
-                        $xmlPodcastLiveItem = $xml->createElement("podcast:liveItem");
-                        if (isset($liveItemBlock->liveStatus) && $liveItemBlock->liveStatus) {
+                        if (isset($liveItemBlock->liveStart) && $liveItemBlock->liveStart && isset($liveItemBlock->liveStatus) && $liveItemBlock->liveStatus) {
+                            $xmlPodcastLiveItem = $xml->createElement("podcast:liveItem");
                             $xmlPodcastLiveItem->setAttribute("status", $liveItemBlock->liveStatus);
-                        }
-                        if (isset($liveItemBlock->liveStart) && $liveItemBlock->liveStart) {
                             $xmlPodcastLiveItem->setAttribute("start", $liveItemBlock->liveStart->format('Y-m-d\TH:i:s.vP'));
-                        }
-                        if (isset($liveItemBlock->liveEnd) && $liveItemBlock->liveEnd) {
-                            $xmlPodcastLiveItem->setAttribute("end", $liveItemBlock->liveEnd->format('Y-m-d\TH:i:s.vP'));
-                        }
-                        if (isset($liveItemBlock->liveTitle) && $liveItemBlock->liveTitle) {
-                            $xmlLiveItemTitle = $xml->createElement("title", htmlspecialchars($liveItemBlock->liveTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                            $xmlPodcastLiveItem->appendChild($xmlLiveItemTitle);
-                        }
-                        if (isset($liveItemBlock->liveAuthor) && $liveItemBlock->liveAuthor) {
-                            $xmlLiveItemAuthor = $xml->createElement("author", htmlspecialchars($liveItemBlock->liveAuthor, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                            $xmlPodcastLiveItem->appendChild($xmlLiveItemAuthor);
-                        }
-                        if (isset($liveItemBlock->description) && $liveItemBlock->description) {
-                            $xmlLiveItemDescription = $xml->createElement("description");
-                            $xmlLiveItemDescription->appendChild($xml->createCDATASection($liveItemBlock->description));
-                            $xmlPodcastLiveItem->appendChild($xmlLiveItemDescription);
-                        }
-                        if (isset($liveItemBlock->guid) && $liveItemBlock->guid) {
-                            $xmlLiveItemGuid = $xml->createElement("guid", htmlspecialchars($liveItemBlock->guid, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                            $xmlPodcastLiveItem->appendChild($xmlLiveItemGuid);
-                        }
-                        if (isset($liveItemBlock->explicit) && $liveItemBlock->explicit) {
-                            $xmlLiveItemExplicit = $xml->createElement("itunes:explicit", "yes");
-                            $xmlPodcastLiveItem->appendChild($xmlLiveItemExplicit);
-                        }
-                        if (isset($liveItemBlock->contentLink) && is_array($liveItemBlock->contentLink)) {
-                            foreach ($liveItemBlock->contentLink as $row) {
-                                if (isset($row['title']) && $row['title'] && isset($row['href']) && $row['href']) {
-                                    $xmlLiveItemContentLink = $xml->createElement("contentLink", htmlspecialchars($row['title'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    $xmlLiveItemContentLink->setAttribute("href", htmlspecialchars($row['href'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    $xmlPodcastLiveItem->appendChild($xmlLiveItemContentLink);
+                            if (isset($liveItemBlock->liveEnd) && $liveItemBlock->liveEnd) {
+                                $xmlPodcastLiveItem->setAttribute("end", $liveItemBlock->liveEnd->format('Y-m-d\TH:i:s.vP'));
+                            }
+                            if (isset($liveItemBlock->liveTitle) && $liveItemBlock->liveTitle) {
+                                $xmlLiveItemTitle = $xml->createElement("title", htmlspecialchars($liveItemBlock->liveTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlPodcastLiveItem->appendChild($xmlLiveItemTitle);
+                            }
+                            if (isset($liveItemBlock->liveAuthor) && $liveItemBlock->liveAuthor) {
+                                $xmlLiveItemAuthor = $xml->createElement("author", htmlspecialchars($liveItemBlock->liveAuthor, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlPodcastLiveItem->appendChild($xmlLiveItemAuthor);
+                            }
+                            if (isset($liveItemBlock->description) && $liveItemBlock->description) {
+                                $xmlLiveItemDescription = $xml->createElement("description");
+                                $xmlLiveItemDescription->appendChild($xml->createCDATASection($liveItemBlock->description));
+                                $xmlPodcastLiveItem->appendChild($xmlLiveItemDescription);
+                            }
+                            if (isset($liveItemBlock->guid) && $liveItemBlock->guid) {
+                                $xmlLiveItemGuid = $xml->createElement("guid", htmlspecialchars($liveItemBlock->guid, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                $xmlPodcastLiveItem->appendChild($xmlLiveItemGuid);
+                            }
+                            if (isset($liveItemBlock->explicit) && $liveItemBlock->explicit) {
+                                $xmlLiveItemExplicit = $xml->createElement("itunes:explicit", "yes");
+                                $xmlPodcastLiveItem->appendChild($xmlLiveItemExplicit);
+                            }
+                            if (isset($liveItemBlock->contentLink) && is_array($liveItemBlock->contentLink)) {
+                                foreach ($liveItemBlock->contentLink as $row) {
+                                    if (isset($row['title']) && $row['title'] && isset($row['href']) && $row['href']) {
+                                        $xmlLiveItemContentLink = $xml->createElement("contentLink", htmlspecialchars($row['title'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $xmlLiveItemContentLink->setAttribute("href", htmlspecialchars($row['href'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $xmlPodcastLiveItem->appendChild($xmlLiveItemContentLink);
+                                    }
                                 }
                             }
-                        }
-                        if (isset($liveItemBlock->enclosure) && is_array($liveItemBlock->enclosure)) {
-                            foreach ($liveItemBlock->enclosure as $row) {
-                                if (isset($row['url']) && $row['url'] && isset($row['type']) && $row['type']) {
-                                    $xmlLiveItemEnclosure = $xml->createElement("enclosure");
-                                    $prefixUrl = GeneralHelper::prefixUrl($row['url'], $podcast, $site->id);
-                                    $xmlLiveItemEnclosure->setAttribute("url", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    $xmlLiveItemEnclosure->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    $xmlPodcastLiveItem->appendChild($xmlLiveItemEnclosure);
-                                    break;
+                            if (isset($liveItemBlock->enclosure) && is_array($liveItemBlock->enclosure)) {
+                                foreach ($liveItemBlock->enclosure as $row) {
+                                    if (isset($row['url']) && $row['url'] && isset($row['type']) && $row['type']) {
+                                        $xmlLiveItemEnclosure = $xml->createElement("enclosure");
+                                        $prefixUrl = GeneralHelper::prefixUrl($row['url'], $podcast, $site->id);
+                                        $xmlLiveItemEnclosure->setAttribute("url", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $xmlLiveItemEnclosure->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $xmlPodcastLiveItem->appendChild($xmlLiveItemEnclosure);
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                        if (isset($liveItemBlock->alternateEnclosure) && is_array($liveItemBlock->alternateEnclosure)) {
-                            foreach ($liveItemBlock->alternateEnclosure as $row) {
-                                if (isset($row['uri']) && $row['uri'] && isset($row['type']) && $row['type']) {
+                            if (isset($liveItemBlock->alternateEnclosure) && is_array($liveItemBlock->alternateEnclosure)) {
+                                foreach ($liveItemBlock->alternateEnclosure as $row) {
+                                    if (isset($row['uri']) && $row['uri'] && isset($row['type']) && $row['type']) {
+                                        $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
+                                        if (isset($row['enclosureTitle']) && $row['enclosureTitle']) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("title", htmlspecialchars($row['enclosureTitle'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($row['enclosureBitrate']) && $row['enclosureBitrate']) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("bitrate", htmlspecialchars($row['enclosureBitrate'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($row['enclosureHeight']) && $row['enclosureHeight']) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("height", htmlspecialchars($row['enclosureHeight'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($row['enclosureLang']) && $row['enclosureLang']) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("lang", htmlspecialchars($row['enclosureLang'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($row['enclosureCodecs']) && $row['enclosureCodecs']) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("codecs", htmlspecialchars($row['enclosureCodecs'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($row['enclosureRel']) && $row['enclosureRel']) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("rel", htmlspecialchars($row['enclosureRel'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($row['enclosureDefault']) && $row['enclosureDefault']) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("default", "true");
+                                        }
+                                        $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
+                                        $prefixUrl = GeneralHelper::prefixUrl($row['uri'], $podcast, $site->id);
+                                        $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $xmlLiveItemAlternateEnclosureSource->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
+                                        $xmlPodcastLiveItem->appendChild($xmlLiveItemAlternateEnclosure);
+                                    }
+                                }
+                            } elseif (isset($liveItemBlock->alternateEnclosure) && is_object($liveItemBlock->alternateEnclosure) && get_class($liveItemBlock->alternateEnclosure) == SuperTableBlockQuery::class) {
+                                foreach ($liveItemBlock->alternateEnclosure->all() as $block) {
                                     $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
-                                    if (isset($row['enclosureTitle']) && $row['enclosureTitle']) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("title", htmlspecialchars($row['enclosureTitle'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($block->enclosureTitle) && $block->enclosureTitle) {
+                                        $xmlLiveItemAlternateEnclosure->setAttribute("title", htmlspecialchars($block->enclosureTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     }
-                                    if (isset($row['enclosureBitrate']) && $row['enclosureBitrate']) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("bitrate", htmlspecialchars($row['enclosureBitrate'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($block->enclosureBitrate) && $block->enclosureBitrate) {
+                                        if (is_object($block->enclosureBitrate) && get_class($block->enclosureBitrate) == SingleOptionFieldData::class && $block->enclosureBitrate->value) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("bitrate", htmlspecialchars($block->enclosureBitrate->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } elseif (!is_object($block->enclosureBitrate)) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("bitrate", htmlspecialchars($block->enclosureBitrate, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
                                     }
-                                    if (isset($row['enclosureHeight']) && $row['enclosureHeight']) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("height", htmlspecialchars($row['enclosureHeight'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($block->enclosureHeight) && $block->enclosureHeight) {
+                                        $xmlLiveItemAlternateEnclosure->setAttribute("height", $block->enclosureHeight);
                                     }
-                                    if (isset($row['enclosureLang']) && $row['enclosureLang']) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("lang", htmlspecialchars($row['enclosureLang'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($block->enclosureLang) && $block->enclosureLang) {
+                                        if (is_object($block->enclosureLang) && get_class($block->enclosureLang) == SingleOptionFieldData::class && $block->enclosureLang->value) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("lang", htmlspecialchars($block->enclosureLang->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } elseif (!is_object($block->enclosureLang)) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("lang", htmlspecialchars($block->enclosureLang, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
                                     }
-                                    if (isset($row['enclosureCodecs']) && $row['enclosureCodecs']) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("codecs", htmlspecialchars($row['enclosureCodecs'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($block->enclosureCodecs) && $block->enclosureCodecs) {
+                                        if (is_object($block->enclosureCodecs) && get_class($block->enclosureCodecs) == SingleOptionFieldData::class && $block->enclosureCodecs->value) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("codecs", htmlspecialchars($block->enclosureCodecs->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } elseif (!is_object($block->enclosureCodecs)) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("codecs", htmlspecialchars($block->enclosureCodecs, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
                                     }
-                                    if (isset($row['enclosureRel']) && $row['enclosureRel']) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("rel", htmlspecialchars($row['enclosureRel'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($block->enclosureRel) && $block->enclosureRel) {
+                                        if (is_object($block->enclosureRel) && get_class($block->enclosureRel) == SingleOptionFieldData::class && $block->enclosureRel->value) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("rel", htmlspecialchars($block->enclosureRel->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } elseif (!is_object($block->enclosureRel)) {
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("rel", htmlspecialchars($block->enclosureRel, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
                                     }
-                                    if (isset($row['enclosureDefault']) && $row['enclosureDefault']) {
+                                    if (isset($block->enclosureDefault) && $block->enclosureDefault) {
                                         $xmlLiveItemAlternateEnclosure->setAttribute("default", "true");
                                     }
-                                    $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
-                                    $prefixUrl = GeneralHelper::prefixUrl($row['uri'], $podcast, $site->id);
-                                    $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    $xmlLiveItemAlternateEnclosureSource->setAttribute("type", htmlspecialchars($row['type'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
+                                    if (isset($block->otherSources) && is_array($block->otherSources)) {
+                                        foreach ($block->otherSources as $key => $row) {
+                                            if (isset($row['uri']) && $row['uri'] && isset($row['contentType']) && $row['contentType']) {
+                                                if ($key == 0) {
+                                                    $xmlLiveItemAlternateEnclosure->setAttribute("type", htmlspecialchars($row['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
+                                                $prefixUrl = GeneralHelper::prefixUrl($row['uri'], $podcast, $site->id);
+                                                $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
+                                            }
+                                        }
+                                    }
                                     $xmlPodcastLiveItem->appendChild($xmlLiveItemAlternateEnclosure);
                                 }
                             }
-                        } elseif (isset($liveItemBlock->alternateEnclosure) && is_object($liveItemBlock->alternateEnclosure) && get_class($liveItemBlock->alternateEnclosure) == SuperTableBlockQuery::class) {
-                            foreach ($liveItemBlock->alternateEnclosure->all() as $block) {
-                                $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
-                                if (isset($block->enclosureTitle) && $block->enclosureTitle) {
-                                    $xmlLiveItemAlternateEnclosure->setAttribute("title", htmlspecialchars($block->enclosureTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                }
-                                if (isset($block->enclosureBitrate) && $block->enclosureBitrate) {
-                                    if (is_object($block->enclosureBitrate) && get_class($block->enclosureBitrate) == SingleOptionFieldData::class && $block->enclosureBitrate->value) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("bitrate", htmlspecialchars($block->enclosureBitrate->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    } elseif (!is_object($block->enclosureBitrate)) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("bitrate", htmlspecialchars($block->enclosureBitrate, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    }
-                                }
-                                if (isset($block->enclosureHeight) && $block->enclosureHeight) {
-                                    $xmlLiveItemAlternateEnclosure->setAttribute("height", $block->enclosureHeight);
-                                }
-                                if (isset($block->enclosureLang) && $block->enclosureLang) {
-                                    if (is_object($block->enclosureLang) && get_class($block->enclosureLang) == SingleOptionFieldData::class && $block->enclosureLang->value) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("lang", htmlspecialchars($block->enclosureLang->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    } elseif (!is_object($block->enclosureLang)) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("lang", htmlspecialchars($block->enclosureLang, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    }
-                                }
-                                if (isset($block->enclosureCodecs) && $block->enclosureCodecs) {
-                                    if (is_object($block->enclosureCodecs) && get_class($block->enclosureCodecs) == SingleOptionFieldData::class && $block->enclosureCodecs->value) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("codecs", htmlspecialchars($block->enclosureCodecs->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    } elseif (!is_object($block->enclosureCodecs)) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("codecs", htmlspecialchars($block->enclosureCodecs, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    }
-                                }
-                                if (isset($block->enclosureRel) && $block->enclosureRel) {
-                                    if (is_object($block->enclosureRel) && get_class($block->enclosureRel) == SingleOptionFieldData::class && $block->enclosureRel->value) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("rel", htmlspecialchars($block->enclosureRel->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    } elseif (!is_object($block->enclosureRel)) {
-                                        $xmlLiveItemAlternateEnclosure->setAttribute("rel", htmlspecialchars($block->enclosureRel, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    }
-                                }
-                                if (isset($block->enclosureDefault) && $block->enclosureDefault) {
-                                    $xmlLiveItemAlternateEnclosure->setAttribute("default", "true");
-                                }
-                                if (isset($block->otherSources) && is_array($block->otherSources)) {
-                                    foreach ($block->otherSources as $key => $row) {
-                                        if (isset($row['uri']) && $row['uri'] && isset($row['contentType']) && $row['contentType']) {
-                                            if ($key == 0) {
-                                                $xmlLiveItemAlternateEnclosure->setAttribute("type", htmlspecialchars($row['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            }
-                                            $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
-                                            $prefixUrl = GeneralHelper::prefixUrl($row['uri'], $podcast, $site->id);
-                                            $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
-                                        }
-                                    }
-                                }
-                                $xmlPodcastLiveItem->appendChild($xmlLiveItemAlternateEnclosure);
-                            }
-                        }
-                        if (isset($liveItemBlock->person) && $liveItemBlock->person) {
-                            if (!is_object($liveItemBlock->person)) {
-                                if (is_array($liveItemBlock->person)) {
-                                    foreach ($liveItemBlock->person as $row) {
-                                        if (isset($row['person']) && $row['person']) {
-                                            $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($row['person'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            if (isset($row['personRole']) && $row['personRole']) {
-                                                $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($row['personRole'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            }
-                                            if (isset($row['personGroup']) && $row['personGroup']) {
-                                                $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($row['personGroup'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            }
-                                            if (isset($row['personImg']) && $row['personImg']) {
-                                                $xmlLiveItemPerson->setAttribute("img", htmlspecialchars($row['personImg'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            }
-                                            if (isset($row['personHref']) && $row['personHref']) {
-                                                $xmlLiveItemPerson->setAttribute("href", htmlspecialchars($row['personHref'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            }
-                                            $xmlPodcastLiveItem->appendChild($xmlLiveItemPerson);
-                                        }
-                                    }
-                                } else {
-                                    $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($liveItemBlock->person, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    $xmlPodcastLiveItem->appendChild($xmlLiveItemPerson);
-                                }
-                            } elseif (get_class($liveItemBlock->person) == SuperTableBlockQuery::class) {
-                                foreach ($liveItemBlock->person->all() as $personBlock) {
-                                    $xmlLiveItemPerson = null;
-                                    if (isset($personBlock->person) && $personBlock->person) {
-                                        // Person Value
-                                        if (!is_object($personBlock->person)) {
-                                            $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($personBlock->person, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            if (isset($personBlock->personHref) && $personBlock->personHref) {
-                                                $xmlLiveItemPerson->setAttribute("href", htmlspecialchars($personBlock->personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            }
-                                            if (isset($personBlock->personImg) && $personBlock->personImg) {
-                                                if (!is_object($personBlock->personImg)) {
-                                                    $xmlLiveItemPerson->setAttribute("img", htmlspecialchars($personBlock->personImg, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                } else {
-                                                    if (get_class($personBlock->personImg) == AssetQuery::class) {
-                                                        $personImg = $personBlock->personImg->one();
-                                                        if ($personImg) {
-                                                            $xmlLiveItemPerson->setAttribute("img",  htmlspecialchars($personImg->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                        }
-                                                    }
+                            if (isset($liveItemBlock->person) && $liveItemBlock->person) {
+                                if (!is_object($liveItemBlock->person)) {
+                                    if (is_array($liveItemBlock->person)) {
+                                        foreach ($liveItemBlock->person as $row) {
+                                            if (isset($row['person']) && $row['person']) {
+                                                $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($row['person'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                if (isset($row['personRole']) && $row['personRole']) {
+                                                    $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($row['personRole'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                 }
+                                                if (isset($row['personGroup']) && $row['personGroup']) {
+                                                    $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($row['personGroup'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (isset($row['personImg']) && $row['personImg']) {
+                                                    $xmlLiveItemPerson->setAttribute("img", htmlspecialchars($row['personImg'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (isset($row['personHref']) && $row['personHref']) {
+                                                    $xmlLiveItemPerson->setAttribute("href", htmlspecialchars($row['personHref'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                $xmlPodcastLiveItem->appendChild($xmlLiveItemPerson);
                                             }
-                                        } else {
-                                            if (get_class($personBlock->person) == UserQuery::class || get_class($personBlock->person) == EntryQuery::class) {
-                                                $person = $personBlock->person->one();
-                                                if ($person) {
-                                                    $photoId = null;
-                                                    if (get_class($personBlock->person) == UserQuery::class) {
-                                                        if ($person->fullName) {
-                                                            $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($person->fullName, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                    } else {
+                                        $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($liveItemBlock->person, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $xmlPodcastLiveItem->appendChild($xmlLiveItemPerson);
+                                    }
+                                } elseif (get_class($liveItemBlock->person) == SuperTableBlockQuery::class) {
+                                    foreach ($liveItemBlock->person->all() as $personBlock) {
+                                        $personsArray = [];
+                                        if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
+                                            $persons = $personBlock->userPerson->all();
+                                            foreach ($persons as $person) {
+                                                if ($person->fullName) {
+                                                    $personArray = [];
+                                                    $personArray['name'] = $person->fullName;
+                                                    if (isset($person->personHref) && $person->personHref) {
+                                                        $personArray['personHref'] = $person->personHref;
+                                                    }
+                                                    if ($person->photoId) {
+                                                        $photo = Craft::$app->getAssets()->getAssetById($person->photoId);
+                                                        if ($photo) {
+                                                            $personArray['personImg'] = $photo->getUrl();
                                                         }
-                                                        if ($person->photoId) {
-                                                            $photo = Craft::$app->getAssets()->getAssetById($person->photoId);
-                                                            if ($photo) {
-                                                                $photoId = true;
-                                                                $xmlLiveItemPerson->setAttribute("img",  htmlspecialchars($photo->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (isset($person->personImg) && $person->personImg) {
+                                                        if (!is_object($person->personImg)) {
+                                                            $personArray['personImg'] = $person->personImg;
+                                                        } else {
+                                                            if (get_class($person->personImg) == AssetQuery::class) {
+                                                                $personImg = $person->personImg->one();
+                                                                if ($personImg) {
+                                                                    $personArray['personImg'] = $personImg->getUrl();
+                                                                } else {
+                                                                    $personArray['personImg'] = null;
+                                                                }
                                                             }
                                                         }
-                                                    } elseif (get_class($personBlock->person) == EntryQuery::class) {
-                                                        if (isset($person->title) && $person->title) {
-                                                            $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($person->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                    $personsArray[] = $personArray;
+                                                }
+                                            }
+                                        }
+                                        if (isset($personBlock->entryPerson) && get_class($personBlock->entryPerson) == EntryQuery::class && $personBlock->entryPerson->one()) {
+                                            $persons = $personBlock->entryPerson->all();
+                                            foreach ($persons as $person) {
+                                                if (isset($person->title) && $person->title) {
+                                                    $personArray = [];
+                                                    $personArray['name'] = $person->title;
+                                                    if (isset($person->personHref) && $person->personHref) {
+                                                        $personArray['personHref'] = $person->personHref;
+                                                    }
+                                                    if (isset($person->personImg) && $person->personImg) {
+                                                        if (!is_object($person->personImg)) {
+                                                            $personArray['personImg'] = $person->personImg;
+                                                        } else {
+                                                            if (get_class($person->personImg) == AssetQuery::class) {
+                                                                $personImg = $person->personImg->one();
+                                                                if ($personImg) {
+                                                                    $personArray['personImg'] = $personImg->getUrl();
+                                                                } else {
+                                                                    $personArray['personImg'] = null;
+                                                                }
+                                                            }
                                                         }
                                                     }
-                                                    if ($xmlLiveItemPerson) {
-                                                        if (isset($person->personHref) && $person->personHref) {
-                                                            $xmlLiveItemPerson->setAttribute("href", htmlspecialchars($person->personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                        }
-                                                        if (!$photoId && isset($person->personImg) && $person->personImg) {
-                                                            if (!is_object($person->personImg)) {
-                                                                $xmlLiveItemPerson->setAttribute("img", htmlspecialchars($person->personImg, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                            } else {
-                                                                if (get_class($person->personImg) == AssetQuery::class) {
-                                                                    $personImg = $person->personImg->one();
-                                                                    if ($personImg) {
-                                                                        $xmlLiveItemPerson->setAttribute("img",  htmlspecialchars($personImg->getUrl(), ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                                    }
+                                                    $personsArray[] = $personArray;
+                                                }
+                                            }
+                                        }
+                                        if (isset($personBlock->tablePerson) && is_array($personBlock->tablePerson) && isset($personBlock->tablePerson[0]['person']) && $personBlock->tablePerson[0]['person']) {
+                                            foreach ($personBlock->tablePerson as $person) {
+                                                if (isset($person['person']) && $person['person']) {
+                                                    $personArray = [];
+                                                    $personArray['name'] = $person['person'];
+                                                    if (isset($person['personHref']) && $person['personHref']) {
+                                                        $personArray['personHref'] = $person['personHref'];
+                                                    }
+                                                    if (isset($person['personImg']) && $person['personImg']) {
+                                                        $personArray['personImg'] = $person['personImg'];
+                                                    }
+                                                    $personsArray[] = $personArray;
+                                                }
+                                            }
+                                        }
+                                        if (isset($personBlock->textPerson) && !is_object($personBlock->textPerson)) {
+                                            $personArray = [];
+                                            $personArray['name'] = $personBlock->textPerson;
+                                            $personsArray[] = $personArray;
+                                        }
+                                        foreach ($personsArray as $personArray) {
+                                            if ($personArray['name']) {
+                                                $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($personArray['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                if (isset($personArray['personImg'])) {
+                                                    $xmlLiveItemPerson->setAttribute("img", htmlspecialchars($personArray['personImg'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (isset($personArray['personHref'])) {
+                                                    $xmlLiveItemPerson->setAttribute("href", htmlspecialchars($personArray['personHref'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (isset($personBlock->personRole) && $personBlock->personRole) {
+                                                    if (is_object($personBlock->personRole) && get_class($personBlock->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
+                                                        $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($personBlock->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (!is_object($personBlock->personRole)) {
+                                                        $$xmlLiveItemPerson->setAttribute("role", htmlspecialchars($personBlock->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                }
+                                                if (isset($personBlock->personGroup) && $personBlock->personGroup) {
+                                                    if (is_object($personBlock->personGroup) && get_class($personBlock->personGroup) == SingleOptionFieldData::class && $personBlock->personGroup->value) {
+                                                        $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (!is_object($personBlock->personGroup)) {
+                                                        $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                }
+
+                                                // if Role and Group is defined via entry
+                                                if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
+                                                    if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
+                                                        $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
+                                                        if ($podcastTaxonomy) {
+                                                            if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
+                                                                if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $podcastTaxonomy->personRole->value) {
+                                                                    $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                                } elseif (!is_object($podcastTaxonomy->personRole)) {
+                                                                    $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                                }
+                                                            }
+                                                            if (isset($podcastTaxonomy->personGroup) && $podcastTaxonomy->personGroup) {
+                                                                if (is_object($podcastTaxonomy->personGroup) && get_class($podcastTaxonomy->personGroup) == SingleOptionFieldData::class && $podcastTaxonomy->personGroup->value) {
+                                                                    $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                                } elseif (!is_object($podcastTaxonomy->personGroup)) {
+                                                                    $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                                 }
                                                             }
                                                         }
                                                     }
                                                 }
+                                                $xmlPodcastLiveItem->appendChild($xmlLiveItemPerson);
                                             }
-                                        }
-
-                                        if ($xmlLiveItemPerson) {
-                                            // if Role and Group is defined via text plain/dropdown field
-                                            if (isset($personBlock->personRole) && $personBlock->personRole) {
-                                                if (is_object($personBlock->personRole) && get_class($personBlock->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
-                                                    $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($personBlock->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                } elseif (!is_object($personBlock->personRole)) {
-                                                    $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($personBlock->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                }
-                                            }
-                                            if (isset($personBlock->personGroup) && $personBlock->personGroup) {
-                                                if (is_object($personBlock->personGroup) && get_class($personBlock->personGroup) == SingleOptionFieldData::class && $personBlock->personGroup->value) {
-                                                    $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                } elseif (!is_object($personBlock->personGroup)) {
-                                                    $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                }
-                                            }
-
-                                            // if Role and Group is defined via entry
-                                            if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
-                                                if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
-                                                    $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
-                                                    if ($podcastTaxonomy) {
-                                                        if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
-                                                            if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $podcastTaxonomy->personRole->value) {
-                                                                $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                            } elseif (!is_object($podcastTaxonomy->personRole)) {
-                                                                $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                            }
-                                                        }
-                                                        if (isset($podcastTaxonomy->personGroup) && $podcastTaxonomy->personGroup) {
-                                                            if (is_object($podcastTaxonomy->personGroup) && get_class($podcastTaxonomy->personGroup) == SingleOptionFieldData::class && $podcastTaxonomy->personGroup->value) {
-                                                                $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                            } elseif (!is_object($podcastTaxonomy->personGroup)) {
-                                                                $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        if ($xmlLiveItemPerson) {
-                                            $xmlPodcastLiveItem->appendChild($xmlLiveItemPerson);
                                         }
                                     }
                                 }
                             }
+                            $xmlChannel->appendChild($xmlPodcastLiveItem);
                         }
-                        $xmlChannel->appendChild($xmlPodcastLiveItem);
                     }
                 } elseif (get_class($liveItemField) == Entries::class) {
                     $liveItems = $podcast->{$liveItemField->handle}->all();
@@ -1328,122 +1364,161 @@ class PodcastsController extends Controller
                                     $xmlPodcastLiveItem->appendChild($xmlLiveItemAlternateEnclosure);
                                 }
                             }
-                            if (isset($liveItemBlock->person)) {
-                                $personBlocks = $liveItemBlock->person->all();
-                                foreach ($personBlocks as $personBlock) {
-                                    $name = null;
-                                    $personHref = null;
-                                    $personImg = null;
-                                    if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
-                                        $person = $personBlock->userPerson->one();
-                                        if ($person->fullName) {
-                                            $name = $person->fullName;
-                                            if (isset($person->personHref) && $person->personHref) {
-                                                $personHref = $person->personHref;
-                                            }
-                                            if ($person->photoId) {
-                                                $photo = Craft::$app->getAssets()->getAssetById($person->photoId);
-                                                if ($photo) {
-                                                    $photoId = true;
-                                                    $personImg = $photo->getUrl();
-                                                }
-                                            } elseif (isset($person->personImg) && $person->personImg) {
-                                                if (!is_object($person->personImg)) {
-                                                    $personImg = $person->personImg;
-                                                } else {
-                                                    if (get_class($person->personImg) == AssetQuery::class) {
-                                                        $personImg = $person->personImg->one();
-                                                        if ($personImg) {
-                                                            $personImg = $personImg->getUrl();
-                                                        } else {
-                                                            $personImg = null;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } elseif (isset($personBlock->entryPerson) && get_class($personBlock->entryPerson) == EntryQuery::class && $personBlock->entryPerson->one()) {
-                                        $person = $personBlock->entryPerson->one();
-                                        if (isset($person->title) && $person->title) {
-                                            $name = $person->title;
-                                            if (isset($person->personHref) && $person->personHref) {
-                                                $personHref = $person->personHref;
-                                            }
-                                            if (isset($person->personImg) && $person->personImg) {
-                                                if (!is_object($person->personImg)) {
-                                                    $personImg = $person->personImg;
-                                                } else {
-                                                    if (get_class($person->personImg) == AssetQuery::class) {
-                                                        $personImg = $person->personImg->one();
-                                                        if ($personImg) {
-                                                            $personImg = $personImg->getUrl();
-                                                        } else {
-                                                            $personImg = null;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } elseif (isset($personBlock->tablePerson) && is_array($personBlock->tablePerson) && isset($personBlock->tablePerson[0]['person']) && $personBlock->tablePerson[0]['person']) {
-                                        $person = $personBlock->tablePerson[0];
-                                        if (isset($person['person']) && $person['person']) {
-                                            $name = $person['person'];
-                                            if (isset($person['personHref']) && $person['personHref']) {
-                                                $personHref = $person['personHref'];
-                                            }
-                                            if (isset($person['personImg']) && $person['personImg']) {
-                                                $personImg = $person['personImg'];
-                                            }
-                                        }
-                                    } elseif (isset($personBlock->textPerson) && !is_object($personBlock->textPerson)) {
-                                        $name = $personBlock->textPerson;
-                                    }
-                                    if ($name) {
-                                        $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                        if (isset($personImg)) {
-                                            $xmlLiveItemPerson->setAttribute("img", htmlspecialchars($personImg, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                        }
-                                        if (isset($personHref)) {
-                                            $xmlLiveItemPerson->setAttribute("href", htmlspecialchars($personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                        }
-                                        if (isset($personBlock->personRole) && $personBlock->personRole) {
-                                            if (is_object($personBlock->personRole) && get_class($personBlock->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
-                                                $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($personBlock->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            } elseif (!is_object($personBlock->personRole)) {
-                                                $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($personBlock->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            }
-                                        }
-                                        if (isset($personBlock->personGroup) && $personBlock->personGroup) {
-                                            if (is_object($personBlock->personGroup) && get_class($personBlock->personGroup) == SingleOptionFieldData::class && $personBlock->personGroup->value) {
-                                                $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            } elseif (!is_object($personBlock->personGroup)) {
-                                                $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                            }
-                                        }
 
-                                        // if Role and Group is defined via entry
-                                        if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
-                                            if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
-                                                $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
-                                                if ($podcastTaxonomy) {
-                                                    if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
-                                                        if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $podcastTaxonomy->personRole->value) {
-                                                            $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                        } elseif (!is_object($podcastTaxonomy->personRole)) {
-                                                            $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            if (isset($liveItemBlock->person)) {
+                                if (!is_object($liveItemBlock->person) && !is_array($liveItemBlock->person)) {
+                                    $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($liveItemBlock->person, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    $xmlChannel->appendChild($xmlLiveItemPerson);
+                                } elseif (is_array($liveItemBlock->person)) {
+                                    foreach ($liveItemBlock->person as $row) {
+                                        if (isset($row['person']) && $row['person']) {
+                                            $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($row['person'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            if (isset($row['personRole']) && $row['personRole']) {
+                                                $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($row['personRole'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            if (isset($row['personGroup']) && $row['personGroup']) {
+                                                $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($row['personGroup'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            if (isset($row['personImg']) && $row['personImg']) {
+                                                $xmlLiveItemPerson->setAttribute("img", htmlspecialchars($row['personImg'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            if (isset($row['personHref']) && $row['personHref']) {
+                                                $xmlLiveItemPerson->setAttribute("href", htmlspecialchars($row['personHref'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            $xmlChannel->appendChild($xmlLiveItemPerson);
+                                        }
+                                    }
+                                } elseif (get_class($liveItemBlock->person) == MatrixBlockQuery::class || get_class($liveItemBlock->person) == SuperTableBlockQuery::class) {
+                                    foreach ($liveItemBlock->person->all() as $personBlock) {
+                                        $personsArray = [];
+                                        if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
+                                            $persons = $personBlock->userPerson->all();
+                                            foreach ($persons as $person) {
+                                                if ($person->fullName) {
+                                                    $personArray = [];
+                                                    $personArray['name'] = $person->fullName;
+                                                    if (isset($person->personHref) && $person->personHref) {
+                                                        $personArray['personHref'] = $person->personHref;
+                                                    }
+                                                    if ($person->photoId) {
+                                                        $photo = Craft::$app->getAssets()->getAssetById($person->photoId);
+                                                        if ($photo) {
+                                                            $personArray['personImg'] = $photo->getUrl();
+                                                        }
+                                                    } elseif (isset($person->personImg) && $person->personImg) {
+                                                        if (!is_object($person->personImg)) {
+                                                            $personArray['personImg'] = $person->personImg;
+                                                        } else {
+                                                            if (get_class($person->personImg) == AssetQuery::class) {
+                                                                $personImg = $person->personImg->one();
+                                                                if ($personImg) {
+                                                                    $personArray['personImg'] = $personImg->getUrl();
+                                                                } else {
+                                                                    $personArray['personImg'] = null;
+                                                                }
+                                                            }
                                                         }
                                                     }
-                                                    if (isset($podcastTaxonomy->personGroup) && $podcastTaxonomy->personGroup) {
-                                                        if (is_object($podcastTaxonomy->personGroup) && get_class($podcastTaxonomy->personGroup) == SingleOptionFieldData::class && $podcastTaxonomy->personGroup->value) {
-                                                            $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                        } elseif (!is_object($podcastTaxonomy->personGroup)) {
-                                                            $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                        }
-                                                    }
+                                                    $personsArray[] = $personArray;
                                                 }
                                             }
                                         }
-                                        $xmlPodcastLiveItem->appendChild($xmlLiveItemPerson);
+                                        if (isset($personBlock->entryPerson) && get_class($personBlock->entryPerson) == EntryQuery::class && $personBlock->entryPerson->one()) {
+                                            $persons = $personBlock->entryPerson->all();
+                                            foreach ($persons as $person) {
+                                                if (isset($person->title) && $person->title) {
+                                                    $personArray = [];
+                                                    $personArray['name'] = $person->title;
+                                                    if (isset($person->personHref) && $person->personHref) {
+                                                        $personArray['personHref'] = $person->personHref;
+                                                    }
+                                                    if (isset($person->personImg) && $person->personImg) {
+                                                        if (!is_object($person->personImg)) {
+                                                            $personArray['personImg'] = $person->personImg;
+                                                        } else {
+                                                            if (get_class($person->personImg) == AssetQuery::class) {
+                                                                $personImg = $person->personImg->one();
+                                                                if ($personImg) {
+                                                                    $personArray['personImg'] = $personImg->getUrl();
+                                                                } else {
+                                                                    $personArray['personImg'] = null;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    $personsArray[] = $personArray;
+                                                }
+                                            }
+                                        }
+                                        if (isset($personBlock->tablePerson) && is_array($personBlock->tablePerson) && isset($personBlock->tablePerson[0]['person']) && $personBlock->tablePerson[0]['person']) {
+                                            foreach ($personBlock->tablePerson as $person) {
+                                                if (isset($person['person']) && $person['person']) {
+                                                    $personArray = [];
+                                                    $personArray['name'] = $person['person'];
+                                                    if (isset($person['personHref']) && $person['personHref']) {
+                                                        $personArray['personHref'] = $person['personHref'];
+                                                    }
+                                                    if (isset($person['personImg']) && $person['personImg']) {
+                                                        $personArray['personImg'] = $person['personImg'];
+                                                    }
+                                                    $personsArray[] = $personArray;
+                                                }
+                                            }
+                                        }
+                                        if (isset($personBlock->textPerson) && !is_object($personBlock->textPerson)) {
+                                            $personArray = [];
+                                            $personArray['name'] = $personBlock->textPerson;
+                                            $personsArray[] = $personArray;
+                                        }
+                                        foreach ($personsArray as $personArray) {
+                                            if ($personArray['name']) {
+                                                $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($personArray['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                if (isset($personArray['personImg'])) {
+                                                    $xmlLiveItemPerson->setAttribute("img", htmlspecialchars($personArray['personImg'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (isset($personArray['personHref'])) {
+                                                    $xmlLiveItemPerson->setAttribute("href", htmlspecialchars($personArray['personHref'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (isset($personBlock->personRole) && $personBlock->personRole) {
+                                                    if (is_object($personBlock->personRole) && get_class($personBlock->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
+                                                        $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($personBlock->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (!is_object($personBlock->personRole)) {
+                                                        $$xmlLiveItemPerson->setAttribute("role", htmlspecialchars($personBlock->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                }
+                                                if (isset($personBlock->personGroup) && $personBlock->personGroup) {
+                                                    if (is_object($personBlock->personGroup) && get_class($personBlock->personGroup) == SingleOptionFieldData::class && $personBlock->personGroup->value) {
+                                                        $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (!is_object($personBlock->personGroup)) {
+                                                        $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                }
+
+                                                // if Role and Group is defined via entry
+                                                if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
+                                                    if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
+                                                        $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
+                                                        if ($podcastTaxonomy) {
+                                                            if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
+                                                                if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $podcastTaxonomy->personRole->value) {
+                                                                    $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                                } elseif (!is_object($podcastTaxonomy->personRole)) {
+                                                                    $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                                }
+                                                            }
+                                                            if (isset($podcastTaxonomy->personGroup) && $podcastTaxonomy->personGroup) {
+                                                                if (is_object($podcastTaxonomy->personGroup) && get_class($podcastTaxonomy->personGroup) == SingleOptionFieldData::class && $podcastTaxonomy->personGroup->value) {
+                                                                    $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                                } elseif (!is_object($podcastTaxonomy->personGroup)) {
+                                                                    $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                $xmlPodcastLiveItem->appendChild($xmlLiveItemPerson);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1488,82 +1563,96 @@ class PodcastsController extends Controller
                         if (isset($value4value->valueSuggested) && $value4value->valueSuggested) {
                             $xmlPodcastValue->setAttribute("suggested", htmlspecialchars($value4value->valueSuggested, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                         }
-                        if (isset($value4value->recipient)) {
+                        if (isset($value4value->recipient) && get_class($value4value->recipient) == MatrixBlockQuery::class) {
                             $valueBlocks = $value4value->recipient->all();
                             foreach ($valueBlocks as $valueBlock) {
-                                $name = null;
-                                $recipientType = null;
-                                $recipientCustomKey = null;
-                                $recipientCustomValue = null;
-                                $recipientAddress = null;
-                                if (isset($valueBlock->userRecipient) && get_class($valueBlock->userRecipient) == UserQuery::class && $valueBlock->userRecipient->one()) {
-                                    $recipient = $valueBlock->userRecipient->one();
-                                    if ($recipient->fullName) {
-                                        $name = $recipient->fullName;
+                                $recipientsArray = [];
+                                if (isset($valueBlock->userRecipient) && is_object($valueBlock->userRecipient) && get_class($valueBlock->userRecipient) == UserQuery::class && $valueBlock->userRecipient->one()) {
+                                    $recipients = $valueBlock->userRecipient->all();
+                                    foreach ($recipients as $recipient) {
+                                        $recipientArray = [];
+                                        if ($recipient->fullName) {
+                                            $recipientArray['name'] = $recipient->fullName;
+                                        }
                                         if (isset($recipient->recipientType) && $recipient->recipientType) {
-                                            $recipientType = $recipient->recipientType;
+                                            $recipientArray['recipientType'] = $recipient->recipientType;
                                         }
                                         if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
-                                            $recipientCustomKey = $recipient->recipientCustomKey;
+                                            $recipientArray['recipientCustomKey'] = $recipient->recipientCustomKey;
                                         }
                                         if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
-                                            $recipientCustomValue = $recipient->recipientCustomValue;
+                                            $recipientArray['recipientCustomValue'] = $recipient->recipientCustomValue;
                                         }
                                         if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
-                                            $recipientAddress = $recipient->recipientAddress;
+                                            $recipientArray['recipientAddress'] = $recipient->recipientAddress;
                                         }
-                                    }
-                                } elseif (isset($valueBlock->entryRecipient) && get_class($valueBlock->entryRecipient) == EntryQuery::class && $valueBlock->entryRecipient->one()) {
-                                    $recipient = $valueBlock->entryRecipient->one();
-                                    if (isset($recipient->title) && $recipient->title) {
-                                        $name = $recipient->title;
-                                        if (isset($recipient->recipientType) && $recipient->recipientType) {
-                                            $recipientType = $recipient->recipientType;
-                                        }
-                                        if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
-                                            $recipientCustomKey = $recipient->recipientCustomKey;
-                                        }
-                                        if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
-                                            $recipientCustomValue = $recipient->recipientCustomValue;
-                                        }
-                                        if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
-                                            $recipientAddress = $recipient->recipientAddress;
-                                        }
-                                    }
-                                } elseif (isset($valueBlock->otherRecipients) && is_array($valueBlock->otherRecipients)) {
-                                    $recipient = $valueBlock->otherRecipients[0];
-                                    if (isset($recipient['recipientName']) && $recipient['recipientName']) {
-                                        $name = $recipient['recipientName'];
-                                        if (isset($recipient['recipientType']) && $recipient['recipientType']) {
-                                            $recipientType = $recipient['recipientType'];
-                                        }
-                                        if (isset($recipient['recipientCustomKey']) && $recipient['recipientCustomKey']) {
-                                            $recipientCustomKey = $recipient['recipientCustomKey'];
-                                        }
-                                        if (isset($recipient['recipientCustomValue']) && $recipient['recipientCustomValue']) {
-                                            $recipientCustomValue = $recipient['recipientCustomValue'];
-                                        }
-                                        if (isset($recipient['recipientAddress']) && $recipient['recipientAddress']) {
-                                            $recipientAddress = $recipient['recipientAddress'];
-                                        }
+                                        $recipientsArray[] = $recipientArray;
                                     }
                                 }
-                                if (isset($name) && isset($recipientType) && isset($recipientAddress) && $valueBlock->split) {
-                                    $xmlPodcastRecipient = $xml->createElement("podcast:valueRecipient");
-                                    $xmlPodcastRecipient->setAttribute("name", htmlspecialchars($name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    $xmlPodcastRecipient->setAttribute("type", htmlspecialchars($recipientType, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    $xmlPodcastRecipient->setAttribute("address", htmlspecialchars($recipientAddress, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    if (isset($recipientCustomKey)) {
-                                        $xmlPodcastRecipient->setAttribute("customKey", htmlspecialchars($recipientCustomKey, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                if (isset($valueBlock->entryRecipient) && is_object($valueBlock->entryRecipient) && get_class($valueBlock->entryRecipient) == EntryQuery::class && $valueBlock->entryRecipient->one()) {
+                                    $recipients = $valueBlock->entryRecipient->all();
+                                    foreach ($recipients as $recipient) {
+                                        $recipientArray = [];
+                                        if (isset($recipient->title) && $recipient->title) {
+                                            $recipientArray['name'] = $recipient->title;
+                                        }
+                                        if (isset($recipient->recipientType) && $recipient->recipientType) {
+                                            $recipientArray['recipientType'] = $recipient->recipientType;
+                                        }
+                                        if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
+                                            $recipientArray['recipientCustomKey'] = $recipient->recipientCustomKey;
+                                        }
+                                        if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
+                                            $recipientArray['recipientCustomValue'] = $recipient->recipientCustomValue;
+                                        }
+                                        if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
+                                            $recipientArray['recipientAddress'] = $recipient->recipientAddress;
+                                        }
+                                        $recipientsArray[] = $recipientArray;
                                     }
-                                    if (isset($recipientCustomValue)) {
-                                        $xmlPodcastRecipient->setAttribute("customValue", htmlspecialchars($recipientCustomValue, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                                if (isset($valueBlock->otherRecipients) && is_array($valueBlock->otherRecipients)) {
+                                    foreach ($valueBlock->otherRecipients as $recipient) {
+                                        $recipientArray = [];
+                                        if (isset($recipient['recipientName']) && $recipient['recipientName']) {
+                                            $recipientArray['name'] = $recipient['recipientName'];
+                                        }
+                                        if (isset($recipient['recipientType']) && $recipient['recipientType']) {
+                                            $recipientArray['recipientType'] = $recipient['recipientType'];
+                                        }
+                                        if (isset($recipient['recipientCustomKey']) && $recipient['recipientCustomKey']) {
+                                            $recipientArray['recipientCustomKey'] = $recipient['recipientCustomKey'];
+                                        }
+                                        if (isset($recipient['recipientCustomValue']) && $recipient['recipientCustomValue']) {
+                                            $recipientArray['recipientCustomValue'] = $recipient['recipientCustomValue'];
+                                        }
+                                        if (isset($recipient['recipientAddress']) && $recipient['recipientAddress']) {
+                                            $recipientArray['recipientAddress'] = $recipient['recipientAddress'];
+                                        }
+                                        $recipientsArray[] = $recipientArray;
                                     }
-                                    $xmlPodcastRecipient->setAttribute("split", htmlspecialchars($valueBlock->split, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    if (isset($valueBlock->fee) && $valueBlock->fee) {
-                                        $xmlPodcastRecipient->setAttribute("fee", htmlspecialchars("true", ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+
+                                foreach ($recipientsArray as $recipientArray) {
+                                    if (isset($recipientArray['recipientType']) && isset($recipientArray['recipientAddress']) && isset($valueBlock->split) && $valueBlock->split) {
+                                        $xmlPodcastRecipient = $xml->createElement("podcast:valueRecipient");
+                                        $xmlPodcastRecipient->setAttribute("type", htmlspecialchars($recipientArray['recipientType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $xmlPodcastRecipient->setAttribute("address", htmlspecialchars($recipientArray['recipientAddress'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        if (isset($recipientArray['name'])) {
+                                            $xmlPodcastRecipient->setAttribute("name", htmlspecialchars($recipientArray['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($recipientArray['recipientCustomKey'])) {
+                                            $xmlPodcastRecipient->setAttribute("customKey", htmlspecialchars($recipientArray['recipientCustomKey'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($recipientArray['recipientCustomValue'])) {
+                                            $xmlPodcastRecipient->setAttribute("customValue", htmlspecialchars($recipientArray['recipientCustomValue'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        $xmlPodcastRecipient->setAttribute("split", htmlspecialchars($valueBlock->split, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        if (isset($valueBlock->fee) && $valueBlock->fee) {
+                                            $xmlPodcastRecipient->setAttribute("fee", htmlspecialchars("true", ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        $xmlPodcastValue->appendChild($xmlPodcastRecipient);
                                     }
-                                    $xmlPodcastValue->appendChild($xmlPodcastRecipient);
                                 }
                             }
                         }
@@ -2179,119 +2268,134 @@ class PodcastsController extends Controller
                             $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->all();
                         }
                         foreach ($personBlocks as $personBlock) {
-                            $name = null;
-                            $personHref = null;
-                            $personImg = null;
+                            $personsArray = [];
                             if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
-                                $person = $personBlock->userPerson->one();
-                                if ($person->fullName) {
-                                    $name = $person->fullName;
-                                    if (isset($person->personHref) && $person->personHref) {
-                                        $personHref = $person->personHref;
-                                    }
-                                    if ($person->photoId) {
-                                        $photo = Craft::$app->getAssets()->getAssetById($person->photoId);
-                                        if ($photo) {
-                                            $photoId = true;
-                                            $personImg = $photo->getUrl();
+                                $persons = $personBlock->userPerson->all();
+                                foreach ($persons as $person) {
+                                    if ($person->fullName) {
+                                        $personArray = [];
+                                        $personArray['name'] = $person->fullName;
+                                        if (isset($person->personHref) && $person->personHref) {
+                                            $personArray['personHref'] = $person->personHref;
                                         }
-                                    } elseif (isset($person->personImg) && $person->personImg) {
-                                        if (!is_object($person->personImg)) {
-                                            $personImg = $person->personImg;
-                                        } else {
-                                            if (get_class($person->personImg) == AssetQuery::class) {
-                                                $personImg = $person->personImg->one();
-                                                if ($personImg) {
-                                                    $personImg = $personImg->getUrl();
-                                                } else {
-                                                    $personImg = null;
+                                        if ($person->photoId) {
+                                            $photo = Craft::$app->getAssets()->getAssetById($person->photoId);
+                                            if ($photo) {
+                                                $personArray['personImg'] = $photo->getUrl();
+                                            }
+                                        } elseif (isset($person->personImg) && $person->personImg) {
+                                            if (!is_object($person->personImg)) {
+                                                $personArray['personImg'] = $person->personImg;
+                                            } else {
+                                                if (get_class($person->personImg) == AssetQuery::class) {
+                                                    $personImg = $person->personImg->one();
+                                                    if ($personImg) {
+                                                        $personArray['personImg'] = $personImg->getUrl();
+                                                    } else {
+                                                        $personArray['personImg'] = null;
+                                                    }
                                                 }
                                             }
                                         }
+                                        $personsArray[] = $personArray;
                                     }
                                 }
-                            } elseif (isset($personBlock->entryPerson) && get_class($personBlock->entryPerson) == EntryQuery::class && $personBlock->entryPerson->one()) {
-                                $person = $personBlock->entryPerson->one();
-                                if (isset($person->title) && $person->title) {
-                                    $name = $person->title;
-                                    if (isset($person->personHref) && $person->personHref) {
-                                        $personHref = $person->personHref;
-                                    }
-                                    if (isset($person->personImg) && $person->personImg) {
-                                        if (!is_object($person->personImg)) {
-                                            $personImg = $person->personImg;
-                                        } else {
-                                            if (get_class($person->personImg) == AssetQuery::class) {
-                                                $personImg = $person->personImg->one();
-                                                if ($personImg) {
-                                                    $personImg = $personImg->getUrl();
-                                                } else {
-                                                    $personImg = null;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } elseif (isset($personBlock->tablePerson) && is_array($personBlock->tablePerson) && isset($personBlock->tablePerson[0]['person']) && $personBlock->tablePerson[0]['person']) {
-                                $person = $personBlock->tablePerson[0];
-                                if (isset($person['person']) && $person['person']) {
-                                    $name = $person['person'];
-                                    if (isset($person['personHref']) && $person['personHref']) {
-                                        $personHref = $person['personHref'];
-                                    }
-                                    if (isset($person['personImg']) && $person['personImg']) {
-                                        $personImg = $person['personImg'];
-                                    }
-                                }
-                            } elseif (isset($personBlock->textPerson) && !is_object($personBlock->textPerson)) {
-                                $name = $personBlock->textPerson;
                             }
-                            if ($name) {
-                                $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                if (isset($personImg)) {
-                                    $xmlPodcastPerson->setAttribute("img", htmlspecialchars($personImg, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                }
-                                if (isset($personHref)) {
-                                    $xmlPodcastPerson->setAttribute("href", htmlspecialchars($personHref, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                }
-                                if (isset($personBlock->personRole) && $personBlock->personRole) {
-                                    if (is_object($personBlock->personRole) && get_class($personBlock->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
-                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    } elseif (!is_object($personBlock->personRole)) {
-                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    }
-                                }
-                                if (isset($personBlock->personGroup) && $personBlock->personGroup) {
-                                    if (is_object($personBlock->personGroup) && get_class($personBlock->personGroup) == SingleOptionFieldData::class && $personBlock->personGroup->value) {
-                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    } elseif (!is_object($personBlock->personGroup)) {
-                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                    }
-                                }
-
-                                // if Role and Group is defined via entry
-                                if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
-                                    if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
-                                        $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
-                                        if ($podcastTaxonomy) {
-                                            if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
-                                                if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $podcastTaxonomy->personRole->value) {
-                                                    $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                } elseif (!is_object($podcastTaxonomy->personRole)) {
-                                                    $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            if (isset($personBlock->entryPerson) && get_class($personBlock->entryPerson) == EntryQuery::class && $personBlock->entryPerson->one()) {
+                                $persons = $personBlock->entryPerson->all();
+                                foreach ($persons as $person) {
+                                    if (isset($person->title) && $person->title) {
+                                        $personArray = [];
+                                        $personArray['name'] = $person->title;
+                                        if (isset($person->personHref) && $person->personHref) {
+                                            $personArray['personHref'] = $person->personHref;
+                                        }
+                                        if (isset($person->personImg) && $person->personImg) {
+                                            if (!is_object($person->personImg)) {
+                                                $personArray['personImg'] = $person->personImg;
+                                            } else {
+                                                if (get_class($person->personImg) == AssetQuery::class) {
+                                                    $personImg = $person->personImg->one();
+                                                    if ($personImg) {
+                                                        $personArray['personImg'] = $personImg->getUrl();
+                                                    } else {
+                                                        $personArray['personImg'] = null;
+                                                    }
                                                 }
                                             }
-                                            if (isset($podcastTaxonomy->personGroup) && $podcastTaxonomy->personGroup) {
-                                                if (is_object($podcastTaxonomy->personGroup) && get_class($podcastTaxonomy->personGroup) == SingleOptionFieldData::class && $podcastTaxonomy->personGroup->value) {
-                                                    $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                } elseif (!is_object($podcastTaxonomy->personGroup)) {
-                                                    $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        $personsArray[] = $personArray;
+                                    }
+                                }
+                            }
+                            if (isset($personBlock->tablePerson) && is_array($personBlock->tablePerson) && isset($personBlock->tablePerson[0]['person']) && $personBlock->tablePerson[0]['person']) {
+                                foreach ($personBlock->tablePerson as $person) {
+                                    if (isset($person['person']) && $person['person']) {
+                                        $personArray = [];
+                                        $personArray['name'] = $person['person'];
+                                        if (isset($person['personHref']) && $person['personHref']) {
+                                            $personArray['personHref'] = $person['personHref'];
+                                        }
+                                        if (isset($person['personImg']) && $person['personImg']) {
+                                            $personArray['personImg'] = $person['personImg'];
+                                        }
+                                        $personsArray[] = $personArray;
+                                    }
+                                }
+                            }
+                            if (isset($personBlock->textPerson) && !is_object($personBlock->textPerson)) {
+                                $personArray = [];
+                                $personArray['name'] = $personBlock->textPerson;
+                                $personsArray[] = $personArray;
+                            }
+                            foreach ($personsArray as $personArray) {
+                                if ($personArray['name']) {
+                                    $xmlPodcastPerson = $xml->createElement("podcast:person", htmlspecialchars($personArray['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($personArray['personImg'])) {
+                                        $xmlPodcastPerson->setAttribute("img", htmlspecialchars($personArray['personImg'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    if (isset($personArray['personHref'])) {
+                                        $xmlPodcastPerson->setAttribute("href", htmlspecialchars($personArray['personHref'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    if (isset($personBlock->personRole) && $personBlock->personRole) {
+                                        if (is_object($personBlock->personRole) && get_class($personBlock->personRole) == SingleOptionFieldData::class && $personBlock->personRole->value) {
+                                            $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } elseif (!is_object($personBlock->personRole)) {
+                                            $xmlPodcastPerson->setAttribute("role", htmlspecialchars($personBlock->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                    }
+                                    if (isset($personBlock->personGroup) && $personBlock->personGroup) {
+                                        if (is_object($personBlock->personGroup) && get_class($personBlock->personGroup) == SingleOptionFieldData::class && $personBlock->personGroup->value) {
+                                            $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } elseif (!is_object($personBlock->personGroup)) {
+                                            $xmlPodcastPerson->setAttribute("group", htmlspecialchars($personBlock->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                    }
+
+                                    // if Role and Group is defined via entry
+                                    if (isset($personBlock->podcastTaxonomy) && $personBlock->podcastTaxonomy) {
+                                        if (is_object($personBlock->podcastTaxonomy) && get_class($personBlock->podcastTaxonomy) == EntryQuery::class) {
+                                            $podcastTaxonomy = $personBlock->podcastTaxonomy->one();
+                                            if ($podcastTaxonomy) {
+                                                if (isset($podcastTaxonomy->personRole) && $podcastTaxonomy->personRole) {
+                                                    if (is_object($podcastTaxonomy->personRole) && get_class($podcastTaxonomy->personRole) == SingleOptionFieldData::class && $podcastTaxonomy->personRole->value) {
+                                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (!is_object($podcastTaxonomy->personRole)) {
+                                                        $xmlPodcastPerson->setAttribute("role", htmlspecialchars($podcastTaxonomy->personRole, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                }
+                                                if (isset($podcastTaxonomy->personGroup) && $podcastTaxonomy->personGroup) {
+                                                    if (is_object($podcastTaxonomy->personGroup) && get_class($podcastTaxonomy->personGroup) == SingleOptionFieldData::class && $podcastTaxonomy->personGroup->value) {
+                                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (!is_object($podcastTaxonomy->personGroup)) {
+                                                        $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
                                                 }
                                             }
                                         }
                                     }
+                                    $xmlItem->appendChild($xmlPodcastPerson);
                                 }
-                                $xmlItem->appendChild($xmlPodcastPerson);
                             }
                         }
                     }
@@ -2489,82 +2593,96 @@ class PodcastsController extends Controller
                             if (isset($value4value->valueSuggested) && $value4value->valueSuggested) {
                                 $xmlPodcastValue->setAttribute("suggested", htmlspecialchars($value4value->valueSuggested, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                             }
-                            if (isset($value4value->recipient)) {
+                            if (isset($value4value->recipient) && get_class($value4value->recipient) == MatrixBlockQuery::class) {
                                 $valueBlocks = $value4value->recipient->all();
                                 foreach ($valueBlocks as $valueBlock) {
-                                    $name = null;
-                                    $recipientType = null;
-                                    $recipientCustomKey = null;
-                                    $recipientCustomValue = null;
-                                    $recipientAddress = null;
-                                    if (isset($valueBlock->userRecipient) && get_class($valueBlock->userRecipient) == UserQuery::class && $valueBlock->userRecipient->one()) {
-                                        $recipient = $valueBlock->userRecipient->one();
-                                        if ($recipient->fullName) {
-                                            $name = $recipient->fullName;
+                                    $recipientsArray = [];
+                                    if (isset($valueBlock->userRecipient) && is_object($valueBlock->userRecipient) && get_class($valueBlock->userRecipient) == UserQuery::class && $valueBlock->userRecipient->one()) {
+                                        $recipients = $valueBlock->userRecipient->all();
+                                        foreach ($recipients as $recipient) {
+                                            $recipientArray = [];
+                                            if ($recipient->fullName) {
+                                                $recipientArray['name'] = $recipient->fullName;
+                                            }
                                             if (isset($recipient->recipientType) && $recipient->recipientType) {
-                                                $recipientType = $recipient->recipientType;
+                                                $recipientArray['recipientType'] = $recipient->recipientType;
                                             }
                                             if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
-                                                $recipientCustomKey = $recipient->recipientCustomKey;
+                                                $recipientArray['recipientCustomKey'] = $recipient->recipientCustomKey;
                                             }
                                             if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
-                                                $recipientCustomValue = $recipient->recipientCustomValue;
+                                                $recipientArray['recipientCustomValue'] = $recipient->recipientCustomValue;
                                             }
                                             if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
-                                                $recipientAddress = $recipient->recipientAddress;
+                                                $recipientArray['recipientAddress'] = $recipient->recipientAddress;
                                             }
-                                        }
-                                    } elseif (isset($valueBlock->entryRecipient) && get_class($valueBlock->entryRecipient) == EntryQuery::class && $valueBlock->entryRecipient->one()) {
-                                        $recipient = $valueBlock->entryRecipient->one();
-                                        if (isset($recipient->title) && $recipient->title) {
-                                            $name = $recipient->title;
-                                            if (isset($recipient->recipientType) && $recipient->recipientType) {
-                                                $recipientType = $recipient->recipientType;
-                                            }
-                                            if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
-                                                $recipientCustomKey = $recipient->recipientCustomKey;
-                                            }
-                                            if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
-                                                $recipientCustomValue = $recipient->recipientCustomValue;
-                                            }
-                                            if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
-                                                $recipientAddress = $recipient->recipientAddress;
-                                            }
-                                        }
-                                    } elseif (isset($valueBlock->otherRecipients) && is_array($valueBlock->otherRecipients)) {
-                                        $recipient = $valueBlock->otherRecipients[0];
-                                        if (isset($recipient['recipientName']) && $recipient['recipientName']) {
-                                            $name = $recipient['recipientName'];
-                                            if (isset($recipient['recipientType']) && $recipient['recipientType']) {
-                                                $recipientType = $recipient['recipientType'];
-                                            }
-                                            if (isset($recipient['recipientCustomKey']) && $recipient['recipientCustomKey']) {
-                                                $recipientCustomKey = $recipient['recipientCustomKey'];
-                                            }
-                                            if (isset($recipient['recipientCustomValue']) && $recipient['recipientCustomValue']) {
-                                                $recipientCustomValue = $recipient['recipientCustomValue'];
-                                            }
-                                            if (isset($recipient['recipientAddress']) && $recipient['recipientAddress']) {
-                                                $recipientAddress = $recipient['recipientAddress'];
-                                            }
+                                            $recipientsArray[] = $recipientArray;
                                         }
                                     }
-                                    if (isset($name) && isset($recipientType) && isset($recipientAddress) && $valueBlock->split) {
-                                        $xmlPodcastRecipient = $xml->createElement("podcast:valueRecipient");
-                                        $xmlPodcastRecipient->setAttribute("name", htmlspecialchars($name, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                        $xmlPodcastRecipient->setAttribute("type", htmlspecialchars($recipientType, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                        $xmlPodcastRecipient->setAttribute("address", htmlspecialchars($recipientAddress, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                        if (isset($recipientCustomKey)) {
-                                            $xmlPodcastRecipient->setAttribute("customKey", htmlspecialchars($recipientCustomKey, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($valueBlock->entryRecipient) && is_object($valueBlock->entryRecipient) && get_class($valueBlock->entryRecipient) == EntryQuery::class && $valueBlock->entryRecipient->one()) {
+                                        $recipients = $valueBlock->entryRecipient->all();
+                                        foreach ($recipients as $recipient) {
+                                            $recipientArray = [];
+                                            if (isset($recipient->title) && $recipient->title) {
+                                                $recipientArray['name'] = $recipient->title;
+                                            }
+                                            if (isset($recipient->recipientType) && $recipient->recipientType) {
+                                                $recipientArray['recipientType'] = $recipient->recipientType;
+                                            }
+                                            if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
+                                                $recipientArray['recipientCustomKey'] = $recipient->recipientCustomKey;
+                                            }
+                                            if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
+                                                $recipientArray['recipientCustomValue'] = $recipient->recipientCustomValue;
+                                            }
+                                            if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
+                                                $recipientArray['recipientAddress'] = $recipient->recipientAddress;
+                                            }
+                                            $recipientsArray[] = $recipientArray;
                                         }
-                                        if (isset($recipientCustomValue)) {
-                                            $xmlPodcastRecipient->setAttribute("customValue", htmlspecialchars($recipientCustomValue, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    if (isset($valueBlock->otherRecipients) && is_array($valueBlock->otherRecipients)) {
+                                        foreach ($valueBlock->otherRecipients as $recipient) {
+                                            $recipientArray = [];
+                                            if (isset($recipient['recipientName']) && $recipient['recipientName']) {
+                                                $recipientArray['name'] = $recipient['recipientName'];
+                                            }
+                                            if (isset($recipient['recipientType']) && $recipient['recipientType']) {
+                                                $recipientArray['recipientType'] = $recipient['recipientType'];
+                                            }
+                                            if (isset($recipient['recipientCustomKey']) && $recipient['recipientCustomKey']) {
+                                                $recipientArray['recipientCustomKey'] = $recipient['recipientCustomKey'];
+                                            }
+                                            if (isset($recipient['recipientCustomValue']) && $recipient['recipientCustomValue']) {
+                                                $recipientArray['recipientCustomValue'] = $recipient['recipientCustomValue'];
+                                            }
+                                            if (isset($recipient['recipientAddress']) && $recipient['recipientAddress']) {
+                                                $recipientArray['recipientAddress'] = $recipient['recipientAddress'];
+                                            }
+                                            $recipientsArray[] = $recipientArray;
                                         }
-                                        $xmlPodcastRecipient->setAttribute("split", htmlspecialchars($valueBlock->split, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                        if (isset($valueBlock->fee) && $valueBlock->fee) {
-                                            $xmlPodcastRecipient->setAttribute("fee", htmlspecialchars("true", ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+
+                                    foreach ($recipientsArray as $recipientArray) {
+                                        if (isset($recipientArray['recipientType']) && isset($recipientArray['recipientAddress']) && isset($valueBlock->split) && $valueBlock->split) {
+                                            $xmlPodcastRecipient = $xml->createElement("podcast:valueRecipient");
+                                            $xmlPodcastRecipient->setAttribute("type", htmlspecialchars($recipientArray['recipientType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            $xmlPodcastRecipient->setAttribute("address", htmlspecialchars($recipientArray['recipientAddress'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            if (isset($recipientArray['name'])) {
+                                                $xmlPodcastRecipient->setAttribute("name", htmlspecialchars($recipientArray['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            if (isset($recipientArray['recipientCustomKey'])) {
+                                                $xmlPodcastRecipient->setAttribute("customKey", htmlspecialchars($recipientArray['recipientCustomKey'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            if (isset($recipientArray['recipientCustomValue'])) {
+                                                $xmlPodcastRecipient->setAttribute("customValue", htmlspecialchars($recipientArray['recipientCustomValue'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            $xmlPodcastRecipient->setAttribute("split", htmlspecialchars($valueBlock->split, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            if (isset($valueBlock->fee) && $valueBlock->fee) {
+                                                $xmlPodcastRecipient->setAttribute("fee", htmlspecialchars("true", ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            $xmlPodcastValue->appendChild($xmlPodcastRecipient);
                                         }
-                                        $xmlPodcastValue->appendChild($xmlPodcastRecipient);
                                     }
                                 }
                             }
