@@ -194,9 +194,9 @@ class ImportController extends Controller
             $section = Craft::$app->sections->getSectionById($sectionId);
             $this->requirePermission("saveEntries:$section->uid");
             // Don't let import if section/entries already has categories
-            $sampleEntry = Entry::find()->sectionId($sectionId)->typeId($entryTypeId)->one();
+            $sampleEntry = Entry::find()->sectionId($sectionId)->typeId($entryTypeId)->siteId('*')->one();
             if ($sampleEntry) {
-                Craft::$app->getSession()->setError(Craft::t('studio', 'Selected entry has already data'));
+                Craft::$app->getSession()->setError(Craft::t('studio', 'Selected section/entry type has already entries'));
                 return $this->redirect('studio/import/category');
             }
             $redirectTo = 'entries/index';
