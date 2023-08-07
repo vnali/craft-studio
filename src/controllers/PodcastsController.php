@@ -906,6 +906,12 @@ class PodcastsController extends Controller
                                                     $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                 }
                                             }
+                                            $level1 = $personBlock->podcastTaxonomy->level(1)->one();
+                                            $level2 = $personBlock->podcastTaxonomy->level(2)->one();
+                                            if (isset($level1) && isset($level2)) {
+                                                $xmlPodcastPerson->setAttribute("group", htmlspecialchars($level1->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                $xmlPodcastPerson->setAttribute("role", htmlspecialchars($level2->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
                                         }
                                     }
                                 }
@@ -1211,6 +1217,12 @@ class PodcastsController extends Controller
                                                                     $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                                 }
                                                             }
+                                                            $level1 = $personBlock->podcastTaxonomy->level(1)->one();
+                                                            $level2 = $personBlock->podcastTaxonomy->level(2)->one();
+                                                            if (isset($level1) && isset($level2)) {
+                                                                $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($level1->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                                $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($level2->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -1512,6 +1524,12 @@ class PodcastsController extends Controller
                                                                 } elseif (!is_object($podcastTaxonomy->personGroup)) {
                                                                     $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                                 }
+                                                            }
+                                                            $level1 = $personBlock->podcastTaxonomy->level(1)->one();
+                                                            $level2 = $personBlock->podcastTaxonomy->level(2)->one();
+                                                            if (isset($level1) && isset($level2)) {
+                                                                $xmlLiveItemPerson->setAttribute("group", htmlspecialchars($level1->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                                $xmlLiveItemPerson->setAttribute("role", htmlspecialchars($level2->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                             }
                                                         }
                                                     }
@@ -2390,6 +2408,12 @@ class PodcastsController extends Controller
                                                     } elseif (!is_object($podcastTaxonomy->personGroup)) {
                                                         $xmlPodcastPerson->setAttribute("group", htmlspecialchars($podcastTaxonomy->personGroup, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                     }
+                                                }
+                                                $level1 = $personBlock->podcastTaxonomy->level(1)->one();
+                                                $level2 = $personBlock->podcastTaxonomy->level(2)->one();
+                                                if (isset($level1) && isset($level2)) {
+                                                    $xmlPodcastPerson->setAttribute("group", htmlspecialchars($level1->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    $xmlPodcastPerson->setAttribute("role", htmlspecialchars($level2->title, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                                 }
                                             }
                                         }

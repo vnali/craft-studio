@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Podcast taxonomies can now be bulk imported to structure sections. person groups are imported as level(1) and person roles are imported as level(2) entries.
+- Person group attribute is created based on level(1) of podcastTaxonomy entries field and role attribute is created based on level(2).
 
 ## 0.14.0 - 2023-08-04
 
