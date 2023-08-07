@@ -1,0 +1,77 @@
+{% extends 'studio/import/_layout' %}
+
+{% set title = 'Import Podcast Taxonomy'|t('studio') %}
+
+{% set crumbs = [] %}
+
+{% block content %}
+
+	{% import "_includes/forms" as forms %}
+
+    <div class="studio-info">
+        <span class="info"></span>
+        {{ 'Import podcast taxonomies to an empty section/entry type'|t('studio') }}
+    </div>
+        
+	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+		{{ csrfInput() }}
+
+        {{ forms.selectField({
+            label: 'Section'|t('app'),
+            id: 'section',
+            name: 'section',
+            options: sections,
+            value: sectionId ?? null,         
+        }) }}
+
+		{{ forms.selectField({
+            label: 'Entry Type'|t('app'),
+            id: 'entrytype',
+            name: 'entrytype',
+            options: entrytypes,
+            value: entryTypeId ?? null,     
+        }) }}
+
+        {{ forms.checkboxSelectField({
+            label: 'Languages'|t('app'),
+            id: 'languages',
+            name: 'languages',
+            options: [
+                { value: 'en', label: 'English'|t('studio') },
+                { value: 'fr', label: 'French'|t('studio') },
+            ],
+        }) }}
+        <p>
+            <input type="hidden" name="action" value="studio/import/podcast-taxonomy-import">
+            <input type="submit" class="btn submit" value="{{ 'Import'|t('studio') }}">
+        </p>
+	</form>
+    {% js %}
+        $("#section").change(function() {
+            if (this.value) {
+                sectionId = this.value;
+            } else {
+                sectionId = 0;
+            }
+            var data = {
+                'sectionId' : sectionId
+            }
+            $.ajax({
+                method: "GET",
+                url: Craft.getUrl("studio/default/get-entry-types" + "?=_" + new Date().getTime()),
+                data: data,
+                dataType: 'json',
+                success: function (data) {
+                    $('#entrytype').empty();
+                    $.each(data, function (i, item) {
+                        $('#entrytype').append($('<option>', { 
+                            value: item.value,
+                            text : item.label
+                        }));
+                    });
+                }
+            });
+        });
+    {% endjs %}
+{% endblock %}
+{% do view.registerAssetBundle("vnali\\studio\\assets\\StudioCssAsset") %}

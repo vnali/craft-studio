@@ -581,6 +581,7 @@ class Studio extends Plugin
                 $event->rules['studio/episodes/edit/<elementId:\d+>'] = 'elements/edit';
                 $event->rules['studio/import'] = 'studio/import/default';
                 $event->rules['studio/import/category'] = 'studio/import/category';
+                $event->rules['studio/import/podcast-taxonomy'] = 'studio/import/podcast-taxonomy';
                 $event->rules['studio/import/episode-fields'] = 'studio/import/episode-fields';
                 $event->rules['studio/import/podcast-fields'] = 'studio/import/podcast-fields';
                 $event->rules['studio/podcasts/edit/<elementId:\d+>'] = 'elements/edit';
@@ -672,7 +673,7 @@ class Studio extends Plugin
         }
 
         // Import
-        if ($user->checkPermission('studio-importCategory') || $user->checkPermission('studio-manageSettings')) {
+        if ($user->checkPermission('studio-importCategory') || $user->checkPermission('studio-manageSettings') || $user->checkPermission('studio-importPodcastTaxonomy')) {
             $nav['subnav']['import'] = [
                 'label' => Craft::t('studio', 'Import'),
                 'url' => 'studio/import',
@@ -727,6 +728,7 @@ class Studio extends Plugin
                         'info' => Craft::t('studio', 'Includes creating/viewing/resaving/deleting those drafts'),
                     ],
                     'studio-importCategory' => ['label' => Craft::t('studio', 'Import categories')],
+                    'studio-importPodcastTaxonomy' => ['label' => Craft::t('studio', 'Import podcast taxonomies')],
                     'studio-manageSettings' => ['label' => Craft::t('studio', 'Manage plugin settings')],
                 ];
                 $event->permissions[] = [

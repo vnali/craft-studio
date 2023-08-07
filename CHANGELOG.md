@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- Podcast taxonomies can now be bulk imported to structure sections. person groups are imported as level(1) and person roles are imported as level(2) entries.
+
 ## 0.14.0 - 2023-08-04
 
 > {warning} Changing one `person` field to `userPerson`, `entryPerson`, `tablePerson`, `textPerson` fields for creating podcast:person.

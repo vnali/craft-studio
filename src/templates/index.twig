@@ -35,7 +35,7 @@
     {% redirect 'studio/podcasts' %}
 {% elseif canAccessEpisodes %}
     {% redirect 'studio/episodes' %}
-{% elseif currentUser.can('studio-importCategory') %}
+{% elseif currentUser.can('studio-importCategory') or currentUser.can('studio-importPodcastTaxonomy') %}
     {% redirect 'studio/import' %}
 {% elseif currentUser.can('studio-manageSettings') %}
     {% redirect 'studio/settings' %}

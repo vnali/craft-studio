@@ -20,6 +20,13 @@
 					</a>
 				</li>
 			{% endif %}
+            {% if currentUser.can('studio-importPodcastTaxonomy') %}
+				<li>
+					<a class="{{ segment3 == 'podcast-taxonomy' ? 'sel' }}" href="{{ url('studio/import/podcast-taxonomy') }}">
+						{{ 'Podcast taxonomies'|t('studio') }}
+					</a>
+				</li>
+			{% endif %}
 			{% if currentUser.can('studio-manageSettings') %}
 				{% if craft.app.config.general.allowAdminChanges and craft.app.config.general.devMode %}
 					<li>
