@@ -1572,7 +1572,7 @@ class PodcastsController extends Controller
             list($valueField, $valueBlockTypeHandle) = GeneralHelper::getFieldDefinition('podcastValue');
             if ($valueField) {
                 $valueFieldHandle = $valueField->handle;
-                if (get_class($valueField) == Entries::class) {
+                if (isset($podcast->$valueFieldHandle) && get_class($podcast->$valueFieldHandle) == EntryQuery::class) {
                     $value4value = $podcast->$valueFieldHandle->one();
                     if (isset($value4value->valueType) && $value4value->valueType && isset($value4value->valueMethod) && $value4value->valueMethod) {
                         $xmlPodcastValue = $xml->createElement("podcast:value");
@@ -2608,7 +2608,7 @@ class PodcastsController extends Controller
                 if ($valueField) {
                     $xmlPodcastRecipient = null;
                     $valueFieldHandle = $valueField->handle;
-                    if (get_class($valueField) == Entries::class) {
+                    if (isset($episode->$valueFieldHandle) && get_class($episode->$valueFieldHandle) == EntryQuery::class) {
                         $value4value = $episode->$valueFieldHandle->one();
                         if (isset($value4value->valueType) && $value4value->valueType && isset($value4value->valueMethod) && $value4value->valueMethod) {
                             $xmlPodcastValue = $xml->createElement("podcast:value");

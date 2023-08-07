@@ -5,6 +5,7 @@
 - Podcast taxonomies can now be bulk imported to structure sections. person groups are imported as level(1) and person roles are imported as level(2) entries.
 - Person group attribute is created based on level(1) of podcastTaxonomy entries field and role attribute is created based on level(2).
 - Fixed a bug where the plugin didn't properly check the section/entry type for having entries before importing podcast categories.
+- Fixed an error that occurred on RSS page where specified field for podcast value was not available on podcast/episode field layouts
 
 ## 0.14.0 - 2023-08-04
 
