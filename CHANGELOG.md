@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.15.0 - 2023-08-08
 
 - Podcast taxonomies can now be bulk imported to structure sections. person groups are imported as level(1) and person roles are imported as level(2) entries ([#24](https://github.com/vnali/craft-studio/discussions/24)).
 - Person group attribute can be created based on level(1) of podcastTaxonomy entries field and role attribute based on level(2) ([#24](https://github.com/vnali/craft-studio/discussions/24)).
