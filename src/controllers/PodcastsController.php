@@ -978,8 +978,8 @@ class PodcastsController extends Controller
                                     }
                                 }
                             }
-                            if (isset($liveItemBlock->alternateEnclosure) && is_array($liveItemBlock->alternateEnclosure)) {
-                                foreach ($liveItemBlock->alternateEnclosure as $row) {
+                            if (isset($liveItemBlock->liveAlternateEnclosure) && is_array($liveItemBlock->liveAlternateEnclosure)) {
+                                foreach ($liveItemBlock->liveAlternateEnclosure as $row) {
                                     if (isset($row['uri']) && $row['uri'] && isset($row['type']) && $row['type']) {
                                         $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
                                         if (isset($row['enclosureTitle']) && $row['enclosureTitle']) {
@@ -1011,8 +1011,8 @@ class PodcastsController extends Controller
                                         $xmlPodcastLiveItem->appendChild($xmlLiveItemAlternateEnclosure);
                                     }
                                 }
-                            } elseif (isset($liveItemBlock->alternateEnclosure) && is_object($liveItemBlock->alternateEnclosure) && get_class($liveItemBlock->alternateEnclosure) == SuperTableBlockQuery::class) {
-                                foreach ($liveItemBlock->alternateEnclosure->all() as $block) {
+                            } elseif (isset($liveItemBlock->liveAlternateEnclosure) && is_object($liveItemBlock->liveAlternateEnclosure) && get_class($liveItemBlock->liveAlternateEnclosure) == SuperTableBlockQuery::class) {
+                                foreach ($liveItemBlock->liveAlternateEnclosure->all() as $block) {
                                     $type = false;
                                     $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
                                     if (isset($block->enclosureType) && $block->enclosureType) {
@@ -1300,8 +1300,8 @@ class PodcastsController extends Controller
                                     }
                                 }
                             }
-                            if (isset($liveItemBlock->alternateEnclosure) && is_array($liveItemBlock->alternateEnclosure)) {
-                                foreach ($liveItemBlock->alternateEnclosure as $row) {
+                            if (isset($liveItemBlock->liveAlternateEnclosure) && is_array($liveItemBlock->liveAlternateEnclosure)) {
+                                foreach ($liveItemBlock->liveAlternateEnclosure as $row) {
                                     if (isset($row['uri']) && $row['uri'] && isset($row['type']) && $row['type']) {
                                         $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
                                         if (isset($row['enclosureTitle']) && $row['enclosureTitle']) {
@@ -1333,8 +1333,8 @@ class PodcastsController extends Controller
                                         $xmlPodcastLiveItem->appendChild($xmlLiveItemAlternateEnclosure);
                                     }
                                 }
-                            } elseif (isset($liveItemBlock->alternateEnclosure) && is_object($liveItemBlock->alternateEnclosure) && (get_class($liveItemBlock->alternateEnclosure) == SuperTableBlockQuery::class || get_class($liveItemBlock->alternateEnclosure) == MatrixBlockQuery::class)) {
-                                foreach ($liveItemBlock->alternateEnclosure->all() as $block) {
+                            } elseif (isset($liveItemBlock->liveAlternateEnclosure) && is_object($liveItemBlock->liveAlternateEnclosure) && (get_class($liveItemBlock->liveAlternateEnclosure) == SuperTableBlockQuery::class || get_class($liveItemBlock->liveAlternateEnclosure) == MatrixBlockQuery::class)) {
+                                foreach ($liveItemBlock->liveAlternateEnclosure->all() as $block) {
                                     $type = false;
                                     $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
                                     if (isset($block->enclosureType) && $block->enclosureType) {
