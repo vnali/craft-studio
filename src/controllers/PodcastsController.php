@@ -966,8 +966,8 @@ class PodcastsController extends Controller
                                     }
                                 }
                             }
-                            if (isset($liveItemBlock->enclosure) && is_array($liveItemBlock->enclosure)) {
-                                foreach ($liveItemBlock->enclosure as $row) {
+                            if (isset($liveItemBlock->liveEnclosure) && is_array($liveItemBlock->liveEnclosure)) {
+                                foreach ($liveItemBlock->liveEnclosure as $row) {
                                     if (isset($row['url']) && $row['url'] && isset($row['type']) && $row['type']) {
                                         $xmlLiveItemEnclosure = $xml->createElement("enclosure");
                                         $prefixUrl = GeneralHelper::prefixUrl($row['url'], $podcast, $site->id);
@@ -1288,8 +1288,8 @@ class PodcastsController extends Controller
                                     }
                                 }
                             }
-                            if (isset($liveItemBlock->enclosure) && is_array($liveItemBlock->enclosure)) {
-                                foreach ($liveItemBlock->enclosure as $row) {
+                            if (isset($liveItemBlock->liveEnclosure) && is_array($liveItemBlock->liveEnclosure)) {
+                                foreach ($liveItemBlock->liveEnclosure as $row) {
                                     if (isset($row['url']) && $row['url'] && isset($row['type']) && $row['type']) {
                                         $xmlLiveItemEnclosure = $xml->createElement("enclosure");
                                         $prefixUrl = GeneralHelper::prefixUrl($row['url'], $podcast, $site->id);

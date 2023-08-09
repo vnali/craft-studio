@@ -3,6 +3,7 @@
 ## Unreleased
 
 - The enclosureType custom field is now required for alternative enclosure for live items.
+- The `enclosure` custom field for live items should be `liveEnclosure` now.
 
 ## 0.15.0 - 2023-08-08
 
