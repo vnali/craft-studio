@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- The enclosureType custom field is now required for alternative enclosure for live items.
+
 ## 0.15.0 - 2023-08-08
 
 - Podcast taxonomies can now be bulk imported to structure sections. person groups are imported as level(1) and person roles are imported as level(2) entries ([#24](https://github.com/vnali/craft-studio/discussions/24)).

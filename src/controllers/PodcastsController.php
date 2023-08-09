@@ -1013,7 +1013,20 @@ class PodcastsController extends Controller
                                 }
                             } elseif (isset($liveItemBlock->alternateEnclosure) && is_object($liveItemBlock->alternateEnclosure) && get_class($liveItemBlock->alternateEnclosure) == SuperTableBlockQuery::class) {
                                 foreach ($liveItemBlock->alternateEnclosure->all() as $block) {
+                                    $type = false;
                                     $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
+                                    if (isset($block->enclosureType) && $block->enclosureType) {
+                                        if (is_object($block->enclosureType) && get_class($block->enclosureType) == SingleOptionFieldData::class && $block->enclosureType->value) {
+                                            $type = true;
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("type",  htmlspecialchars($block->enclosureType->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } elseif (!is_object($block->enclosureType)) {
+                                            $type = true;
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("type",  htmlspecialchars($block->enclosureType, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                    }
+                                    if (!$type) {
+                                        continue;
+                                    }
                                     if (isset($block->enclosureTitle) && $block->enclosureTitle) {
                                         $xmlLiveItemAlternateEnclosure->setAttribute("title", htmlspecialchars($block->enclosureTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     }
@@ -1053,13 +1066,13 @@ class PodcastsController extends Controller
                                     }
                                     if (isset($block->otherSources) && is_array($block->otherSources)) {
                                         foreach ($block->otherSources as $key => $row) {
-                                            if (isset($row['uri']) && $row['uri'] && isset($row['contentType']) && $row['contentType']) {
-                                                if ($key == 0) {
-                                                    $xmlLiveItemAlternateEnclosure->setAttribute("type", htmlspecialchars($row['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                }
+                                            if (isset($row['uri']) && $row['uri']) {
                                                 $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
                                                 $prefixUrl = GeneralHelper::prefixUrl($row['uri'], $podcast, $site->id);
                                                 $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                if (isset($row['contentType']) && $row['contentType']) {
+                                                    $xmlLiveItemAlternateEnclosureSource->setAttribute("type", htmlspecialchars($row['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
                                                 $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
                                             }
                                         }
@@ -1322,7 +1335,20 @@ class PodcastsController extends Controller
                                 }
                             } elseif (isset($liveItemBlock->alternateEnclosure) && is_object($liveItemBlock->alternateEnclosure) && (get_class($liveItemBlock->alternateEnclosure) == SuperTableBlockQuery::class || get_class($liveItemBlock->alternateEnclosure) == MatrixBlockQuery::class)) {
                                 foreach ($liveItemBlock->alternateEnclosure->all() as $block) {
+                                    $type = false;
                                     $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
+                                    if (isset($block->enclosureType) && $block->enclosureType) {
+                                        if (is_object($block->enclosureType) && get_class($block->enclosureType) == SingleOptionFieldData::class && $block->enclosureType->value) {
+                                            $type = true;
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("type",  htmlspecialchars($block->enclosureType->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        } elseif (!is_object($block->enclosureType)) {
+                                            $type = true;
+                                            $xmlLiveItemAlternateEnclosure->setAttribute("type",  htmlspecialchars($block->enclosureType, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                    }
+                                    if (!$type) {
+                                        continue;
+                                    }
                                     if (isset($block->enclosureTitle) && $block->enclosureTitle) {
                                         $xmlLiveItemAlternateEnclosure->setAttribute("title", htmlspecialchars($block->enclosureTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                     }
@@ -1362,13 +1388,13 @@ class PodcastsController extends Controller
                                     }
                                     if (isset($block->otherSources) && is_array($block->otherSources)) {
                                         foreach ($block->otherSources as $key => $row) {
-                                            if (isset($row['uri']) && $row['uri'] && isset($row['contentType']) && $row['contentType']) {
-                                                if ($key == 0) {
-                                                    $xmlLiveItemAlternateEnclosure->setAttribute("type", htmlspecialchars($row['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
-                                                }
+                                            if (isset($row['uri']) && $row['uri']) {
                                                 $xmlLiveItemAlternateEnclosureSource = $xml->createElement("source");
                                                 $prefixUrl = GeneralHelper::prefixUrl($row['uri'], $podcast, $site->id);
                                                 $xmlLiveItemAlternateEnclosureSource->setAttribute("uri", htmlspecialchars($prefixUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                if (isset($row['contentType']) && $row['contentType']) {
+                                                    $xmlLiveItemAlternateEnclosureSource->setAttribute("type", htmlspecialchars($row['contentType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
                                                 $xmlLiveItemAlternateEnclosure->appendChild($xmlLiveItemAlternateEnclosureSource);
                                             }
                                         }
