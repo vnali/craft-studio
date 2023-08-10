@@ -582,8 +582,6 @@ class Studio extends Plugin
                 $event->rules['studio/import'] = 'studio/import/default';
                 $event->rules['studio/import/category'] = 'studio/import/category';
                 $event->rules['studio/import/podcast-taxonomy'] = 'studio/import/podcast-taxonomy';
-                $event->rules['studio/import/episode-fields'] = 'studio/import/episode-fields';
-                $event->rules['studio/import/podcast-fields'] = 'studio/import/podcast-fields';
                 $event->rules['studio/podcasts/edit/<elementId:\d+>'] = 'elements/edit';
                 $event->rules['studio/podcasts/<podcastFormat>/new'] = 'studio/podcasts/create';
                 $event->rules['studio/podcasts/podcast-episode-settings'] = 'studio/podcasts/podcast-episode-settings';

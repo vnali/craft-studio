@@ -27,22 +27,6 @@
 					</a>
 				</li>
 			{% endif %}
-			{% if currentUser.can('studio-manageSettings') %}
-				{% if craft.app.config.general.allowAdminChanges and craft.app.config.general.devMode %}
-					<li>
-						<a class="{{ segment3 == 'podcast-fields' ? 'sel' }}" href="{{ url('studio/import/podcast-fields') }}">
-							{{ 'Sample podcast fields'|t('studio') }}
-						</a>
-					</li>
-				{% endif %}
-				{% if craft.app.config.general.allowAdminChanges and craft.app.config.general.devMode %}
-					<li>
-						<a class="{{ segment3 == 'episode-fields' ? 'sel' }}" href="{{ url('studio/import/episode-fields') }}">
-							{{ 'Sample episode fields'|t('studio') }}
-						</a>
-					</li>
-				{% endif %}
-			{% endif %}
 		</ul>
 	</nav>
 {% endblock %}
