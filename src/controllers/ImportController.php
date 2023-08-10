@@ -16,6 +16,9 @@ use craft\fields\Url;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\models\CategoryGroup_SiteSettings;
+use craft\models\FieldLayout;
+use craft\models\FieldLayoutTab;
+use craft\models\MatrixBlockType;
 use craft\models\Volume;
 use craft\records\FieldGroup;
 use craft\web\Controller;
@@ -489,7 +492,7 @@ class ImportController extends Controller
         }
 
         /** @var FieldGroup|null $fieldGroup */
-        $fieldGroup = FieldGroup::find()->where(['name' => 'studio'])->one();
+        $fieldGroup = FieldGroup::find()->where(['name' => 'studio', 'dateDeleted' => null])->one();
 
         if (!$fieldGroup) {
             $fieldGroup = new \craft\models\FieldGroup([
@@ -589,7 +592,7 @@ class ImportController extends Controller
         // Podcast image field
         $podcastImageField = Craft::$app->fields->getFieldByHandle('studioPodcastImage');
         if (!$podcastImageField) {
-            $podcastImageField = new \craft\fields\Assets([
+            $podcastImageField = new Assets([
                 "groupId" => $fieldGroupId,
                 "name" => "Podcast image",
                 "handle" => "studioPodcastImage",
@@ -742,7 +745,7 @@ class ImportController extends Controller
         // Create a field group for the plugin if doesn't exists
 
         /** @var FieldGroup|null $fieldGroup */
-        $fieldGroup = FieldGroup::find()->where(['name' => 'studio'])->one();
+        $fieldGroup = FieldGroup::find()->where(['name' => 'studio', 'dateDeleted' => null])->one();
 
         if (!$fieldGroup) {
             $fieldGroup = new \craft\models\FieldGroup([
@@ -814,9 +817,8 @@ class ImportController extends Controller
 
         // Episode image field
         $episodeImageField = Craft::$app->fields->getFieldByHandle('studioEpisodeImage');
-
         if (!$episodeImageField) {
-            $episodeImageField = new \craft\fields\Assets([
+            $episodeImageField = new Assets([
                 "groupId" => $fieldGroupId,
                 "name" => "episode image",
                 "handle" => "studioEpisodeImage",
@@ -901,22 +903,19 @@ class ImportController extends Controller
             }
 
             // Episode public file field
-            $publicEpisodeFileFieldConfig = [
-                "type" => Assets::class,
+            $publicEpisodeFileFieldConfig = new Assets([
                 "name" => "public episode",
                 "handle" => "studioPublicEpisodeFile",
                 "restrictFiles" => "1",
                 "allowedKinds" => ["audio"],
                 "localizeRelations" => "1",
                 "validateRelatedElements" => "1",
-                'typesettings' => [
-                    'sources' => [
-                        0 => 'volume:' . $publicEpisodeFileVolume->uid,
-                    ],
-                    'defaultUploadLocationSource' => 'volume:' . $publicEpisodeFileVolume->uid,
-                    'defaultUploadLocationSubpath' => 'public',
+                'sources' => [
+                    0 => 'volume:' . $publicEpisodeFileVolume->uid,
                 ],
-            ];
+                'defaultUploadLocationSource' => 'volume:' . $publicEpisodeFileVolume->uid,
+                'defaultUploadLocationSubpath' => 'public',
+            ]);
 
             $privateEpisodeFileVolume = Craft::$app->volumes->getVolumeByHandle('studioPrivateEpisodeVol');
             if (!$privateEpisodeFileVolume) {
@@ -947,28 +946,24 @@ class ImportController extends Controller
             }
 
             // Episode public file field
-            $privateEpisodeFileFieldConfig = [
-                "type" => Assets::class,
+            $privateEpisodeFileFieldConfig = new Assets([
                 "name" => "private episode file",
                 "handle" => "studioPrivateEpisodeFile",
                 "restrictFiles" => "1",
                 "allowedKinds" => ["audio"],
                 "localizeRelations" => "1",
                 "validateRelatedElements" => "1",
-                'typesettings' => [
-                    'sources' => [
-                        0 => 'volume:' . $privateEpisodeFileVolume->uid,
-                    ],
-                    'defaultUploadLocationSource' => 'volume:' . $privateEpisodeFileVolume->uid,
-                    'defaultUploadLocationSubpath' => 'private',
+                'sources' => [
+                    0 => 'volume:' . $privateEpisodeFileVolume->uid,
                 ],
-            ];
+                'defaultUploadLocationSource' => 'volume:' . $privateEpisodeFileVolume->uid,
+                'defaultUploadLocationSubpath' => 'private',
+            ]);
 
-            $episodeUrlFieldConfig = [
-                'type' => Url::class,
+            $episodeUrlFieldConfig = new Url([
                 'name' => 'episode Url',
                 'handle' => 'studioEpisodeUrl',
-            ];
+            ]);
 
             $matrix = new Matrix();
             $matrix->handle = 'studioEpisodeMatrix';
@@ -978,22 +973,48 @@ class ImportController extends Controller
 
             $blockTypes = [];
 
-            $blockType = [];
-            $blockType['handle'] = 'studioPrivateEpisodeBlock';
-            $blockType['name'] = 'private episode block';
-            $blockType['fields']['new1'] = $privateEpisodeFileFieldConfig;
+
+            $layoutElements = [];
+            $blockType = new MatrixBlockType([
+                'handle' => 'studioPrivateEpisodeBlock',
+                'name' => 'Private episode block',
+            ]);
+            $layoutElements[] = new CustomField($privateEpisodeFileFieldConfig);
+            $fieldLayout = new FieldLayout();
+            $tab = new FieldLayoutTab();
+            $tab->name = StringHelper::randomString(5);
+            $fieldLayout->setTabs([$tab]);
+            $tab->setElements($layoutElements);
+            $blockType->setFieldLayout($fieldLayout);
             $blockTypes[] = $blockType;
 
-            $blockType = [];
-            $blockType['handle'] = 'studioPublicEpisodeBlock';
-            $blockType['name'] = 'public episode block';
-            $blockType['fields']['new2'] = $publicEpisodeFileFieldConfig;
+            $layoutElements = [];
+            $blockType = new MatrixBlockType([
+                'handle' => 'studioPublicEpisodeBlock',
+                'name' => 'public episode block',
+            ]);
+            $layoutElements[] = new CustomField($publicEpisodeFileFieldConfig);
+            $fieldLayout = new FieldLayout();
+            $tab = new FieldLayoutTab();
+            $tab->name = StringHelper::randomString(5);
+            $fieldLayout->setTabs([$tab]);
+            $tab->setElements($layoutElements);
+            $blockType->setFieldLayout($fieldLayout);
             $blockTypes[] = $blockType;
 
-            $blockType = [];
-            $blockType['handle'] = 'studioEpisodeUrlBlock';
-            $blockType['name'] = 'episode url';
-            $blockType['fields']['new3'] = $episodeUrlFieldConfig;
+
+            $layoutElements = [];
+            $blockType = new MatrixBlockType([
+                'handle' => 'studioEpisodeUrlBlock',
+                'name' => 'episode url',
+            ]);
+            $layoutElements[] = new CustomField($episodeUrlFieldConfig);
+            $fieldLayout = new FieldLayout();
+            $tab = new FieldLayoutTab();
+            $tab->name = StringHelper::randomString(5);
+            $fieldLayout->setTabs([$tab]);
+            $tab->setElements($layoutElements);
+            $blockType->setFieldLayout($fieldLayout);
             $blockTypes[] = $blockType;
 
             $matrix->setBlockTypes($blockTypes);
@@ -1046,7 +1067,7 @@ class ImportController extends Controller
         $episodeFieldLayout = Craft::$app->getFields()->createLayout($layoutModel);
         $episodeFieldLayout->type = Episode::class;
 
-        $podcastFormat->setFieldLayout($episodeFieldLayout);
+        $podcastFormatEpisode->setFieldLayout($episodeFieldLayout);
 
         $episodeFieldLayoutConfig = $episodeFieldLayout->getConfig();
 
