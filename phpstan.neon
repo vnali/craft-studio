@@ -7,8 +7,16 @@ parameters:
         - src
     ignoreErrors:
     -   '#Access to static property \$plugin on an unknown class verbb\\supertable\\SuperTable.#'
-    -   '#Access to property \$handle on an unknown class verbb\\supertable\\fields\\SuperTableField#'
-    -   '#Access to property \$id on an unknown class verbb\\supertable\\fields\\SuperTableField.#'
-    -   '#Access to property \$name on an unknown class verbb\\supertable\\fields\\SuperTableField.#'
+    -   '#Access to property \$[a-zA-Z0-9\\_]+ on an unknown class verbb\\supertable\\fields\\SuperTableField.#'
     -   '#Access to an undefined property verbb\\supertable\\SuperTable::\$service.#'
+    -   '#Class verbb\\supertable\\fields\\SuperTableField not found.#'
+    -   '#Call to static method find\(\) on an unknown class verbb\\supertable\\elements\\SuperTableBlockElement.#'
+    -   '#Class studioespresso\\easyaddressfield\\models\\EasyAddressFieldModel not found.#'
+    -   '#Class studioespresso\\easyaddressfield\\fields\\EasyAddressFieldField not found.#'
+    -   '#Access to property \$[a-zA-Z0-9\\_]+ on an unknown class studioespresso\\easyaddressfield\\models\\EasyAddressFieldModel.#'
+    -   '#Access to property \$[a-zA-Z0-9\\_]+ on an unknown class doublesecretagency\\googlemaps\\models\\Address.#'
+    -   '#Class doublesecretagency\\googlemaps\\fields\\AddressField not found.#'
+    -   '#Class doublesecretagency\\googlemaps\\models\\Address not found.#'
+    -   '#Class verbb\\supertable\\elements\\db\\SuperTableBlockQuery not found.#'
+    -   '#Call to method all\(\) on an unknown class verbb\\supertable\\elements\\db\\SuperTableBlockQuery.#'
     reportUnmatchedIgnoredErrors: false
