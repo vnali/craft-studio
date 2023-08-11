@@ -2,10 +2,14 @@
 
 ## Unreleased
 
+> {tip} The studio plugin has a [starter project](https://github.com/vnali/craft-studio-starter) now. Please setup a sample project which contains required fields and check how the plugin works.
+
+> {warning} This version need some changes to custom field handles. please read the release note before update.
+
 - The enclosureType custom field is now required for alternative enclosure for live items.
 - The `enclosure` custom field for live items should be `liveEnclosure` now.
 - The `alternateEnclosure` custom field for live items should be `liveAlternateEnclosure` now.
-- Removed importing sample podcast and episode fields.
+- Removed importing sample podcast and episode fields because of new [studio plugin starter project](https://github.com/vnali/craft-studio-starter).
 
 ## 0.15.0 - 2023-08-08
 
