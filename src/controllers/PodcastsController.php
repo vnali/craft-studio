@@ -1708,6 +1708,40 @@ class PodcastsController extends Controller
                 }
             }
 
+            // Podroll
+            list($podrollField,) = GeneralHelper::getFieldDefinition('podroll');
+            if ($podrollField) {
+                $podrollFieldHandle = $podrollField->handle;
+                if (isset($podcast->$podrollFieldHandle) && get_class($podcast->$podrollFieldHandle) == EntryQuery::class) {
+                    $remoteItems = $podcast->$podrollFieldHandle->all();
+                    $xmlPodcastPodroll = $xml->createElement("podcast:podroll");
+                    foreach ($remoteItems as $remoteItem) {
+                        if (isset($remoteItem->feedGuid) && $remoteItem->feedGuid) {
+                            $xmlPodcastRemoteItem = $xml->createElement("podcast:remoteItem");
+                            $xmlPodcastRemoteItem->setAttribute("feedGuid", htmlspecialchars($remoteItem->feedGuid, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            if (isset($remoteItem->feedUrl) && $remoteItem->feedUrl) {
+                                $xmlPodcastRemoteItem->setAttribute("feedUrl", htmlspecialchars($remoteItem->feedUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            }
+                            if (isset($remoteItem->itemGuid) && $remoteItem->itemGuid) {
+                                $xmlPodcastRemoteItem->setAttribute("itemGuid", htmlspecialchars($remoteItem->itemGuid, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            }
+                            if (isset($remoteItem->medium) && $remoteItem->medium) {
+                                if (is_object($remoteItem->medium) && get_class($remoteItem->medium) == SingleOptionFieldData::class && $remoteItem->medium->value) {
+                                    $xmlPodcastRemoteItem->setAttribute("medium", htmlspecialchars($remoteItem->medium->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                } elseif (!is_object($remoteItem->medium)) {
+                                    $xmlPodcastRemoteItem->setAttribute("medium", htmlspecialchars($remoteItem->medium, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                }
+                            }
+                            $xmlPodcastPodroll->appendChild($xmlPodcastRemoteItem);
+                        }
+                    }
+                    // If there is at least one Remote item
+                    if (isset($xmlPodcastRemoteItem)) {
+                        $xmlChannel->appendChild($xmlPodcastPodroll);
+                    }
+                }
+            }
+
             $fieldHandle = null;
             $fieldContainer = null;
 

@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- Added <podcast:podroll> support.
+
 ## 0.16.0 - 2023-08-11
 
 > {tip} The studio plugin has a [starter project](https://github.com/vnali/craft-studio-starter) now. Please setup a sample project which contains required fields and check how the plugin works.

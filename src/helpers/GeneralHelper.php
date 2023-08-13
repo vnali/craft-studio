@@ -1025,6 +1025,10 @@ class GeneralHelper
                 $handleAttribute = 'episodeValueField';
                 $blockTypeAttribute = 'episodeValueBlockType';
                 break;
+            case 'podroll':
+                $defaultHandle = 'podcastPodroll';
+                $handleAttribute = 'podrollField';
+                break;
             default:
                 return array($field, $blockTypeHandle);
         }
