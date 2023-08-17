@@ -2199,6 +2199,8 @@ class PodcastsController extends Controller
                     }
                 }
 
+                $valueTimeSplits = [];
+
                 // Episode soundbite
                 list($soundbiteField, $soundbiteBlockTypeHandle) = GeneralHelper::getFieldDefinition('soundbite');
                 if ($soundbiteField) {
@@ -2216,6 +2218,127 @@ class PodcastsController extends Controller
                             $xmlSoundbite->setAttribute("startTime", $soundbiteBlock->startTime);
                             $xmlSoundbite->setAttribute("duration", $soundbiteBlock->duration);
                             $xmlItem->appendChild($xmlSoundbite);
+
+                            // Check value time split
+                            $xmlPodcastValueRemoteItem = null;
+                            $xmlPodcastValueTimeSplit = $xml->createElement("podcast:valueTimeSplit");
+                            $xmlPodcastValueTimeSplit->setAttribute("startTime", htmlspecialchars($soundbiteBlock->startTime, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            $xmlPodcastValueTimeSplit->setAttribute("duration", htmlspecialchars((string)$soundbiteBlock->duration, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            if (isset($soundbiteBlock->remotePercentage) && $soundbiteBlock->remotePercentage) {
+                                $xmlPodcastValueTimeSplit->setAttribute("remotePercentage", htmlspecialchars($soundbiteBlock->remotePercentage, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            }
+                            if (isset($soundbiteBlock->remoteStartTime) && $soundbiteBlock->remoteStartTime) {
+                                $xmlPodcastValueTimeSplit->setAttribute("remoteStartTime", htmlspecialchars($soundbiteBlock->remoteStartTime, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                            }
+                            if (isset($soundbiteBlock->remoteItem) && get_class($soundbiteBlock->remoteItem) == EntryQuery::class) {
+                                $remoteItems = $soundbiteBlock->remoteItem->all();
+                                foreach ($remoteItems as $remoteItem) {
+                                    if (isset($remoteItem->feedGuid) && $remoteItem->feedGuid) {
+                                        $xmlPodcastValueRemoteItem = $xml->createElement("podcast:remoteItem");
+                                        $xmlPodcastValueRemoteItem->setAttribute("feedGuid", htmlspecialchars($remoteItem->feedGuid, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        if (isset($remoteItem->feedUrl) && $remoteItem->feedUrl) {
+                                            $xmlPodcastValueRemoteItem->setAttribute("feedUrl", htmlspecialchars($remoteItem->feedUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($remoteItem->itemGuid) && $remoteItem->itemGuid) {
+                                            $xmlPodcastValueRemoteItem->setAttribute("itemGuid", htmlspecialchars($remoteItem->itemGuid, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($remoteItem->medium) && $remoteItem->medium) {
+                                            if (is_object($remoteItem->medium) && get_class($remoteItem->medium) == SingleOptionFieldData::class && $remoteItem->medium->value) {
+                                                $xmlPodcastValueRemoteItem->setAttribute("medium", htmlspecialchars($remoteItem->medium->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            } elseif (!is_object($remoteItem->medium)) {
+                                                $xmlPodcastValueRemoteItem->setAttribute("medium", htmlspecialchars($remoteItem->medium, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                        }
+                                        $xmlPodcastValueTimeSplit->appendChild($xmlPodcastValueRemoteItem);
+                                    }
+                                    // only one remote item
+                                    continue;
+                                }
+                                // If there is at least one Remote item
+                                if (isset($xmlPodcastValueRemoteItem)) {
+                                    $valueTimeSplits[$soundbiteBlock->startTime] = $xmlPodcastValueTimeSplit;
+                                    // Don't check for local recipient time split any more
+                                    continue;
+                                }
+                                //
+                            }
+                            $xmlPodcastValueRecipientItem = null;
+                            if (isset($soundbiteBlock->recipient) && get_class($soundbiteBlock->recipient) == SuperTableBlockQuery::class) {
+                                $recipients = $soundbiteBlock->recipient->all();
+                                foreach ($recipients as $valueBlock) {
+                                    $recipientsArray = [];
+                                    if (isset($valueBlock->userRecipient) && is_object($valueBlock->userRecipient) && get_class($valueBlock->userRecipient) == UserQuery::class && $valueBlock->userRecipient->one()) {
+                                        $recipients = $valueBlock->userRecipient->all();
+                                        foreach ($recipients as $recipient) {
+                                            $recipientArray = [];
+                                            if ($recipient->fullName) {
+                                                $recipientArray['name'] = $recipient->fullName;
+                                            }
+                                            if (isset($recipient->recipientType) && $recipient->recipientType) {
+                                                $recipientArray['recipientType'] = $recipient->recipientType;
+                                            }
+                                            if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
+                                                $recipientArray['recipientCustomKey'] = $recipient->recipientCustomKey;
+                                            }
+                                            if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
+                                                $recipientArray['recipientCustomValue'] = $recipient->recipientCustomValue;
+                                            }
+                                            if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
+                                                $recipientArray['recipientAddress'] = $recipient->recipientAddress;
+                                            }
+                                            $recipientsArray[] = $recipientArray;
+                                        }
+                                    }
+                                    if (isset($valueBlock->entryRecipient) && is_object($valueBlock->entryRecipient) && get_class($valueBlock->entryRecipient) == EntryQuery::class && $valueBlock->entryRecipient->one()) {
+                                        $recipients = $valueBlock->entryRecipient->all();
+                                        foreach ($recipients as $recipient) {
+                                            $recipientArray = [];
+                                            if (isset($recipient->title) && $recipient->title) {
+                                                $recipientArray['name'] = $recipient->title;
+                                            }
+                                            if (isset($recipient->recipientType) && $recipient->recipientType) {
+                                                $recipientArray['recipientType'] = $recipient->recipientType;
+                                            }
+                                            if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
+                                                $recipientArray['recipientCustomKey'] = $recipient->recipientCustomKey;
+                                            }
+                                            if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
+                                                $recipientArray['recipientCustomValue'] = $recipient->recipientCustomValue;
+                                            }
+                                            if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
+                                                $recipientArray['recipientAddress'] = $recipient->recipientAddress;
+                                            }
+                                            $recipientsArray[] = $recipientArray;
+                                        }
+                                    }
+                                    foreach ($recipientsArray as $recipientArray) {
+                                        if (isset($recipientArray['recipientType']) && isset($recipientArray['recipientAddress']) && isset($valueBlock->split) && $valueBlock->split) {
+                                            $xmlPodcastValueRecipientItem = $xml->createElement("podcast:valueRecipient");
+                                            $xmlPodcastValueRecipientItem->setAttribute("type", htmlspecialchars($recipientArray['recipientType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            $xmlPodcastValueRecipientItem->setAttribute("address", htmlspecialchars($recipientArray['recipientAddress'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            if (isset($recipientArray['name'])) {
+                                                $xmlPodcastValueRecipientItem->setAttribute("name", htmlspecialchars($recipientArray['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            if (isset($recipientArray['recipientCustomKey'])) {
+                                                $xmlPodcastValueRecipientItem->setAttribute("customKey", htmlspecialchars($recipientArray['recipientCustomKey'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            if (isset($recipientArray['recipientCustomValue'])) {
+                                                $xmlPodcastValueRecipientItem->setAttribute("customValue", htmlspecialchars($recipientArray['recipientCustomValue'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            $xmlPodcastValueRecipientItem->setAttribute("split", htmlspecialchars($valueBlock->split, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            if (isset($valueBlock->fee) && $valueBlock->fee) {
+                                                $xmlPodcastValueRecipientItem->setAttribute("fee", htmlspecialchars("true", ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                            }
+                                            $xmlPodcastValueTimeSplit->appendChild($xmlPodcastValueRecipientItem);
+                                        }
+                                    }
+                                }
+                                // If there is at least one local recipient item
+                                if (isset($xmlPodcastValueRecipientItem)) {
+                                    $valueTimeSplits[$soundbiteBlock->startTime] = $xmlPodcastValueTimeSplit;
+                                }
+                                //
+                            }
                         }
                     }
                 }
@@ -2236,6 +2359,141 @@ class PodcastsController extends Controller
                         $xmlChapter->setAttribute("url", htmlspecialchars($chapterUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                         $xmlChapter->setAttribute("type", "application/json+chapters");
                         $xmlItem->appendChild($xmlChapter);
+
+                        // Check value time split
+                        $chapterFieldHandle = $chapterField->handle;
+                        if (isset($episode->$chapterFieldHandle)) {
+                            $chapters = $episode->$chapterFieldHandle->all();
+                            foreach ($chapters as $key => $chapter) {
+                                $xmlPodcastValueRemoteItem = null;
+                                $xmlPodcastValueRecipientItem = null;
+                                // if this is related to super table or specified matrix block type
+                                if (is_null($chapter->type->handle) || $chapter->type->handle == $chapterBlockTypeHandle) {
+                                    // Start time and duration -endtime- are required for value time split
+                                    if ($chapter->startTime === null || $chapter->endTime === null) {
+                                        continue;
+                                    }
+                                    $duration = $chapter->endTime - $chapter->startTime;
+                                    $xmlPodcastValueTimeSplit = $xml->createElement("podcast:valueTimeSplit");
+                                    $xmlPodcastValueTimeSplit->setAttribute("startTime", htmlspecialchars($chapter->startTime, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    $xmlPodcastValueTimeSplit->setAttribute("duration", htmlspecialchars((string)$duration, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    if (isset($chapter->remotePercentage) && $chapter->remotePercentage) {
+                                        $xmlPodcastValueTimeSplit->setAttribute("remotePercentage", htmlspecialchars($chapter->remotePercentage, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    if (isset($chapter->remoteStartTime) && $chapter->remoteStartTime) {
+                                        $xmlPodcastValueTimeSplit->setAttribute("remoteStartTime", htmlspecialchars($chapter->remoteStartTime, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                    }
+                                    if (isset($chapter->remoteItem) && get_class($chapter->remoteItem) == EntryQuery::class) {
+                                        $remoteItems = $chapter->remoteItem->all();
+                                        foreach ($remoteItems as $remoteItem) {
+                                            if (isset($remoteItem->feedGuid) && $remoteItem->feedGuid) {
+                                                $xmlPodcastValueRemoteItem = $xml->createElement("podcast:remoteItem");
+                                                $xmlPodcastValueRemoteItem->setAttribute("feedGuid", htmlspecialchars($remoteItem->feedGuid, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                if (isset($remoteItem->feedUrl) && $remoteItem->feedUrl) {
+                                                    $xmlPodcastValueRemoteItem->setAttribute("feedUrl", htmlspecialchars($remoteItem->feedUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (isset($remoteItem->itemGuid) && $remoteItem->itemGuid) {
+                                                    $xmlPodcastValueRemoteItem->setAttribute("itemGuid", htmlspecialchars($remoteItem->itemGuid, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (isset($remoteItem->medium) && $remoteItem->medium) {
+                                                    if (is_object($remoteItem->medium) && get_class($remoteItem->medium) == SingleOptionFieldData::class && $remoteItem->medium->value) {
+                                                        $xmlPodcastValueRemoteItem->setAttribute("medium", htmlspecialchars($remoteItem->medium->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (!is_object($remoteItem->medium)) {
+                                                        $xmlPodcastValueRemoteItem->setAttribute("medium", htmlspecialchars($remoteItem->medium, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                }
+                                                $xmlPodcastValueTimeSplit->appendChild($xmlPodcastValueRemoteItem);
+                                            }
+                                            // only one remote item
+                                            continue;
+                                        }
+                                        // If there is at least one Remote item
+                                        if (isset($xmlPodcastValueRemoteItem)) {
+                                            $valueTimeSplits[$chapter->startTime] = $xmlPodcastValueTimeSplit;
+                                            // Don't check for local recipient time split any more
+                                            continue;
+                                        }
+                                    }
+                                    //
+                                    if (isset($chapter->recipient) && get_class($chapter->recipient) == SuperTableBlockQuery::class) {
+                                        $recipients = $chapter->recipient->all();
+                                        foreach ($recipients as $valueBlock) {
+                                            $recipientsArray = [];
+                                            if (isset($valueBlock->userRecipient) && is_object($valueBlock->userRecipient) && get_class($valueBlock->userRecipient) == UserQuery::class && $valueBlock->userRecipient->one()) {
+                                                $recipients = $valueBlock->userRecipient->all();
+                                                foreach ($recipients as $recipient) {
+                                                    $recipientArray = [];
+                                                    if ($recipient->fullName) {
+                                                        $recipientArray['name'] = $recipient->fullName;
+                                                    }
+                                                    if (isset($recipient->recipientType) && $recipient->recipientType) {
+                                                        $recipientArray['recipientType'] = $recipient->recipientType;
+                                                    }
+                                                    if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
+                                                        $recipientArray['recipientCustomKey'] = $recipient->recipientCustomKey;
+                                                    }
+                                                    if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
+                                                        $recipientArray['recipientCustomValue'] = $recipient->recipientCustomValue;
+                                                    }
+                                                    if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
+                                                        $recipientArray['recipientAddress'] = $recipient->recipientAddress;
+                                                    }
+                                                    $recipientsArray[] = $recipientArray;
+                                                }
+                                            }
+                                            if (isset($valueBlock->entryRecipient) && is_object($valueBlock->entryRecipient) && get_class($valueBlock->entryRecipient) == EntryQuery::class && $valueBlock->entryRecipient->one()) {
+                                                $recipients = $valueBlock->entryRecipient->all();
+                                                foreach ($recipients as $recipient) {
+                                                    $recipientArray = [];
+                                                    if (isset($recipient->title) && $recipient->title) {
+                                                        $recipientArray['name'] = $recipient->title;
+                                                    }
+                                                    if (isset($recipient->recipientType) && $recipient->recipientType) {
+                                                        $recipientArray['recipientType'] = $recipient->recipientType;
+                                                    }
+                                                    if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
+                                                        $recipientArray['recipientCustomKey'] = $recipient->recipientCustomKey;
+                                                    }
+                                                    if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
+                                                        $recipientArray['recipientCustomValue'] = $recipient->recipientCustomValue;
+                                                    }
+                                                    if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
+                                                        $recipientArray['recipientAddress'] = $recipient->recipientAddress;
+                                                    }
+                                                    $recipientsArray[] = $recipientArray;
+                                                }
+                                            }
+                                            foreach ($recipientsArray as $recipientArray) {
+                                                if (isset($recipientArray['recipientType']) && isset($recipientArray['recipientAddress']) && isset($valueBlock->split) && $valueBlock->split) {
+                                                    $xmlPodcastValueRecipientItem = $xml->createElement("podcast:valueRecipient");
+                                                    $xmlPodcastValueRecipientItem->setAttribute("type", htmlspecialchars($recipientArray['recipientType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    $xmlPodcastValueRecipientItem->setAttribute("address", htmlspecialchars($recipientArray['recipientAddress'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    if (isset($recipientArray['name'])) {
+                                                        $xmlPodcastValueRecipientItem->setAttribute("name", htmlspecialchars($recipientArray['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                    if (isset($recipientArray['recipientCustomKey'])) {
+                                                        $xmlPodcastValueRecipientItem->setAttribute("customKey", htmlspecialchars($recipientArray['recipientCustomKey'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                    if (isset($recipientArray['recipientCustomValue'])) {
+                                                        $xmlPodcastValueRecipientItem->setAttribute("customValue", htmlspecialchars($recipientArray['recipientCustomValue'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                    $xmlPodcastValueRecipientItem->setAttribute("split", htmlspecialchars($valueBlock->split, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    if (isset($valueBlock->fee) && $valueBlock->fee) {
+                                                        $xmlPodcastValueRecipientItem->setAttribute("fee", htmlspecialchars("true", ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                    $xmlPodcastValueTimeSplit->appendChild($xmlPodcastValueRecipientItem);
+                                                }
+                                            }
+                                        }
+                                        // If there is at least one local recipient item
+                                        if (isset($xmlPodcastValueRecipientItem)) {
+                                            $valueTimeSplits[$chapter->startTime] = $xmlPodcastValueTimeSplit;
+                                        }
+                                        //
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -2677,8 +2935,12 @@ class PodcastsController extends Controller
                             if (isset($value4value->valueSuggested) && $value4value->valueSuggested) {
                                 $xmlPodcastValue->setAttribute("suggested", htmlspecialchars($value4value->valueSuggested, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                             }
+                            $recipientField = Craft::$app->fields->getFieldByHandle('recipient');
                             if (isset($value4value->recipient) && get_class($value4value->recipient) == MatrixBlockQuery::class) {
-                                $valueBlocks = $value4value->recipient->all();
+                                $blockQuery = \craft\elements\MatrixBlock::find();
+                                $value4valueEntry = $episode->$valueFieldHandle->one();
+                                $valueBlocks = $blockQuery->fieldId($recipientField->id)->owner($value4valueEntry)->type('recipient')->all();
+                                // Local Recipients
                                 foreach ($valueBlocks as $valueBlock) {
                                     $recipientsArray = [];
                                     if (isset($valueBlock->userRecipient) && is_object($valueBlock->userRecipient) && get_class($valueBlock->userRecipient) == UserQuery::class && $valueBlock->userRecipient->one()) {
@@ -2746,7 +3008,6 @@ class PodcastsController extends Controller
                                             $recipientsArray[] = $recipientArray;
                                         }
                                     }
-
                                     foreach ($recipientsArray as $recipientArray) {
                                         if (isset($recipientArray['recipientType']) && isset($recipientArray['recipientAddress']) && isset($valueBlock->split) && $valueBlock->split) {
                                             $xmlPodcastRecipient = $xml->createElement("podcast:valueRecipient");
@@ -2769,9 +3030,144 @@ class PodcastsController extends Controller
                                         }
                                     }
                                 }
+
+                                $valueBlocks = $blockQuery->fieldId($recipientField->id)->owner($value4valueEntry)->type('remoteItemTimeSplit')->all();
+                                foreach ($valueBlocks as $valueBlock) {
+                                    if (isset($valueBlock->startTime) && $valueBlock->startTime && isset($valueBlock->duration) && $valueBlock->duration) {
+                                        // Remote items
+                                        $xmlPodcastValueRemoteItem = null;
+                                        $xmlPodcastValueTimeSplit = $xml->createElement("podcast:valueTimeSplit");
+                                        $xmlPodcastValueTimeSplit->setAttribute("startTime", htmlspecialchars($valueBlock->startTime, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $xmlPodcastValueTimeSplit->setAttribute("duration", htmlspecialchars((string)$valueBlock->duration, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        if (isset($valueBlock->remotePercentage) && $valueBlock->remotePercentage) {
+                                            $xmlPodcastValueTimeSplit->setAttribute("remotePercentage", htmlspecialchars($valueBlock->remotePercentage, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($valueBlock->remoteStartTime) && $valueBlock->remoteStartTime) {
+                                            $xmlPodcastValueTimeSplit->setAttribute("remoteStartTime", htmlspecialchars($valueBlock->remoteStartTime, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        }
+                                        if (isset($valueBlock->remoteItem) && get_class($valueBlock->remoteItem) == EntryQuery::class) {
+                                            $remoteItem = $valueBlock->remoteItem->one();
+                                            if (isset($remoteItem->feedGuid) && $remoteItem->feedGuid) {
+                                                $xmlPodcastValueRemoteItem = $xml->createElement("podcast:remoteItem");
+                                                $xmlPodcastValueRemoteItem->setAttribute("feedGuid", htmlspecialchars($remoteItem->feedGuid, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                if (isset($remoteItem->feedUrl) && $remoteItem->feedUrl) {
+                                                    $xmlPodcastValueRemoteItem->setAttribute("feedUrl", htmlspecialchars($remoteItem->feedUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (isset($remoteItem->itemGuid) && $remoteItem->itemGuid) {
+                                                    $xmlPodcastValueRemoteItem->setAttribute("itemGuid", htmlspecialchars($remoteItem->itemGuid, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                }
+                                                if (isset($remoteItem->medium) && $remoteItem->medium) {
+                                                    if (is_object($remoteItem->medium) && get_class($remoteItem->medium) == SingleOptionFieldData::class && $remoteItem->medium->value) {
+                                                        $xmlPodcastValueRemoteItem->setAttribute("medium", htmlspecialchars($remoteItem->medium->value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    } elseif (!is_object($remoteItem->medium)) {
+                                                        $xmlPodcastValueRemoteItem->setAttribute("medium", htmlspecialchars($remoteItem->medium, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                    }
+                                                }
+                                                $xmlPodcastValueTimeSplit->appendChild($xmlPodcastValueRemoteItem);
+                                                $valueTimeSplits[$valueBlock->startTime] = $xmlPodcastValueTimeSplit;
+                                                //
+                                            }
+                                        }
+                                    }
+                                }
+
+                                $valueBlocks = $blockQuery->fieldId($recipientField->id)->owner($value4valueEntry)->type('recipientTimeSplit')->all();
+                                foreach ($valueBlocks as $valueBlock) {
+                                    if (isset($valueBlock->startTime) && $valueBlock->startTime && isset($valueBlock->duration) && $valueBlock->duration) {
+                                        $xmlPodcastValueRecipientItem = null;
+                                        $xmlPodcastValueTimeSplit = $xml->createElement("podcast:valueTimeSplit");
+                                        $xmlPodcastValueTimeSplit->setAttribute("startTime", htmlspecialchars($valueBlock->startTime, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        $xmlPodcastValueTimeSplit->setAttribute("duration", htmlspecialchars((string)$valueBlock->duration, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                        //
+                                        if (isset($valueBlock->recipient) && get_class($valueBlock->recipient) == SuperTableBlockQuery::class) {
+                                            $recipientRecords = $valueBlock->recipient->all();
+                                            foreach ($recipientRecords as $recipientRecord) {
+                                                $recipientsArray = [];
+                                                if (isset($recipientRecord->userRecipient) && is_object($recipientRecord->userRecipient) && get_class($recipientRecord->userRecipient) == UserQuery::class && $recipientRecord->userRecipient->one()) {
+                                                    $recipients = $recipientRecord->userRecipient->all();
+                                                    foreach ($recipients as $recipient) {
+                                                        $recipientArray = [];
+                                                        if ($recipient->fullName) {
+                                                            $recipientArray['name'] = $recipient->fullName;
+                                                        }
+                                                        if (isset($recipient->recipientType) && $recipient->recipientType) {
+                                                            $recipientArray['recipientType'] = $recipient->recipientType;
+                                                        }
+                                                        if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
+                                                            $recipientArray['recipientCustomKey'] = $recipient->recipientCustomKey;
+                                                        }
+                                                        if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
+                                                            $recipientArray['recipientCustomValue'] = $recipient->recipientCustomValue;
+                                                        }
+                                                        if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
+                                                            $recipientArray['recipientAddress'] = $recipient->recipientAddress;
+                                                        }
+                                                        $recipientsArray[] = $recipientArray;
+                                                    }
+                                                }
+                                                if (isset($recipientRecord->entryRecipient) && is_object($recipientRecord->entryRecipient) && get_class($recipientRecord->entryRecipient) == EntryQuery::class && $recipientRecord->entryRecipient->one()) {
+                                                    $recipients = $recipientRecord->entryRecipient->all();
+                                                    foreach ($recipients as $recipient) {
+                                                        $recipientArray = [];
+                                                        if (isset($recipient->title) && $recipient->title) {
+                                                            $recipientArray['name'] = $recipient->title;
+                                                        }
+                                                        if (isset($recipient->recipientType) && $recipient->recipientType) {
+                                                            $recipientArray['recipientType'] = $recipient->recipientType;
+                                                        }
+                                                        if (isset($recipient->recipientCustomKey) && $recipient->recipientCustomKey) {
+                                                            $recipientArray['recipientCustomKey'] = $recipient->recipientCustomKey;
+                                                        }
+                                                        if (isset($recipient->recipientCustomValue) && $recipient->recipientCustomValue) {
+                                                            $recipientArray['recipientCustomValue'] = $recipient->recipientCustomValue;
+                                                        }
+                                                        if (isset($recipient->recipientAddress) && $recipient->recipientAddress) {
+                                                            $recipientArray['recipientAddress'] = $recipient->recipientAddress;
+                                                        }
+                                                        $recipientsArray[] = $recipientArray;
+                                                    }
+                                                }
+                                                foreach ($recipientsArray as $recipientArray) {
+                                                    if (isset($recipientArray['recipientType']) && isset($recipientArray['recipientAddress']) && isset($recipientRecord->split) && $recipientRecord->split) {
+                                                        $xmlPodcastValueRecipientItem = $xml->createElement("podcast:valueRecipient");
+                                                        $xmlPodcastValueRecipientItem->setAttribute("type", htmlspecialchars($recipientArray['recipientType'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                        $xmlPodcastValueRecipientItem->setAttribute("address", htmlspecialchars($recipientArray['recipientAddress'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                        if (isset($recipientArray['name'])) {
+                                                            $xmlPodcastValueRecipientItem->setAttribute("name", htmlspecialchars($recipientArray['name'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                        }
+                                                        if (isset($recipientArray['recipientCustomKey'])) {
+                                                            $xmlPodcastValueRecipientItem->setAttribute("customKey", htmlspecialchars($recipientArray['recipientCustomKey'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                        }
+                                                        if (isset($recipientArray['recipientCustomValue'])) {
+                                                            $xmlPodcastValueRecipientItem->setAttribute("customValue", htmlspecialchars($recipientArray['recipientCustomValue'], ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                        }
+                                                        $xmlPodcastValueRecipientItem->setAttribute("split", htmlspecialchars($recipientRecord->split, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                        if (isset($recipientRecord->fee) && $recipientRecord->fee) {
+                                                            $xmlPodcastValueRecipientItem->setAttribute("fee", htmlspecialchars("true", ENT_QUOTES | ENT_XML1, 'UTF-8'));
+                                                        }
+                                                        $xmlPodcastValueTimeSplit->appendChild($xmlPodcastValueRecipientItem);
+                                                    }
+                                                }
+                                            }
+                                            // If there is at least one local recipient item
+                                            if (isset($xmlPodcastValueRecipientItem)) {
+                                                $valueTimeSplits[$valueBlock->startTime] = $xmlPodcastValueTimeSplit;
+                                            }
+                                            //
+                                        }
+                                    }
+                                }
+                            }
+
+                            // sort by ascending order
+                            ksort($valueTimeSplits);
+
+                            // Add value time splits
+                            foreach ($valueTimeSplits as $valueTimeSplit) {
+                                $xmlPodcastValue->appendChild($valueTimeSplit);
                             }
                             // If there is at least one Recipient
-                            if (isset($xmlPodcastRecipient)) {
+                            if (isset($xmlPodcastRecipient) || count($valueTimeSplits) > 0) {
                                 $xmlItem->appendChild($xmlPodcastValue);
                             }
                         }

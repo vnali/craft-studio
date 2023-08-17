@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added <podcast:podroll> support.
+- Added <podcast:valueTimeSplit> support.
 
 ## 0.16.0 - 2023-08-11
 
