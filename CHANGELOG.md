@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Added <podcast:podroll> support.
-- Added <podcast:valueTimeSplit> support.
+- Added <podcast:podroll> support ([#25](https://github.com/vnali/craft-studio/discussions/25)).
+- Added <podcast:valueTimeSplit> support ([#26](https://github.com/vnali/craft-studio/discussions/26)).
 
 ## 0.16.0 - 2023-08-11
 
