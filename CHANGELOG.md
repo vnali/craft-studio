@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+> {tip} The [starter project](https://github.com/vnali/craft-studio-starter) is updated to have fields for generating <podcast:podroll> and <podcast:valueTimeSplit>.
+
 - Added <podcast:podroll> support ([#25](https://github.com/vnali/craft-studio/discussions/25)).
 - Added <podcast:valueTimeSplit> support ([#26](https://github.com/vnali/craft-studio/discussions/26)).
 
