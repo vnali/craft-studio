@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- Podcast taxonomies can now be bulk imported for german language.
+
 ## 0.17.0 - 2023-08-18
 
 > {tip} The [starter project](https://github.com/vnali/craft-studio-starter) is updated to have fields for generating <podcast:podroll> and <podcast:valueTimeSplit>.

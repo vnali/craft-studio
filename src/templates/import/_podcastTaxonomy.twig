@@ -6,15 +6,15 @@
 
 {% block content %}
 
-	{% import "_includes/forms" as forms %}
+    {% import "_includes/forms" as forms %}
 
     <div class="studio-info">
         <span class="info"></span>
         {{ 'Import podcast taxonomies to an empty section/entry type'|t('studio') }}
     </div>
         
-	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-		{{ csrfInput() }}
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+        {{ csrfInput() }}
 
         {{ forms.selectField({
             label: 'Section'|t('app'),
@@ -24,7 +24,7 @@
             value: sectionId ?? null,         
         }) }}
 
-		{{ forms.selectField({
+        {{ forms.selectField({
             label: 'Entry Type'|t('app'),
             id: 'entrytype',
             name: 'entrytype',
@@ -39,6 +39,7 @@
             options: [
                 { value: 'en', label: 'English'|t('studio') },
                 { value: 'fr', label: 'French'|t('studio') },
+                { value: 'de', label: 'German'|t('studio') },
             ],
         }) }}
         <p>

@@ -251,7 +251,7 @@ class ImportController extends Controller
 
         $enURL = "https://raw.githubusercontent.com/Podcastindex-org/podcast-namespace/v6.0/taxonomy-en.json";
         $frURL = "https://raw.githubusercontent.com/Podcastindex-org/podcast-namespace/v6.0/taxonomy-fr.json";
-        //$deURL = "https://raw.githubusercontent.com/Podcastindex-org/podcast-namespace/v6.0/taxonomy-de.json";
+        $deURL = "https://raw.githubusercontent.com/Podcastindex-org/podcast-namespace/79000a35205badc0a72214df89f6a081cac47c0d/taxonomy-de.json";
 
         $redirectTo = 'entries/index';
         $curlArray = array();
