@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.18.0 - 2023-09-01
 
 - Added auto-increment for episode number. It considers enabled/disabled items, trashed items, saved drafts and if episodeNumber is translatable, when searches for current maximum episode number.
 - Podcast taxonomies can now be bulk imported for german language.

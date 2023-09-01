@@ -2,7 +2,7 @@
     "name": "vnali/craft-studio",
     "description": "Podcast management and more for Craft CMS",
     "type": "craft-plugin",
-    "version": "0.17.0",
+    "version": "0.18.0",
     "keywords": [
         "craft",
         "cms",
