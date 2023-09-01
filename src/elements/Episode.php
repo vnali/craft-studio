@@ -962,6 +962,15 @@ class Episode extends Element
         $is_propagating = $this->propagating;
         $episodeService = Studio::$plugin->episodes;
         if ($isNew) {
+            if (!$this->episodeNumber) {
+                if (in_array('episodeNumber', array_keys($episodeService->translatableFields($podcastFormat->id)))) {
+                    $siteId = $this->siteId;
+                } else {
+                    $siteId = '*';
+                }
+                $maxEpisodeNumber = Episode::find()->podcastId($this->podcastId)->status(null)->drafts(null)->trashed(null)->savedDraftsOnly()->siteId($siteId)->max('episodeNumber');
+                $this->episodeNumber = $maxEpisodeNumber + 1;
+            }
             if (!$is_propagating) {
                 \Craft::$app->db->createCommand()
                     ->insert('{{%studio_episode}}', [
