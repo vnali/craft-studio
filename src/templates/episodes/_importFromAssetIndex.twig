@@ -54,7 +54,7 @@
 
 		{% if sites|length > 1 %}
 			{{ forms.multiSelectField({
-                label: 'Sites'|t('studio'),
+                label: 'Sites'|t('app'),
                 id: 'siteIds',
                 name: 'siteIds',
                 options: sites,
@@ -65,7 +65,7 @@
             }) }}
 		{% else %}
 			<div>
-				<b>{{ 'Site'|t('studio') }}</b>
+				<b>{{ 'Site'|t('app') }}</b>
 			</div>
 			{{ sites[0]['label']|t('app') }}
 			{{ hiddenInput('siteIds', sites[0]['value']) }}

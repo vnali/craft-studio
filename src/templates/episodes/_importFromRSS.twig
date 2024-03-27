@@ -20,7 +20,7 @@
 		<input type="hidden" name="action" value="studio/episodes/import-job">
 
 		{{ forms.textField({
-            label: 'URL'|t('studio'),
+            label: 'URL'|t('app'),
             id: 'rssURL',
             name: 'rssURL',
             value: settings.rssURL,
@@ -30,7 +30,7 @@
         }) }}
 
         {{ forms.textField({
-            label: 'Limit'|t('studio'),
+            label: 'Limit'|t('app'),
             id: 'limit',
             name: 'limit',
             value: settings.limit,
@@ -63,7 +63,7 @@
 
         {% if sites|length > 1 %}
             {{ forms.multiSelectField({
-                label: 'Sites'|t('studio'),
+                label: 'Sites'|t('app'),
                 id: 'siteIds',
                 name: 'siteIds',
                 options: sites,
@@ -73,7 +73,7 @@
                 tip: 'Specify which sites episodes are propagated to.'|t('studio'),
             }) }}
         {% else %}
-            <div><b>{{ 'Site'|t('studio') }}</b></div> 
+            <div><b>{{ 'Site'|t('app') }}</b></div> 
             {{ sites[0]['label']|t('app') }}
             {{ hiddenInput('siteIds', sites[0]['value']) }}
         {% endif %}

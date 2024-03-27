@@ -3,7 +3,7 @@
 {% set selectedSubnavItem = 'settings' %}
 
 {% set baseCrumbs = [
-    { label: 'Settings'|t('studio'), url: url('studio/settings') }
+    { label: 'Settings'|t('app'), url: url('studio/settings') }
 ] %}
 {% set crumbs = crumbs is defined ? baseCrumbs|merge(crumbs) : [] %}
 
