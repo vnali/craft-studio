@@ -837,26 +837,30 @@ class EpisodesController extends Controller
     {
         $captionContent = null;
         $caption = $this->request->getRequiredBodyParam('newCaption');
-        $vtt = $this->request->getRequiredBodyParam('caption');
-        $vtt = Subtitles::loadFromString($vtt, 'vtt');
-        $internalFormat = $vtt->getInternalFormat();
-        if (is_array($internalFormat)) {
-            $internalFormat2 = [];
-            foreach ($internalFormat as $format) {
-                $format2 = $format;
-                $format2['lines'] = [];
-                foreach ($format['lines'] as $line) {
-                    $lineParts = explode(':', $line);
-                    if (count($lineParts) > 1) {
-                        $vttLine = '<v ' . $lineParts[0] . '>' . $lineParts[1] . '</v>';
-                        $format2['lines'][] = $vttLine;
-                    } else {
-                        $format2['lines'][] = $line;
+        $currentCaption = $this->request->getRequiredBodyParam('caption');
+        if ($currentCaption) {
+            $vtt = Subtitles::loadFromString($currentCaption, 'vtt');
+            $internalFormat = $vtt->getInternalFormat();
+            if (is_array($internalFormat)) {
+                $internalFormat2 = [];
+                foreach ($internalFormat as $format) {
+                    $format2 = $format;
+                    $format2['lines'] = [];
+                    foreach ($format['lines'] as $line) {
+                        $lineParts = explode(':', $line);
+                        if (count($lineParts) > 1) {
+                            $vttLine = '<v ' . $lineParts[0] . '>' . $lineParts[1] . '</v>';
+                            $format2['lines'][] = $vttLine;
+                        } else {
+                            $format2['lines'][] = $line;
+                        }
                     }
+                    $internalFormat2[] = $format2;
                 }
-                $internalFormat2[] = $format2;
+                $vtt->setInternalFormat($internalFormat2);
             }
-            $vtt->setInternalFormat($internalFormat2);
+        } else {
+            $vtt = new Subtitles();
         }
         $caption = json_decode($caption);
         if ($caption) {

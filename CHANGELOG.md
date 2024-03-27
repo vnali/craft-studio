@@ -3,6 +3,7 @@
 ## Unreleased 
 
 - Fixed a bug where podcast and episode's person were not suggested as transcript's speakers.
+- Fixed a bug where using transcript generator tool throws an error where transcriptText was empty.
 
 ## 0.18.0 - 2023-09-01
 
