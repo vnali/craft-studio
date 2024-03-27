@@ -282,35 +282,43 @@ class DefaultController extends Controller
                             $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->all();
                         }
                         foreach ($personBlocks as $personBlock) {
-                            if (isset($personBlock->person) && $personBlock->person) {
-                                // Person Value
-                                if (!is_object($personBlock->person)) {
-                                    $speaker = [];
-                                    $speaker['value'] = $personBlock->person;
-                                    $speaker['label'] = $personBlock->person;
-                                    $speakers[] = $speaker;
-                                } else {
-                                    if (get_class($personBlock->person) == UserQuery::class || get_class($personBlock->person) == EntryQuery::class) {
-                                        $person = $personBlock->person->one();
-                                        if ($person) {
-                                            if (get_class($personBlock->person) == UserQuery::class) {
-                                                if ($person->fullName) {
-                                                    $speaker = [];
-                                                    $speaker['value'] = $person->fullName;
-                                                    $speaker['label'] = $person->fullName;
-                                                    $speakers[] = $speaker;
-                                                }
-                                            } elseif (get_class($personBlock->person) == EntryQuery::class) {
-                                                if (isset($person->title) && $person->title) {
-                                                    $speaker = [];
-                                                    $speaker['value'] = $person->title;
-                                                    $speaker['label'] = $person->title;
-                                                    $speakers[] = $speaker;
-                                                }
-                                            }
-                                        }
+                            if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
+                                $persons = $personBlock->userPerson->all();
+                                foreach ($persons as $person) {
+                                    if ($person->fullName) {
+                                        $speaker = [];
+                                        $speaker['value'] = $person->fullName;
+                                        $speaker['label'] = $person->fullName;
+                                        $speakers[] = $speaker;
                                     }
                                 }
+                            }
+                            if (isset($personBlock->entryPerson) && get_class($personBlock->entryPerson) == EntryQuery::class && $personBlock->entryPerson->one()) {
+                                $persons = $personBlock->entryPerson->all();
+                                foreach ($persons as $person) {
+                                    if (isset($person->title) && $person->title) {
+                                        $speaker = [];
+                                        $speaker['value'] = $person->title;
+                                        $speaker['label'] = $person->title;
+                                        $speakers[] = $speaker;
+                                    }
+                                }
+                            }
+                            if (isset($personBlock->tablePerson) && is_array($personBlock->tablePerson) && isset($personBlock->tablePerson[0]['person']) && $personBlock->tablePerson[0]['person']) {
+                                foreach ($personBlock->tablePerson as $person) {
+                                    if (isset($person['person']) && $person['person']) {
+                                        $speaker = [];
+                                        $speaker['value'] = $person['person'];
+                                        $speaker['label'] = $person['person'];
+                                        $speakers[] = $speaker;
+                                    }
+                                }
+                            }
+                            if (isset($personBlock->textPerson) && !is_object($personBlock->textPerson)) {
+                                $speaker = [];
+                                $speaker['value'] = $personBlock->textPerson;
+                                $speaker['label'] = $personBlock->textPerson;
+                                $speakers[] = $speaker;
                             }
                         }
                     }
@@ -350,35 +358,43 @@ class DefaultController extends Controller
                                 $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->all();
                             }
                             foreach ($personBlocks as $personBlock) {
-                                if (isset($personBlock->person) && $personBlock->person) {
-                                    // Person Value
-                                    if (!is_object($personBlock->person)) {
-                                        $speaker = [];
-                                        $speaker['value'] = $personBlock->person;
-                                        $speaker['label'] = $personBlock->person;
-                                        $speakers[] = $speaker;
-                                    } else {
-                                        if (get_class($personBlock->person) == UserQuery::class || get_class($personBlock->person) == EntryQuery::class) {
-                                            $person = $personBlock->person->one();
-                                            if ($person) {
-                                                if (get_class($personBlock->person) == UserQuery::class) {
-                                                    if ($person->fullName) {
-                                                        $speaker = [];
-                                                        $speaker['value'] = $person->fullName;
-                                                        $speaker['label'] = $person->fullName;
-                                                        $speakers[] = $speaker;
-                                                    }
-                                                } elseif (get_class($personBlock->person) == EntryQuery::class) {
-                                                    if (isset($person->title) && $person->title) {
-                                                        $speaker = [];
-                                                        $speaker['value'] = $person->title;
-                                                        $speaker['label'] = $person->title;
-                                                        $speakers[] = $speaker;
-                                                    }
-                                                }
-                                            }
+                                if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
+                                    $persons = $personBlock->userPerson->all();
+                                    foreach ($persons as $person) {
+                                        if ($person->fullName) {
+                                            $speaker = [];
+                                            $speaker['value'] = $person->fullName;
+                                            $speaker['label'] = $person->fullName;
+                                            $speakers[] = $speaker;
                                         }
                                     }
+                                }
+                                if (isset($personBlock->entryPerson) && get_class($personBlock->entryPerson) == EntryQuery::class && $personBlock->entryPerson->one()) {
+                                    $persons = $personBlock->entryPerson->all();
+                                    foreach ($persons as $person) {
+                                        if (isset($person->title) && $person->title) {
+                                            $speaker = [];
+                                            $speaker['value'] = $person->title;
+                                            $speaker['label'] = $person->title;
+                                            $speakers[] = $speaker;
+                                        }
+                                    }
+                                }
+                                if (isset($personBlock->tablePerson) && is_array($personBlock->tablePerson) && isset($personBlock->tablePerson[0]['person']) && $personBlock->tablePerson[0]['person']) {
+                                    foreach ($personBlock->tablePerson as $person) {
+                                        if (isset($person['person']) && $person['person']) {
+                                            $speaker = [];
+                                            $speaker['value'] = $person['person'];
+                                            $speaker['label'] = $person['person'];
+                                            $speakers[] = $speaker;
+                                        }
+                                    }
+                                }
+                                if (isset($personBlock->textPerson) && !is_object($personBlock->textPerson)) {
+                                    $speaker = [];
+                                    $speaker['value'] = $personBlock->textPerson;
+                                    $speaker['label'] = $personBlock->textPerson;
+                                    $speakers[] = $speaker;
                                 }
                             }
                         }

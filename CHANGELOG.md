@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased 
+
+- Fixed a bug where podcast and episode's person were not suggested as transcript's speakers.
+
 ## 0.18.0 - 2023-09-01
 
 - Added auto-increment for episode number. It considers enabled/disabled items, trashed items, saved drafts and if episodeNumber is translatable, when searches for current maximum episode number.
