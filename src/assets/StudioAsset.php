@@ -95,7 +95,7 @@ JS;
                     'handle' => $podcastFormat->handle,
                     'id' => (int)$podcastFormat->id,
                     'name' => Craft::t('site', $podcastFormat->name),
-                    'sites' => $siteIds,
+                    'sites' => array_values($siteIds), // use array_values to make sure it returns sites as an array with sequential keys so json encode in next steps doesn't convert it to an object
                     'uid' => $podcastFormat->uid,
                 ];
             }
