@@ -96,7 +96,7 @@ class PodcastFormatEpisode extends Model
                 'label' => 'Episode asset field',
                 'handle' => 'mainAsset',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\Assets' => 'asset',
                 ],
             ],
@@ -104,7 +104,7 @@ class PodcastFormatEpisode extends Model
                 'label' => 'Image field',
                 'handle' => 'episodeImage',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\Assets' => 'asset',
                 ],
             ],
@@ -112,7 +112,7 @@ class PodcastFormatEpisode extends Model
                 'label' => 'Subtitle field',
                 'handle' => 'episodeSubtitle',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\PlainText' => 'plain text',
                     'craft\ckeditor\Field' => 'ckeditor',
                     'craft\redactor\Field' => 'redactor',
@@ -122,7 +122,7 @@ class PodcastFormatEpisode extends Model
                 'label' => 'Summary field',
                 'handle' => 'episodeSummary',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\PlainText' => 'plain text',
                     'craft\ckeditor\Field' => 'ckeditor',
                     'craft\redactor\Field' => 'redactor',
@@ -132,7 +132,7 @@ class PodcastFormatEpisode extends Model
                 'label' => 'Description field',
                 'handle' => 'episodeDescription',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\PlainText' => 'plain text',
                     'craft\ckeditor\Field' => 'ckeditor',
                     'craft\redactor\Field' => 'redactor',
@@ -142,7 +142,7 @@ class PodcastFormatEpisode extends Model
                 'label' => 'Content encoded field',
                 'handle' => 'episodeContentEncoded',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\PlainText' => 'plain text',
                     'craft\ckeditor\Field' => 'ckeditor',
                     'craft\redactor\Field' => 'redactor',
@@ -152,7 +152,7 @@ class PodcastFormatEpisode extends Model
                 'label' => 'Publish Date field',
                 'handle' => 'episodePubDate',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\Date' => 'date',
                 ],
             ],
@@ -160,7 +160,7 @@ class PodcastFormatEpisode extends Model
                 'label' => 'Map genre meta data to ',
                 'handle' => 'episodeGenre',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\Tags' => 'tag',
                     'craft\fields\Categories' => 'category',
                     'craft\fields\Entries' => 'entry',
@@ -170,7 +170,7 @@ class PodcastFormatEpisode extends Model
                 'label' => 'Episode keyword field',
                 'handle' => 'episodeKeywords',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\Tags' => 'tag',
                     'craft\fields\Categories' => 'category',
                     'craft\fields\Entries' => 'entry',

@@ -38,13 +38,13 @@ class PodcastMediumConditionRule extends BaseMultiSelectConditionRule implements
     protected function options(): array
     {
         $options = [
-            ['label' => 'Podcast', 'value' => 'podcast'],
-            ['label' => 'Music', 'value' => 'music'],
-            ['label' => 'Video', 'value' => 'video'],
-            ['label' => 'Film', 'value' => 'film'],
-            ['label' => 'Audiobook', 'value' => 'audiobook'],
-            ['label' => 'Newsletter', 'value' => 'newsletter'],
-            ['label' => 'Blog', 'value' => 'blog'],
+            ['label' => Craft::t('studio', 'Podcast'), 'value' => 'podcast'],
+            ['label' => Craft::t('studio', 'Music'), 'value' => 'music'],
+            ['label' => Craft::t('studio', 'Video'), 'value' => 'video'],
+            ['label' => Craft::t('studio', 'Film'), 'value' => 'film'],
+            ['label' => Craft::t('studio', 'Audiobook'), 'value' => 'audiobook'],
+            ['label' => Craft::t('studio', 'Newsletter'), 'value' => 'newsletter'],
+            ['label' => Craft::t('studio', 'Blog'), 'value' => 'blog'],
         ];
         return $options;
     }

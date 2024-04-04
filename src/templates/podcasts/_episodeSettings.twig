@@ -48,7 +48,7 @@
             name: 'defaultImage',
             viewMode: 'list',
             elementType: 'craft\\elements\\Asset',
-            selectionLabel: "Add"|t("studio"),
+            selectionLabel: 'Add'|t('app'),
             sources: sources|length ? sources : null,
             required: false,
             errors: settings.getErrors('defaultImage'),
@@ -56,13 +56,13 @@
             elements: images,
             criteria: {kind: 'image'},
             disabled: sources|length ? false : true,
-            tip: 'User must have access to view at least one image field source to be able to edit this field'|t('studio')
+            tip: 'User must have access to view at least one image field source to be able to edit this field.'|t('studio')
         }) }}
 
 		{% if not imageField %}
 			<div class="studio-warning">
 				<span class="info"></span>
-				{{ 'The episode image field is not specified in episode fields mapping page'|t('studio') }}
+				{{ 'The episode image field is not specified in episode fields mapping page.'|t('studio') }}
 			</div>
 		{% endif %}
 

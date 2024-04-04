@@ -294,7 +294,7 @@ class Episode extends Element
      */
     public static function displayName(): string
     {
-        return 'Episode';
+        return Craft::t('studio', 'Episode');
     }
 
     /**
@@ -302,7 +302,7 @@ class Episode extends Element
      */
     public static function pluralDisplayName(): string
     {
-        return 'Episodes';
+        return Craft::t('studio', 'Episodes');
     }
 
     /**
@@ -1110,9 +1110,9 @@ class Episode extends Element
     {
         $attributes = [
             'uploader' => ['label' => Craft::t('app', 'Uploader')],
-            'link' => ['label' => Craft::t('app', 'link')],
+            'link' => ['label' => Craft::t('app', 'Link')],
             'podcast' => ['label' => Craft::t('studio', 'Podcast')],
-            'slug' => ['label' => Craft::t('studio', 'Slug')],
+            'slug' => ['label' => Craft::t('app', 'Slug')],
             'uri' => ['label' => Craft::t('app', 'URI')],
             'id' => ['label' => Craft::t('app', 'ID')],
             'uid' => ['label' => Craft::t('app', 'UID')],
@@ -1279,13 +1279,13 @@ class Episode extends Element
     protected function statusFieldHtml(): string
     {
         $id3Metadata = Cp::lightswitchHtml([
-            'label' => 'Id3 metadata',
+            'label' => Craft::t('studio', 'ID3 metadata'),
             'id' => 'id3Metadata',
             'value' => 1,
         ]);
 
         $id3ImageMetadata = Cp::lightswitchHtml([
-            'label' => 'Id3 image metadata',
+            'label' => Craft::t('studio', 'ID3 image metadata'),
             'id' => 'id3ImageMetadata',
             'value' => 1,
         ]);

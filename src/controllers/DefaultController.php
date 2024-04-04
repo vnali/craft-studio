@@ -43,7 +43,7 @@ class DefaultController extends Controller
      */
     public function actionGetEntryTypes(int $sectionId): Response
     {
-        $variables['entryType'][] = ['value' => '', 'label' => 'select one'];
+        $variables['entryType'][] = ['value' => '', 'label' => craft::t('studio', 'Select one')];
         if ($sectionId) {
             foreach (Craft::$app->sections->getEntryTypesBySectionId($sectionId) as $entryType) {
                 $entryTypes['value'] = $entryType->id;
@@ -204,7 +204,7 @@ class DefaultController extends Controller
                 if ($img) {
                     $element = GeneralHelper::uploadFile($img, null, $imageField, $imageFieldContainer, $element, $assetFilename, $blockId);
                 } else {
-                    Craft::$app->getSession()->setError(Craft::t('studio', 'no image extracted from file'));
+                    Craft::$app->getSession()->setError(Craft::t('studio', 'Image is not extracted from the file.'));
                 }
             }
         }

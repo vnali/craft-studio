@@ -22,7 +22,7 @@ class EpisodeNumberConditionRule extends BaseNumberConditionRule implements Elem
      */
     public function getLabel(): string
     {
-        return Craft::t('studio', 'Episode number');
+        return Craft::t('studio', 'Episode Number');
     }
 
     /**

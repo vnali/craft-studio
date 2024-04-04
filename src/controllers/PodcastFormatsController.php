@@ -304,7 +304,7 @@ class PodcastFormatsController extends Controller
 
         $validate = $validate && $podcastFormat->validate() && $podcastFormatEpisode->validate();
         if (!$validate) {
-            $this->setFailFlash(Craft::t('studio', 'Couldn’t save podcast format because of validation error'));
+            $this->setFailFlash(Craft::t('studio', 'Couldn’t save podcast format because of validation error.'));
             /** @var UrlManager $urlManager */
             $urlManager = Craft::$app->getUrlManager();
 

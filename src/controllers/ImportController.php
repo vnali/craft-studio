@@ -55,7 +55,7 @@ class ImportController extends Controller
         $this->requirePermission('studio-importCategory');
 
         $variables['categories'] = [];
-        $variables['categories'][] = ['value' => '', 'label' => Craft::t('studio', 'select one')];
+        $variables['categories'][] = ['value' => '', 'label' => Craft::t('studio', 'Select one')];
         foreach (Craft::$app->categories->getAllGroups() as $categoryItem) {
             $category = [];
             $category['value'] = $categoryItem->id;
@@ -63,13 +63,13 @@ class ImportController extends Controller
             $variables['categories'][] = $category;
         }
 
-        $variables['sections'][] = ['value' => '', 'label' => Craft::t('studio', 'select one')];
+        $variables['sections'][] = ['value' => '', 'label' => Craft::t('studio', 'Select one')];
         foreach (Craft::$app->sections->getSectionsByType('structure') as $section) {
             $sections['value'] = $section->id;
             $sections['label'] = $section->name;
             $variables['sections'][] = $sections;
         }
-        $variables['entrytypes'][] = ['value' => '', 'label' => Craft::t('studio', 'select one')];
+        $variables['entrytypes'][] = ['value' => '', 'label' => Craft::t('studio', 'Select one')];
 
         return $this->renderTemplate(
             'studio/import/_category',
@@ -101,14 +101,14 @@ class ImportController extends Controller
             $categoryGroupIds = ArrayHelper::getColumn($categoryGroups, 'id');
 
             if (!in_array($categoryGroupId, $categoryGroupIds)) {
-                Craft::$app->getSession()->setError(Craft::t('studio', 'Selected category is not valid'));
+                Craft::$app->getSession()->setError(Craft::t('studio', 'Selected category is not valid.'));
                 return $this->redirect('studio/import/category');
             }
 
             // Don't let import if category group already has categories
             $sampleCategory = Category::find()->groupId($categoryGroupId)->one();
             if ($sampleCategory) {
-                Craft::$app->getSession()->setError(Craft::t('studio', 'Selected category has already data'));
+                Craft::$app->getSession()->setError(Craft::t('studio', 'Selected category has already data.'));
                 return $this->redirect('studio/import/category');
             }
             $redirectTo = 'categories/index';
@@ -118,12 +118,12 @@ class ImportController extends Controller
             // Don't let import if section/entries already has categories
             $sampleEntry = Entry::find()->sectionId($sectionId)->typeId($entryTypeId)->siteId('*')->one();
             if ($sampleEntry) {
-                Craft::$app->getSession()->setError(Craft::t('studio', 'Selected section/entry type has already entries'));
+                Craft::$app->getSession()->setError(Craft::t('studio', 'Selected section/entry type has already entries.'));
                 return $this->redirect('studio/import/category');
             }
             $redirectTo = 'entries/index';
         } else {
-            Craft::$app->getSession()->setError(Craft::t('studio', 'One option should be selected'));
+            Craft::$app->getSession()->setError(Craft::t('studio', 'One option should be selected.'));
             return $this->redirect('studio/import/category');
         }
 
@@ -184,7 +184,7 @@ class ImportController extends Controller
             }
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast categories added successfully'));
+        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast categories added successfully.'));
         return $this->redirect($redirectTo);
     }
 
@@ -198,7 +198,7 @@ class ImportController extends Controller
         $this->requirePermission('studio-importPodcastTaxonomy');
 
         $variables['categories'] = [];
-        $variables['categories'][] = ['value' => '', 'label' => Craft::t('studio', 'select one')];
+        $variables['categories'][] = ['value' => '', 'label' => Craft::t('studio', 'Select one')];
         foreach (Craft::$app->categories->getAllGroups() as $categoryItem) {
             $category = [];
             $category['value'] = $categoryItem->id;
@@ -206,13 +206,13 @@ class ImportController extends Controller
             $variables['categories'][] = $category;
         }
 
-        $variables['sections'][] = ['value' => '', 'label' => Craft::t('studio', 'select one')];
+        $variables['sections'][] = ['value' => '', 'label' => Craft::t('studio', 'Select one')];
         foreach (Craft::$app->sections->getSectionsByType('structure') as $section) {
             $sections['value'] = $section->id;
             $sections['label'] = $section->name;
             $variables['sections'][] = $sections;
         }
-        $variables['entrytypes'][] = ['value' => '', 'label' => Craft::t('studio', 'select one')];
+        $variables['entrytypes'][] = ['value' => '', 'label' => Craft::t('studio', 'Select one')];
 
         return $this->renderTemplate(
             'studio/import/_podcastTaxonomy',
@@ -236,7 +236,7 @@ class ImportController extends Controller
         $languages = $request->getRequiredBodyParam('languages');
 
         if (!$sectionId || !$entryTypeId || !is_array($languages) || count($languages) == 0) {
-            Craft::$app->getSession()->setError(Craft::t('studio', 'One option should be selected'));
+            Craft::$app->getSession()->setError(Craft::t('studio', 'One option should be selected.'));
             return $this->redirect('studio/import/podcast-taxonomy');
         }
 
@@ -245,7 +245,7 @@ class ImportController extends Controller
         // Don't let import if section/entries already has categories
         $sampleEntry = Entry::find()->sectionId($sectionId)->typeId($entryTypeId)->siteId('*')->one();
         if ($sampleEntry) {
-            Craft::$app->getSession()->setError(Craft::t('studio', 'Selected section/entry type has already entries'));
+            Craft::$app->getSession()->setError(Craft::t('studio', 'Selected section/entry type has already entries.'));
             return $this->redirect('studio/import/podcast-taxonomy');
         }
 
@@ -289,7 +289,7 @@ class ImportController extends Controller
         curl_multi_close($mh);
 
         if (isset($error)) {
-            Craft::$app->getSession()->setError(Craft::t('studio', 'problem reaching site ' . $language));
+            Craft::$app->getSession()->setError(Craft::t('studio', 'There was a problem reaching the site.' . $language));
             /** @var UrlManager $urlManager */
             $urlManager = Craft::$app->getUrlManager();
             $urlManager->setRouteParams([]);
@@ -378,7 +378,7 @@ class ImportController extends Controller
             }
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast taxonomies added successfully'));
+        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast taxonomies added successfully.'));
         return $this->redirect($redirectTo);
     }
 }

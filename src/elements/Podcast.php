@@ -995,7 +995,7 @@ class Podcast extends Element
             'revisionNotes' => ['label' => Craft::t('app', 'Revision Notes')],
             'revisionCreator' => ['label' => Craft::t('app', 'Last Edited By')],
             'drafts' => ['label' => Craft::t('app', 'Drafts')],
-            'podcastFormat' => ['label' => Craft::t('studio', 'Podcast format')],
+            'podcastFormat' => ['label' => Craft::t('studio', 'Podcast Format')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
             'ownerName' => ['label' => Craft::t('studio', 'Owner Name')],

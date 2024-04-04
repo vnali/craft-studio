@@ -3260,7 +3260,7 @@ class PodcastsController extends Controller
         $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
         $mapping = json_decode($podcastFormatEpisode->mapping, true);
         if (empty($sitesSettings)) {
-            Craft::$app->getSession()->setError(Craft::t('studio', 'You should have set episode site settings first'));
+            Craft::$app->getSession()->setError(Craft::t('studio', 'You should have set episode site settings first.'));
             return $this->redirect('studio/settings/podcast-formats/' . $podcastFormat->id . '?#site-settings');
         }
 
@@ -3268,7 +3268,7 @@ class PodcastsController extends Controller
         list($genreFieldType, $genreFieldHandle, $genreFieldGroup) = GeneralHelper::getElementGenreField('episode', $mapping);
         list($imageField) = GeneralHelper::getElementImageField('episode', $mapping);
 
-        $variables['genreOptions'][] = ['value' => '', 'label' => Craft::t('studio', 'select genre')];
+        $variables['genreOptions'][] = ['value' => '', 'label' => Craft::t('studio', 'Select genre')];
         if (isset($genreFieldType)) {
             if ($genreFieldType == Tags::class) {
                 foreach (\craft\elements\Tag::find()->groupId($genreFieldGroup->id)->all() as $tagItem) {
@@ -3292,14 +3292,14 @@ class PodcastsController extends Controller
         }
 
         $variables['genreImportOptions'] = [
-            ['value' => '', 'label' => Craft::t('studio', "Don't import")],
+            ['value' => '', 'label' => Craft::t('studio', 'Don’t import')],
             ['value' => 'only-metadata', 'label' => Craft::t('studio', 'Use only genre metadata')],
             ['value' => 'only-default', 'label' => Craft::t('studio', 'Use only default values')],
             ['value' => 'default-if-not-metadata', 'label' => Craft::t('studio', 'Use default genres only if metadata is not available')],
             ['value' => 'metadata-and-default', 'label' => Craft::t('studio', 'Merge default values and metadata')],
         ];
 
-        $variables['volumes'][] = ['value' => '', 'label' => Craft::t('studio', 'select volume')];
+        $variables['volumes'][] = ['value' => '', 'label' => Craft::t('studio', 'Select volume')];
         foreach (Craft::$app->volumes->getAllVolumes() as $volumeItem) {
             $volume['value'] = $volumeItem->id;
             $volume['label'] = $volumeItem->name;
@@ -3346,14 +3346,14 @@ class PodcastsController extends Controller
         }
 
         $variables['imageOptions'] = [
-            ['value' => '', 'label' => Craft::t('studio', "Don't import")],
+            ['value' => '', 'label' => Craft::t('studio', 'Don’t import')],
             ['value' => 'only-metadata', 'label' => Craft::t('studio', 'Use only image available in metadata')],
             ['value' => 'only-default', 'label' => Craft::t('studio', 'Use only default image')],
             ['value' => 'default-if-not-metadata', 'label' => Craft::t('studio', 'Use default image only if metadata is not available')],
         ];
 
         $variables['pubDateOptions'] = [
-            ['value' => '', 'label' => Craft::t('studio', "Don't import")],
+            ['value' => '', 'label' => Craft::t('studio', 'Don’t import')],
             ['value' => 'only-metadata', 'label' => Craft::t('studio', 'Use only year available in metadata')],
             ['value' => 'only-default', 'label' => Craft::t('studio', 'Use only default pubDate')],
             ['value' => 'default-if-not-metadata', 'label' => Craft::t('studio', 'Use default pubDate only if metadata is not available')],
@@ -3382,7 +3382,7 @@ class PodcastsController extends Controller
         if ($podcastId) {
             $settings = Studio::$plugin->podcasts->getPodcastGeneralSettings($podcastId, $siteId);
         } else {
-            throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
+            throw new NotFoundHttpException(Craft::t('studio', 'PodcastId is not provided.'));
         }
         $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
@@ -3432,7 +3432,7 @@ class PodcastsController extends Controller
             'enableOP3' => $settings->enableOP3,
         ]);
 
-        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast general settings saved'));
+        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast general settings saved.'));
 
         return $this->redirectToPostedUrl();
     }
@@ -3450,7 +3450,7 @@ class PodcastsController extends Controller
         if ($podcastId) {
             $settings = Studio::$plugin->podcasts->getPodcastEpisodeSettings($podcastId, $siteId);
         } else {
-            throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
+            throw new NotFoundHttpException(Craft::t('studio', 'PodcastId is not provided.'));
         }
         $podcast = Studio::$plugin->podcasts->getPodcastById($podcastId, $siteId);
         if (!$podcast) {
@@ -3496,7 +3496,7 @@ class PodcastsController extends Controller
             'settings' => json_encode($settings),
         ]);
 
-        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast episode settings saved'));
+        Craft::$app->getSession()->setNotice(Craft::t('studio', 'Podcast episode settings saved.'));
 
         return $this->redirectToPostedUrl();
     }

@@ -204,7 +204,7 @@ class Studio extends Plugin
                         'requirable' => true,
                         'label' => Craft::t('studio', 'Duration'),
                         'translatable' => $episodeNativeFieldSettings['duration']['translatable'] ?? false,
-                        'instructions' => Craft::t('studio', 'in HH:MM:SS format or enter in seconds'),
+                        'instructions' => Craft::t('studio', 'In HH:MM:SS format or enter in seconds.'),
                     ];
                     $event->fields[] = [
                         'class' => NativeLightswitchField::class,
@@ -288,7 +288,7 @@ class Studio extends Plugin
                         'class' => TextField::class,
                         'mandatory' => false,
                         'requirable' => true,
-                        'label' => Craft::t('studio', 'Owner name'),
+                        'label' => Craft::t('studio', 'Owner Name'),
                         'translatable' => $podcastNativeFieldSettings['ownerName']['translatable'] ?? false,
                         'attribute' => 'ownerName',
                     ];
@@ -296,7 +296,7 @@ class Studio extends Plugin
                         'class' => TextField::class,
                         'mandatory' => false,
                         'requirable' => true,
-                        'label' => Craft::t('studio', 'Owner email'),
+                        'label' => Craft::t('studio', 'Owner Email'),
                         'translatable' => $podcastNativeFieldSettings['ownerEmail']['translatable'] ?? false,
                         'attribute' => 'ownerEmail',
                     ];
@@ -304,7 +304,7 @@ class Studio extends Plugin
                         'class' => TextField::class,
                         'mandatory' => false,
                         'requirable' => true,
-                        'label' => Craft::t('studio', 'Author name'),
+                        'label' => Craft::t('studio', 'Author Name'),
                         'translatable' => $podcastNativeFieldSettings['authorName']['translatable'] ?? false,
                         'attribute' => 'authorName',
                     ];
@@ -371,7 +371,7 @@ class Studio extends Plugin
                         'class' => NativeLightswitchField::class,
                         'attribute' => 'podcastIsNewFeedUrl',
                         'mandatory' => false,
-                        'label' => Craft::t('studio', 'Is New Feed Url'),
+                        'label' => Craft::t('studio', 'Is New Feed URL'),
                         'translatable' => $podcastNativeFieldSettings['podcastIsNewFeedUrl']['translatable'] ?? false,
                     ];
                     $event->fields[] = [
@@ -681,7 +681,7 @@ class Studio extends Plugin
         // Settings
         if ($allowAdminChanges && $user->checkPermission('studio-manageSettings')) {
             $nav['subnav']['settings'] = [
-                'label' => Craft::t('studio', 'Settings'),
+                'label' => Craft::t('app', 'Settings'),
                 'url' => 'studio/settings',
             ];
         }
@@ -715,15 +715,15 @@ class Studio extends Plugin
                 $permissions = [
                     'studio-managePodcasts' => [
                         'label' => Craft::t('studio', 'Manage podcasts'),
-                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting podcasts and access to general and episode settings'),
+                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting podcasts and access to general and episode settings.'),
                     ],
                     'studio-manageEpisodes' => [
                         'label' => Craft::t('studio', 'Manage episodes'),
-                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting/importing episodes'),
+                        'info' => Craft::t('studio', 'Includes viewing/creating/deleting/importing episodes.'),
                     ],
                     'studio-createDraftNewPodcasts' => [
                         'label' => Craft::t('studio', 'Create a draft for new podcasts'),
-                        'info' => Craft::t('studio', 'Includes creating/viewing/resaving/deleting those drafts'),
+                        'info' => Craft::t('studio', 'Includes creating/viewing/resaving/deleting those drafts.'),
                     ],
                     'studio-importCategory' => ['label' => Craft::t('studio', 'Import categories')],
                     'studio-importPodcastTaxonomy' => ['label' => Craft::t('studio', 'Import podcast taxonomies')],
@@ -779,7 +779,7 @@ class Studio extends Plugin
                         'label' => Craft::t('studio', 'Delete the podcast', [
                             'name' => $podcast->title,
                         ]),
-                        'info' => Craft::t('studio', 'Includes deleting the podcast and its drafts'),
+                        'info' => Craft::t('studio', 'Includes deleting the podcast and its drafts.'),
                     ];
                     $nestedViewPodcast['studio-editPodcastGeneralSettings-' . $podcast->uid] = [
                         'label' => Craft::t('studio', 'Set general settings for the podcast', [
@@ -801,13 +801,13 @@ class Studio extends Plugin
                         'label' => Craft::t('studio', 'Create episodes', [
                             'name' => $podcast->title,
                         ]),
-                        'info' => Craft::t('studio', "Includes saving an episode as published. For publishing other user draft episodes, user also need 'save other user drafts'. If the creator of canonical version of episode is another user, the user needs 'save other user episodes' permission too"),
+                        'info' => Craft::t('studio', "Includes saving an episode as published. For publishing other user draft episodes, user also need save other user drafts. If the creator of canonical version of episode is another user, the user needs save other user episodes permission too."),
                     ];
                     $nestedViewEpisodes['studio-createDraftEpisodes-' . $podcast->uid] = [
                         'label' => Craft::t('studio', 'Create draft episodes', [
                             'name' => $podcast->title,
                         ]),
-                        'info' => Craft::t('studio', 'Includes creating drafts from own episodes and drafts. The user can create drafts from other user episodes/drafts if related save other user permissions are selected'),
+                        'info' => Craft::t('studio', 'Includes creating drafts from own episodes and drafts. The user can create drafts from other user episodes/drafts if related save other user permissions are selected.'),
                         'nested' => $nestedCreateDraftEpisodes,
                     ];
                     $nestedViewOtherUserDraftEpisodes['studio-saveOtherUserDraftEpisodes-' . $podcast->uid] = [
@@ -829,7 +829,7 @@ class Studio extends Plugin
                         'label' => Craft::t('studio', 'Delete own episodes', [
                             'name' => $podcast->title,
                         ]),
-                        'info' => Craft::t('studio', 'Includes deleting episodes created by the user'),
+                        'info' => Craft::t('studio', 'Includes deleting episodes created by the user.'),
                     ];
                     $nestedViewEpisodes['studio-viewOtherUserDraftEpisodes-' . $podcast->uid] = [
                         'label' => Craft::t('studio', 'View other user drafts for episodes', [

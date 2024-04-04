@@ -60,14 +60,14 @@ Studio.PodcastIndex = Craft.BaseElementIndex.extend({
             if (selectedPodcastFormat) {
                 const visibleLabel =
                     this.settings.context === 'index'
-                        ? Craft.t('app', 'New podcast')
-                        : Craft.t('app', 'New {podcastFormat} podcast', {
+                        ? Craft.t('studio', 'New podcast')
+                        : Craft.t('studio', 'New {podcastFormat} podcast', {
                             podcastFormat: selectedPodcastFormat.name,
                         });
 
                 const ariaLabel =
                     this.settings.context === 'index'
-                        ? Craft.t('app', 'New episode for the {podcastFormat} podcast', {
+                        ? Craft.t('studio', 'New {podcastFormat} podcast', {
                             podcastFormat: selectedPodcastFormat.name,
                         })
                         : visibleLabel;
@@ -105,14 +105,14 @@ Studio.PodcastIndex = Craft.BaseElementIndex.extend({
                         class: 'btn submit menubtn btngroup-btn-last',
                         'aria-controls': menuId,
                         'data-disclosure-trigger': '',
-                        'aria-label': Craft.t('app', 'New podcast, choose a podcast type'),
+                        'aria-label': Craft.t('studio', 'New podcast, choose a podcast type'),
                     }).appendTo(this.$newPodcastBtnGroup);
                 }
             } else {
                 this.$newPodcastBtn = $menuBtn = Craft.ui
                     .createButton({
-                        label: Craft.t('app', 'New podcast'),
-                        ariaLabel: Craft.t('app', 'New podcast, choose a podcast type'),
+                        label: Craft.t('studio', 'New podcast'),
+                        ariaLabel: Craft.t('studio', 'New podcast, choose a podcast type'),
                         spinner: true,
                     })
                     .addClass('submit add icon menubtn btngroup-btn-last')
@@ -144,7 +144,7 @@ Studio.PodcastIndex = Craft.BaseElementIndex.extend({
                             role: anchorRole === 'button' ? 'button' : null,
                             href: '#', // Allows for click listener and tab order
                             type: anchorRole === 'button' ? 'button' : null,
-                            text: Craft.t('site', 'New {podcastFormat} podcast', {
+                            text: Craft.t('studio', 'New {podcastFormat} podcast', {
                                 podcastFormat: podcastFormat.name,
                             }),
                         }).appendTo($li);

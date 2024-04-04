@@ -65,14 +65,14 @@ Studio.EpisodeIndex = Craft.BaseElementIndex.extend({
             if (selectedPodcast) {
                 const visibleLabel =
                     this.settings.context === 'index'
-                        ? Craft.t('app', 'New episode')
-                        : Craft.t('app', 'New {podcast} episode', {
+                        ? Craft.t('studio', 'New episode')
+                        : Craft.t('studio', 'New {podcast} episode', {
                             podcast: selectedPodcast.name[this.siteId],
                         });
 
                 const ariaLabel =
                     this.settings.context === 'index'
-                        ? Craft.t('app', 'New episode for the {podcast} podcast', {
+                        ? Craft.t('studio', 'New {podcast} episode', {
                             podcast: selectedPodcast.name[this.siteId],
                         })
                         : visibleLabel;
@@ -110,14 +110,14 @@ Studio.EpisodeIndex = Craft.BaseElementIndex.extend({
                         class: 'btn submit menubtn btngroup-btn-last',
                         'aria-controls': menuId,
                         'data-disclosure-trigger': '',
-                        'aria-label': Craft.t('app', 'New episode, choose a podcast'),
+                        'aria-label': Craft.t('studio', 'New episode, choose a podcast'),
                     }).appendTo(this.$newEpisodeBtnGroup);
                 }
             } else {
                 this.$newEpisodeBtn = $menuBtn = Craft.ui
                     .createButton({
-                        label: Craft.t('app', 'New episode'),
-                        ariaLabel: Craft.t('app', 'New episode, choose a podcast'),
+                        label: Craft.t('studio', 'New episode'),
+                        ariaLabel: Craft.t('studio', 'New episode, choose a podcast'),
                         spinner: true,
                     })
                     .addClass('submit add icon menubtn btngroup-btn-last')
@@ -152,7 +152,7 @@ Studio.EpisodeIndex = Craft.BaseElementIndex.extend({
                             role: anchorRole === 'button' ? 'button' : null,
                             href: '#', // Allows for click listener and tab order
                             type: anchorRole === 'button' ? 'button' : null,
-                            text: Craft.t('app', 'New {podcast} episode', {
+                            text: Craft.t('studio', 'New {podcast} episode', {
                                 podcast: podcast.name[this.siteId],
                             }),
                         }).appendTo($li);

@@ -6,4 +6,13 @@
 
 {% extends extendedTemplate %}
 
+{% do view.registerTranslations('studio', [
+    'New podcast',
+    'New {podcastFormat} podcast',
+    'New podcast, choose a podcast type',
+    'New episode',
+    'New {podcast} episode',
+    'New episode, choose a podcast',
+]) %}
+
 {% do view.registerAssetBundle('vnali\\studio\\assets\\StudioAsset') %}

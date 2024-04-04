@@ -21,7 +21,7 @@ class PodcastIsNewFeedUrlRule extends BaseLightswitchConditionRule implements El
      */
     public function getLabel(): string
     {
-        return Craft::t('studio', 'Podcast Is New feed URL');
+        return Craft::t('studio', 'Podcast Has New Feed URL');
     }
 
     /**

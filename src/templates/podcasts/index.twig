@@ -17,7 +17,7 @@
 {% if canAccess %}
     {% extends 'studio/_layouts/index.twig' %}
 
-    {% set title = 'Podcasts' %}
+    {% set title = 'Podcasts'|t('studio') %}
     {% set selectedSubnavItem = 'podcasts' %}
     {% set elementType = 'vnali\\studio\\elements\\Podcast' %}
     {% set canHaveDrafts = true %}

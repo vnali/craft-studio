@@ -67,7 +67,7 @@ class PodcastFormat extends Model
 
     public function __toString(): string
     {
-        return Craft::t('studio', $this->name) ?: static::class;
+        return Craft::t('site', $this->name) ?: static::class;
     }
 
     /**
@@ -155,7 +155,7 @@ class PodcastFormat extends Model
                 'label' => 'Podcast Image',
                 'handle' => 'podcastImage',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\Assets' => 'asset',
                 ],
             ],
@@ -163,7 +163,7 @@ class PodcastFormat extends Model
                 'label' => 'Podcast Description',
                 'handle' => 'podcastDescription',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\PlainText' => 'plain text',
                     'craft\ckeditor\Field' => 'ckeditor',
                     'craft\redactor\Field' => 'redactor',
@@ -173,7 +173,7 @@ class PodcastFormat extends Model
                 'label' => 'Podcast Category',
                 'handle' => 'podcastCategory',
                 'convertTo' => [
-                    '' => 'select one',
+                    '' => craft::t('studio', 'Select one'),
                     'craft\fields\Categories' => 'category',
                     'craft\fields\Entries' => 'entry',
                 ],

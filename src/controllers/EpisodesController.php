@@ -246,7 +246,7 @@ class EpisodesController extends Controller
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         if (!$httpCode || $httpCode != 200) {
-            Craft::$app->getSession()->setError(Craft::t('studio', 'problem reaching site.'));
+            Craft::$app->getSession()->setError(Craft::t('studio', 'There was a problem reaching the site.'));
             /** @var UrlManager $urlManager */
             $urlManager = Craft::$app->getUrlManager();
             $urlManager->setRouteParams([
@@ -408,7 +408,7 @@ class EpisodesController extends Controller
 
         $variables['podcastId'] = $podcastId;
 
-        $variables['volumes'][] = ['value' => '', 'label' => Craft::t('studio', 'select volume')];
+        $variables['volumes'][] = ['value' => '', 'label' => Craft::t('studio', 'Select the volume')];
         foreach (Craft::$app->volumes->getAllVolumes() as $volumeItem) {
             $currentUser = Craft::$app->getUser()->getIdentity();
             // Allow only volumes that user has access
@@ -471,7 +471,7 @@ class EpisodesController extends Controller
         if ($podcastId) {
             $settings = Studio::$plugin->podcasts->getPodcastAssetIndexesSettings($podcastId);
         } else {
-            throw new NotFoundHttpException(Craft::t('studio', 'Podcasts id is not provided.'));
+            throw new NotFoundHttpException(Craft::t('studio', 'PodcastId is not provided.'));
         }
 
         $settings->podcastId = Craft::$app->getRequest()->getBodyParam('podcastId');
@@ -522,7 +522,7 @@ class EpisodesController extends Controller
         $podcastEpisodeSetting = PodcastEpisodeSettingsRecord::find()->where(['podcastId' => $podcastId, 'siteId' => $settings->siteIds[0]])->one();
         if (!$podcastEpisodeSetting) {
             $site = Craft::$app->sites->getSiteById($settings->siteIds[0]);
-            Craft::$app->getSession()->setNotice(Craft::t('studio', 'Now you can use asset indexes utility to import episodes. but you should set episode settings for {site} site first', [
+            Craft::$app->getSession()->setNotice(Craft::t('studio', 'Now you can use asset indexes utility to import episodes. but you should set episode settings for {site} site first.', [
                 'site' => $site->handle,
             ]));
         } else {
@@ -814,11 +814,11 @@ class EpisodesController extends Controller
                 $extension = 'txt';
                 break;
             default:
-                Craft::$app->getSession()->setError(Craft::t('studio', 'The type is not valid'));
+                Craft::$app->getSession()->setError(Craft::t('studio', 'The caption type is not valid.'));
                 break;
         }
         if (!$captionContent) {
-            Craft::$app->getSession()->setNotice(Craft::t('studio', 'The content is empty'));
+            Craft::$app->getSession()->setNotice(Craft::t('studio', 'The caption content is empty.'));
         }
         if (isset($extension)) {
             $this->response->sendContentAsFile($captionContent, 'caption.' . $extension);

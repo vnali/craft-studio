@@ -37,12 +37,12 @@
             options: volumes,
             values: settings.volumes ?? null,
             required: false,
-            tip: 'After saving this form, Go to Asset indexes utility to index volume and import assets/episodes'|t('studio'),
+            tip: 'After saving this form, Go to Asset indexes utility to index volume and import assets/episodes.'|t('studio'),
             errors: settings.getErrors('volumes'),
         }) }}
 
 		{{ forms.lightswitchField({
-            label: 'Enable'|t('studio'),
+            label: 'Enable'|t('app'),
             tip: 'To disable importing episodes temporarily'|t('studio'),
             id: 'enable',
             name: 'enable',
@@ -67,7 +67,7 @@
 			<div>
 				<b>{{ 'Site'|t('app') }}</b>
 			</div>
-			{{ sites[0]['label']|t('app') }}
+			{{ sites[0]['label']|t('site') }}
 			{{ hiddenInput('siteIds', sites[0]['value']) }}
 		{% endif %}
 

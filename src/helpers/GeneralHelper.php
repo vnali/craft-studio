@@ -42,7 +42,7 @@ class GeneralHelper
 
     public static function containers($fieldLayout, string $containerTypes = 'all',  string $item = null, bool $onlyContainer = true): array
     {
-        $containers = [['value' => '', 'label' => 'select one container (Matrix/SuperTable)']];
+        $containers = [['value' => '', 'label' => craft::t('studio', 'Select one container (Matrix/SuperTable)')]];
         switch ($item) {
             case 'podcast':
                 $fields = $fieldLayout->getCustomFields();
@@ -748,7 +748,7 @@ class GeneralHelper
         } else {
             $errors = array_values($newAsset->getFirstErrors());
             if (isset($errors[0])) {
-                Craft::$app->getSession()->setError(Craft::t('studio', 'error on extracting image from file: ') . ' ' . Craft::t('studio', $errors[0]));
+                Craft::$app->getSession()->setError(Craft::t('studio', 'Error on extracting image from the file') . ': ' . Craft::t('studio', $errors[0]));
             }
         }
         return $element;
