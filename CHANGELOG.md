@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased 
+## 0.19.0 - 2024-04-04
 
 - Added a translation file for the Studio plugin.
 - Fixed a bug where podcast and episode's person were not suggested as transcript's speakers.
