@@ -5,8 +5,9 @@
 - Added a translation file for the Studio plugin.
 - Fixed a bug where podcast and episode's person were not suggested as transcript's speakers.
 - Fixed a bug where using transcript generator tool throws an error where transcriptText was empty.
-- Fixed a bug where the generated soundbite and chapter values were not correctly set into their respective custom fields.
+- Fixed a bug where the generated soundbite and chapter values sometimes not being properly set into their respective custom fields.
 - Fixed a bug where new podcast button for a site wasn't displayed even if the podcast was available for that site.
+- Fixed a bug where visiting trashed podcast index page resulted in a server error if there was a trashed podcast with enabled status.
 
 ## 0.18.0 - 2023-09-01
 

@@ -304,7 +304,7 @@ class Podcast extends Element
                 if (isset($this->podcastGUID) && $this->podcastGUID) {
                     return '<a href="https://op3.dev/show/' . $this->podcastGUID . '">OP3</a>';
                 } else {
-                    return Craft::t('studio', 'Podcast GUID is not set');
+                    return Craft::t('studio', 'Podcast GUID is not set.');
                 }
                 // no break
             case 'RSS':
@@ -315,16 +315,20 @@ class Podcast extends Element
                     $record = PodcastGeneralSettingsRecord::find()->where(['podcastId' => $this->id, 'siteId' => $this->siteId])->one();
 
                     $siteStatuses = ElementHelper::siteStatusesForElement($this, true);
-                    $enabled = $siteStatuses[$this->siteId];
+                    $enabled = $siteStatuses[$this->siteId] ?? null; // null as fallback when podcast is enabled & trashed
                     /** @var PodcastGeneralSettingsRecord|null $record */
                     if ($enabled && $record && $record->publishRSS) {
                         $RSSLabel = Craft::t('studio', 'View');
-                    } else {
+                    } elseif ($record) {
                         $RSSLabel = Craft::t('studio', 'Preview');
                     }
                 }
-                $baseUrl = $this->getSite()->baseUrl;
-                return '<a href="' . $baseUrl . 'podcasts/rss?podcastId=' . $elementId . '&site=' . $this->getSite()->handle . '">' . $RSSLabel . "</a>";
+                if ($RSSLabel) {
+                    $baseUrl = $this->getSite()->baseUrl;
+                    return '<a href="' . $baseUrl . 'podcasts/rss?podcastId=' . $elementId . '&site=' . $this->getSite()->handle . '">' . $RSSLabel . "</a>";
+                } else {
+                    return '';
+                }
             case 'dateCreated':
                 $date = $this->dateCreated;
                 return $date->format('Y-m-d H:i:s');
@@ -982,9 +986,9 @@ class Podcast extends Element
     {
         $attributes = [
             'uploader' => ['label' => Craft::t('studio', 'Creator')],
-            'link' => ['label' => Craft::t('studio', 'link')],
+            'link' => ['label' => Craft::t('studio', 'Link')],
             'RSS' => ['label' => Craft::t('studio', 'RSS')],
-            'slug' => ['label' => Craft::t('studio', 'Slug')],
+            'slug' => ['label' => Craft::t('app', 'Slug')],
             'uri' => ['label' => Craft::t('app', 'URI')],
             'id' => ['label' => Craft::t('app', 'ID')],
             'uid' => ['label' => Craft::t('app', 'UID')],
@@ -996,7 +1000,7 @@ class Podcast extends Element
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
             'ownerName' => ['label' => Craft::t('studio', 'Owner Name')],
             'ownerEmail' => ['label' => Craft::t('studio', 'Owner Email')],
-            'authorName' => ['label' => Craft::t('studio', 'Author name')],
+            'authorName' => ['label' => Craft::t('studio', 'Author Name')],
             'podcastBlock' => ['label' => Craft::t('studio', 'Podcast Block')],
             'podcastLink' => ['label' => Craft::t('studio', 'Podcast Link')],
             'podcastComplete' => ['label' => Craft::t('studio', 'Podcast Complete')],
@@ -1139,7 +1143,7 @@ class Podcast extends Element
         $podcastFormat = new PodcastFormat();
         $requirableNativeFields = $podcastFormat->podcastNativeFields();
 
-        // Add required rule for native fields based on podacst field layout
+        // Add required rule for native fields based on podcast field layout
         $fieldLayout = $this->getFieldLayout();
         foreach ($requirableNativeFields as $nativeField => $fieldDesc) {
             if ($fieldLayout->isFieldIncluded($nativeField)) {
