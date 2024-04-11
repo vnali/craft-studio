@@ -202,7 +202,7 @@ class DefaultController extends Controller
                 $assetFilenameArray = explode('.', $assetFilename);
                 $assetFilename = $assetFilenameArray[0] . '.' . $ext;
                 if ($img) {
-                    $element = GeneralHelper::uploadFile($img, null, $imageField, $imageFieldContainer, $element, $assetFilename, $blockId);
+                    $element = GeneralHelper::UploadFile($img, null, $imageField, $imageFieldContainer, $element, $assetFilename, $blockId);
                 } else {
                     Craft::$app->getSession()->setError(Craft::t('studio', 'Image is not extracted from the file.'));
                 }

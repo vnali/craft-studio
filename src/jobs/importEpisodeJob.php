@@ -194,7 +194,7 @@ class importEpisodeJob extends BaseJob
                                             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
                                             curl_setopt($ch, CURLOPT_HTTPGET, 1);
                                             $content = trim(curl_exec($ch));
-                                            $itemElement = GeneralHelper::uploadFile($content, null, $imageField, $imageContainer, $itemElement, $basename);
+                                            $itemElement = GeneralHelper::UploadFile($content, null, $imageField, $imageContainer, $itemElement, $basename);
                                         }
                                     }
                                 }
@@ -236,7 +236,7 @@ class importEpisodeJob extends BaseJob
                                                     fclose($fp);
                                                     if ($tempFile) {
                                                         craft::info("Content fetched from RSS $url");
-                                                        $itemElement = GeneralHelper::uploadFile(null, $tempFile, $field, $fieldContainer, $itemElement, $basename);
+                                                        $itemElement = GeneralHelper::UploadFile(null, $tempFile, $field, $fieldContainer, $itemElement, $basename);
                                                     }
                                                 }
                                             }
