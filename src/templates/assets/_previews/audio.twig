@@ -37,7 +37,7 @@
 
         $.ajax({
             method: "GET",
-            url: Craft.getUrl("studio/default/get-page-context" + "?=_" + new Date().getTime()),
+            url: Craft.getUrl("studio/default/get-page-context" + "?t=" + new Date().getTime()),
             data: data,
             dataType: 'json',
             success: function (context) {
@@ -371,7 +371,7 @@
                             data[csrfTokenName] = csrfTokenValue;
                             $.ajax({
                                 method: "POST",
-                                url: Craft.getUrl("studio/episodes/transcript-content" + "?=_" + new Date().getTime()),
+                                url: Craft.getUrl("studio/episodes/transcript-content" + "?t=" + new Date().getTime()),
                                 data: data,
                                 success: function (captionContent) {
                                     // Keep srt in field
