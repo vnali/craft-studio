@@ -31,7 +31,7 @@ function selectField(field, convertTo, container, selected = '') {
 
     $.ajax({
         method: "GET",
-        url: Craft.getUrl("studio/default/fields-filter" + "?=_" + new Date().getTime()),
+        url: Craft.getUrl("studio/default/fields-filter" + "?t=" + new Date().getTime()),
         data: data,
         dataType: 'json',
         success: function (data) {

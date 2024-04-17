@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- Fixed a bug where the mapping table on podcast format settings was not loaded correctly because the passed query string on URL was not valid.
+
 ## 0.19.0 - 2024-04-04
 
 - Added a translation file for the Studio plugin.
