@@ -355,15 +355,12 @@ class GeneralHelper
                             $volumeUrl = $fs->url;
                             $folderPath = $asset->getFolder()->path;
                             $assetFilename = $asset->filename;
-                            // TODO: what if fs is not local?
                             if ($fs instanceof LocalFsInterface) {
                                 /** @var Local $fs */
                                 $volumePath = $fs->path;
                                 $assetFilePath = Craft::getAlias($volumePath) . '/' . $folderPath . $assetFilename;
-                                $assetFileUrl = Craft::getAlias($volumeUrl) . '/' . $folderPath . $assetFilename;
-                            } else {
-                                $assetFileUrl = $asset->getUrl();
                             }
+                            $assetFileUrl = $asset->getUrl();
                         }
                     }
                 } else {
@@ -417,8 +414,7 @@ class GeneralHelper
                                                 $volumePath = $fs->path;
                                                 $assetFilePath = Craft::getAlias($volumePath) . '/' . $folderPath . $assetFilename;
                                             }
-                                            //rawurlencode in case of player doesn't support space
-                                            $assetFileUrl = Craft::getAlias($volumeUrl) . '/' . rawurlencode($folderPath . $assetFilename);
+                                            $assetFileUrl = $asset->getUrl();
                                             $blockId = $elementMatrixBlock->id;
                                             break;
                                         }

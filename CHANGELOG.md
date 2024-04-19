@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Error on getting image metadata from assets give you the path/url of the image when the dev mode is set to true which helps better debug.
 - Fixed a bug where not valid query strings for some URLs cause 400 errors for plugin ajax requests.
 
 ## 0.19.0 - 2024-04-04

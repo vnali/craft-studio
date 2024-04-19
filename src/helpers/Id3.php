@@ -40,21 +40,29 @@ class Id3
         return $year;
     }
 
-    public static function getImage($fileInfo)
+    /**
+     * Get image meta data from metadata info
+     *
+     * @param array|null $fileInfo
+     * @return array
+     */
+    public static function getImage(?array $fileInfo): array
     {
+        $imageData = null;
         $mimetype = null;
+        $ext = null;
         if (isset($fileInfo['id3v2']['APIC'][0]['data'])) {
             $imageData = $fileInfo['id3v2']['APIC'][0]['data'];
         } elseif (isset($fileInfo['id3v2']['PIC'][0]['data'])) {
             $imageData = $fileInfo['id3v2']['PIC'][0]['data'];
-        } else {
-            $imageData = null;
+        } elseif (is_array($fileInfo) && isset($fileInfo[0]) && !$fileInfo[0]) {
+            $imageData = $fileInfo;
         }
         if (isset($fileInfo['id3v2']['APIC'][0]['image_mime'])) {
             $mimetype = $fileInfo['id3v2']['APIC'][0]['image_mime'];
         }
         // TODO: other supported formats
-        if (!is_null($imageData)) {
+        if ($mimetype) {
             switch ($mimetype) {
                 case 'image/jpeg':
                     $ext = "jpg";
@@ -66,8 +74,8 @@ class Id3
                     $ext = "jpg";
                     break;
             }
-            return array($imageData, $mimetype, $ext);
         }
+        return array($imageData, $mimetype, $ext);
     }
 
     public static function getGenres($fileInfo, $genreFieldType = null, $genreFieldGroupId = null, $itemGenreImportOptions = null, $itemGenreCheck = null, $defaultGenresList = [])
@@ -195,7 +203,14 @@ class Id3
         return array($genreIds, $genres, $metaGenres);
     }
 
-    public static function analyze($type, $path)
+    /**
+     * Analyze a file path to get metadata
+     *
+     * @param string $type
+     * @param string $path
+     * @return array|null
+     */
+    public static function analyze(string $type, string $path): ?array
     {
         $fileInfo = null;
         $getID3 = new \getID3();
@@ -203,7 +218,8 @@ class Id3
             $fileInfo = $getID3->analyze($path);
         } else {
             // Copy remote file locally to scan with getID3()
-            if ($fp_remote = fopen($path, 'rb')) {
+            $fp_remote = @fopen($path, 'rb');
+            if ($fp_remote) {
                 $localTempFilename = Assets::tempFilePath();
                 if ($fp_local = fopen($localTempFilename, 'wb')) {
                     while ($buffer = fread($fp_remote, 10000)) {
@@ -215,11 +231,13 @@ class Id3
                     $remote_filesize = (isset($remote_headers['content-length']) ? (is_array($remote_headers['content-length']) ? $remote_headers['content-length'][count($remote_headers['content-length']) - 1] : $remote_headers['content-length']) : null);
 
                     $fileInfo = $getID3->analyze($localTempFilename, $remote_filesize, basename($path));
-
                     // Delete temporary file
                     unlink($localTempFilename);
                 }
                 fclose($fp_remote);
+            } else {
+                // return false and the path we have problem with
+                $fileInfo = array(false, $path);
             }
         }
         return $fileInfo;

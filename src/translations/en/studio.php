@@ -14,6 +14,7 @@ return [
     'Author Name' => 'Author Name',
     'Blog' => 'Blog',
     'By' => 'By',
+    'Can not reach the asset’s URL' => 'Can not reach the asset’s URL',
     'Caption speaker' => 'Caption speaker',
     'Caption' => 'Caption',
     'Chapter title' => 'Chapter title',

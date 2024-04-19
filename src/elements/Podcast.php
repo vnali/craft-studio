@@ -329,6 +329,7 @@ class Podcast extends Element
                 } else {
                     return '';
                 }
+                // no break
             case 'dateCreated':
                 $date = $this->dateCreated;
                 return $date->format('Y-m-d H:i:s');

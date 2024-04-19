@@ -195,16 +195,22 @@ class DefaultController extends Controller
         if ($fetchId3ImageMetadata) {
             list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField($item, $episodeMapping);
 
-            // Fetch image with id3tag metadata if image field is specified
+            // Fetch image with id3 tag metadata if image field is specified
             if ($imageField) {
-                list($img, $mime, $ext) = Id3::getImage($fileInfo);
-                // use main asset file name and image extension to create a file name for image
-                $assetFilenameArray = explode('.', $assetFilename);
-                $assetFilename = $assetFilenameArray[0] . '.' . $ext;
-                if ($img) {
-                    $element = GeneralHelper::UploadFile($img, null, $imageField, $imageFieldContainer, $element, $assetFilename, $blockId);
-                } else {
+                list($imageData, $mime, $ext) = Id3::getImage($fileInfo);
+                if (!$imageData) {
                     Craft::$app->getSession()->setError(Craft::t('studio', 'Image is not extracted from the file.'));
+                } elseif (is_array($imageData) && isset($imageData[0]) && !$imageData[0] && isset($imageData[1])) {
+                    $path = '';
+                    if (Craft::$app->getConfig()->getGeneral()->devMode) {
+                        $path = $imageData[1];
+                    }
+                    Craft::$app->getSession()->setError(Craft::t('studio', 'Can not reach the asset’s URL') . ' ' . $path);
+                } else {
+                    // use main asset file name and image extension to create a file name for image
+                    $assetFilenameArray = explode('.', $assetFilename);
+                    $assetFilename = $assetFilenameArray[0] . '.' . $ext;
+                    $element = GeneralHelper::UploadFile($imageData, null, $imageField, $imageFieldContainer, $element, $assetFilename, $blockId);
                 }
             }
         }
@@ -246,7 +252,7 @@ class DefaultController extends Controller
         if ($transcriptTextField) {
             $episode = Craft::$app->elements->getElementById($elementId, EpisodeElement::class, $siteId);
             $fieldLayout = $episode->getFieldLayout();
-    
+
             $transcriptTextIncluded = $fieldLayout->isFieldIncluded($transcriptTextField->handle);
             if ($transcriptTextIncluded) {
                 // Speakers
