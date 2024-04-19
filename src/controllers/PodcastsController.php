@@ -1991,20 +1991,7 @@ class PodcastsController extends Controller
                 // Episode Image
                 list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField('episode', $episodeMapping);
                 if ($imageField) {
-                    if (get_class($imageField) == 'craft\fields\PlainText') {
-                        $imageFieldHandle = $imageField->handle;
-                        $imageUrl = $episode->{$imageFieldHandle};
-                    } elseif (get_class($imageField) == 'craft\fields\Assets') {
-                        $imageFieldHandle = $imageField->handle;
-                        if ($episode->$imageFieldHandle) {
-                            $episodeImage = $episode->$imageFieldHandle->one();
-                            if ($episodeImage) {
-                                $imageUrl = $episodeImage->url;
-                            } else {
-                                $imageUrl = null;
-                            }
-                        }
-                    }
+                    list(,, $imageUrl,,) = GeneralHelper::getElementAsset($episode, $imageFieldContainer, $imageField->handle);
                     if (isset($imageUrl)) {
                         $xmlEpisodeImage = $xml->createElement("itunes:image");
                         $xmlEpisodeImage->setAttribute("href", htmlspecialchars($imageUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));
