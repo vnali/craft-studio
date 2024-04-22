@@ -3,8 +3,8 @@
 ## Unreleased
 
 - Image for the episode items can be in the matrix field now.
-- Error on getting image metadata from assets give you the path/url of the image when the dev mode is set to true which helps better debug.
-- Fixed a bug where not valid query strings for some URLs cause 400 errors for plugin ajax requests.
+- Error in retrieving image metadata from assets provides the path/URL of the image when the dev mode is set to true, which aids in better debugging.
+- Fixed a bug where invalid query strings in certain URLs caused 400 errors for plugin AJAX requests.
 
 ## 0.19.0 - 2024-04-04
 
