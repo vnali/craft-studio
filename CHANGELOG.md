@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.20.0 - 2024-04-24
 
 - Image for the episode items can be in the matrix field now.
 - Error in retrieving image metadata from assets provides the path/URL of the image when the dev mode is set to true, which aids in better debugging.
