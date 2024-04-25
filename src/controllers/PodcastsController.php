@@ -1248,7 +1248,7 @@ class PodcastsController extends Controller
                             $xmlChannel->appendChild($xmlPodcastLiveItem);
                         }
                     }
-                } elseif (get_class($liveItemField) == Entries::class) {
+                } elseif (get_class($liveItemField) == Entries::class && isset($podcast->{$liveItemField->handle})) {
                     $liveItems = $podcast->{$liveItemField->handle}->all();
                     foreach ($liveItems as $liveItemBlock) {
                         if (isset($liveItemBlock->liveStart) && $liveItemBlock->liveStart && isset($liveItemBlock->liveStatus) && $liveItemBlock->liveStatus) {

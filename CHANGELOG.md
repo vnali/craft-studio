@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- Fixed a bug on generating RSS where there is a field for podcast live items but that field is not on podcast field layout.
+
 ## 0.20.0 - 2024-04-24
 
 - Image for the episode items can be in the matrix field now.
