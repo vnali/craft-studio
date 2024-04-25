@@ -127,8 +127,6 @@ class Studio extends Plugin
         $this->_registerPreviewHandler();
         $this->_registerGarbageCollection();
 
-        $gqlService = Craft::$app->getGql();
-        $gqlService->flushCaches();
         $this->_registerGraphQl();
 
         $settings = StudioPlugin::$plugin->getSettings();
