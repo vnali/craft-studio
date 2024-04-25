@@ -102,6 +102,11 @@ class EpisodeInterface extends Element
                 'type' => Type::STRING(),
                 'description' => 'GUID',
             ],
+            'podcastId' => [
+                'name' => 'podcastId',
+                'type' => Type::INT(),
+                'description' => 'Podcast ID',
+            ],
         ]), self::getName());
     }
 }
