@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Added PodcastId to the list of episode GQL arguments.
+- Added PodcastId to the list of episode GQL fields.
+- Added episodeSeason, episodeType, blocked, explicit, rss, podcastId to list of episode GQL arguments.
 - Fixed a bug on generating RSS where there is a field for podcast live items but that field is not on podcast field layout.
 
 ## 0.20.0 - 2024-04-24
