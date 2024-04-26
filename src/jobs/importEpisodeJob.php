@@ -73,6 +73,20 @@ class importEpisodeJob extends BaseJob
 
                 $itemElement = new Episode();
                 $itemElement->podcastId = $this->podcastId;
+
+                $firstSiteId = null;
+                $siteStatus = [];
+                foreach ($this->siteIds as $siteId) {
+                    if (!$firstSiteId) {
+                        $firstSiteId = $siteId;
+                    }
+                    // Set status to 0 to allow authors to review imported episodes
+                    $siteStatus[$siteId] = 0;
+                }
+
+                $itemElement->siteId = $firstSiteId;
+                $itemElement->setEnabledForSite($siteStatus);
+
                 $fieldLayout = $itemElement->getFieldLayout();
                 
                 foreach ($crawler->filter('html body item')->children() as $domElement) {
@@ -250,19 +264,6 @@ class importEpisodeJob extends BaseJob
                     }
                 }
 
-                $firstSiteId = null;
-                $siteStatus = [];
-                foreach ($this->siteIds as $siteId) {
-                    if (!$firstSiteId) {
-                        $firstSiteId = $siteId;
-                    }
-                    // Set status to 0 to allow authors to review imported episodes
-                    $siteStatus[$siteId] = 0;
-                }
-
-
-                $itemElement->siteId = $firstSiteId;
-                $itemElement->setEnabledForSite($siteStatus);
                 if (!Craft::$app->getElements()->saveElement($itemElement)) {
                     craft::warning("Creation error" . json_encode($itemElement->getErrors()));
                 }

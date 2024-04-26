@@ -7,6 +7,7 @@
 - Fixed a bug on generating RSS where there is a field for podcast live items but that field is not on podcast field layout.
 - Fixed a bug on generating RSS where there is a field for transcript format options but that field is not on podcast field layout.
 - Fixed a bug where the plugin flushed GQL cache on every request.
+- Fixed a bug where importing episodes by asset index or RSS threw an error for podcasts on non-primary sites.
 
 ## 0.20.0 - 2024-04-24
 

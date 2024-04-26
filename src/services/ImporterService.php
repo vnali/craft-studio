@@ -51,9 +51,36 @@ class ImporterService extends Component
             $podcast = Podcast::find()->id($podcastId)->siteId('*')->status(null)->one();
             /** @var Podcast|null $podcast */
             $podcastFormat = $podcast->getPodcastFormat();
+            $sitesSettings = $podcastFormat->getSiteSettings();
+            if (empty($sitesSettings)) {
+                Craft::warning('studio', "You should have set $item site settings");
+                return;
+            }
             $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
             $itemElement = new EpisodeElement();
             $itemElement->podcastId = $podcastId;
+
+            // Set site status for episode
+            $siteId = null;
+            $siteStatus = [];
+            // $siteStatus[$key] = $siteSetting[$item . 'EnabledByDefault'];
+            // To Prevent unwanted content on RSS or site, we force disabled status to be checked by admin first
+            // Also if we use enabled status by default, there is a chance that doesn't save due to validation error like required rules
+            foreach ($sitesSettings as $key => $siteSettings) {
+                if (in_array($key, $siteIds)) {
+                    if (!$siteId) {
+                        $siteId = $key;
+                    }
+                    //$siteStatus[$key] = $siteSettings['episodeEnabledByDefault'];
+                    $siteStatus[$key] = false;
+                }
+            }
+            if (!$siteId) {
+                Craft::warning("not any site is enabled for $item");
+            }
+            $itemElement->siteId = $siteId;
+            $itemElement->setEnabledForSite($siteStatus);
+
             $fieldLayout = $itemElement->getFieldLayout();
             if ($fieldLayout->isFieldIncluded('episodeGUID')) {
                 $itemElement->episodeGUID = StringHelper::UUID();
@@ -61,11 +88,6 @@ class ImporterService extends Component
             $mapping = json_decode($podcastFormatEpisode->mapping, true);
         } else {
             throw new NotSupportedException('not supported' . $item);
-        }
-        $sitesSettings = $podcastFormat->getSiteSettings();
-        if (empty($sitesSettings)) {
-            Craft::warning('studio', "You should have set $item site settings");
-            return;
         }
 
         $itemFieldId = null;
@@ -190,27 +212,6 @@ class ImporterService extends Component
             }
             $itemElement->setFieldValues($columns);
         }
-
-        // Set site status for episode
-        $siteId = null;
-        $siteStatus = [];
-        // $siteStatus[$key] = $siteSetting[$item . 'EnabledByDefault'];
-        // To Prevent unwanted content on RSS or site, we force disabled status to be checked by admin first
-        // Also if we use enabled status by default, there is a chance that doesn't save due to validation error like required rules
-        foreach ($sitesSettings as $key => $siteSettings) {
-            if (in_array($key, $siteIds)) {
-                if (!$siteId) {
-                    $siteId = $key;
-                }
-                //$siteStatus[$key] = $siteSettings['episodeEnabledByDefault'];
-                $siteStatus[$key] = false;
-            }
-        }
-        if (!$siteId) {
-            Craft::warning("not any site is enabled for $item");
-        }
-        $itemElement->siteId = $siteId;
-        $itemElement->setEnabledForSite($siteStatus);
 
         /** @var string|null $container0Type */
         $container0Type = null;
