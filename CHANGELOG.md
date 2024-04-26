@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.21.0 - 2024-04-26
 
 - Added PodcastId to the list of episode GQL fields.
 - Added episodeSeason, episodeType, blocked, explicit, rss, podcastId to list of episode GQL arguments.
