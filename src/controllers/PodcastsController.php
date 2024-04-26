@@ -2734,7 +2734,7 @@ class PodcastsController extends Controller
                 list($transcriptField, $transcriptBlockTypeHandle) = GeneralHelper::getFieldDefinition('transcript');
                 if ($transcriptField) {
                     $transcriptFieldHandle = $transcriptField->handle;
-                    if (get_class($transcriptField) == Checkboxes::class || get_class($transcriptField) == MultiSelect::class) {
+                    if ((get_class($transcriptField) == Checkboxes::class || get_class($transcriptField) == MultiSelect::class) && isset($episode->$transcriptFieldHandle)) {
                         foreach ($episode->$transcriptFieldHandle->getOptions() as $option) {
                             if ($option->selected) {
                                 $type = $option->value;
@@ -2766,7 +2766,7 @@ class PodcastsController extends Controller
                                 }
                             }
                         }
-                    } elseif (get_class($transcriptField) == RadioButtons::class || get_class($transcriptField) == Dropdown::class) {
+                    } elseif ((get_class($transcriptField) == RadioButtons::class || get_class($transcriptField) == Dropdown::class) && isset($episode->$transcriptFieldHandle)) {
                         $type = $episode->$transcriptFieldHandle->value;
                         switch ($type) {
                             case 'text':
