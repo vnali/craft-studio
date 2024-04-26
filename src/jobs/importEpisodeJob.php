@@ -81,7 +81,7 @@ class importEpisodeJob extends BaseJob
                         $firstSiteId = $siteId;
                     }
                     // Set status to 0 to allow authors to review imported episodes
-                    $siteStatus[$siteId] = 0;
+                    $siteStatus[$siteId] = false;
                 }
 
                 $itemElement->siteId = $firstSiteId;
