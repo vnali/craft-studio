@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 0.22.0 - 2024-04-29
 
 - Added uploaderId, uploader to the list of podcast and episode GQL fields.
 - Added uploaderId to podcast and episode GQL arguments.
