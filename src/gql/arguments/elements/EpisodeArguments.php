@@ -45,6 +45,11 @@ class EpisodeArguments extends ElementArguments
                 'type' => Type::INT(),
                 'description' => 'Podcast ID',
             ],
+            'uploaderId' => [
+                'name' => 'uploaderId',
+                'type' => Type::INT(),
+                'description' => 'Uploader ID',
+            ],
         ]);
     }
 

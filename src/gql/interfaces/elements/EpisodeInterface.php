@@ -5,6 +5,8 @@ namespace vnali\studio\gql\interfaces\elements;
 use Craft;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\Element;
+use craft\gql\interfaces\elements\User;
+use craft\helpers\Gql;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
 use vnali\studio\elements\Episode;
@@ -56,7 +58,7 @@ class EpisodeInterface extends Element
      */
     public static function getFieldDefinitions(): array
     {
-        return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+        return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), self::getConditionalFields(),[
             'duration' => [
                 'name' => 'duration',
                 'type' => Type::STRING(),
@@ -108,5 +110,29 @@ class EpisodeInterface extends Element
                 'description' => 'Podcast ID',
             ],
         ]), self::getName());
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected static function getConditionalFields(): array
+    {
+        $fields = [];
+        if (Gql::canQueryUsers()) {
+            $fields = array_merge($fields, [
+                'uploaderId' => [
+                    'name' => 'uploaderId',
+                    'type' => Type::int(),
+                    'description' => 'The ID of the uploader of this episode.',
+                ],
+                'uploader' => [
+                    'name' => 'uploader',
+                    'type' => User::getType(),
+                    'description' => 'The episode’s uploader.',
+                    'complexity' => Gql::eagerLoadComplexity(),
+                ],
+            ]);
+        }
+        return $fields;
     }
 }

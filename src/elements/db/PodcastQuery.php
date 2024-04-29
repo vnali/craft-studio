@@ -157,6 +157,10 @@ class PodcastQuery extends ElementQuery
 
         $this->subQuery->andWhere(['studio_podcastFormat.dateDeleted' => null]);
 
+        if ($this->uploaderId) {
+            $this->subQuery->andWhere(Db::parseParam('studio_podcast.uploaderId', $this->uploaderId));
+        }
+
         if ($this->podcastFormatId) {
             $this->subQuery->andWhere(Db::parseParam('studio_podcast.podcastFormatId', $this->podcastFormatId));
         }

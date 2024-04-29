@@ -25,6 +25,11 @@ class PodcastArguments extends ElementArguments
                 'type' => Type::int(),
                 'description' => 'Narrows the query results based on the podcast formats the podcasts belong to, per the podcast format’ IDs.',
             ],
+            'uploaderId' => [
+                'name' => 'uploaderId',
+                'type' => Type::INT(),
+                'description' => 'Uploader ID',
+            ],
         ]);
     }
 
