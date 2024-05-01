@@ -335,17 +335,9 @@ class PodcastsController extends Controller
 
             // Podcast Image
             list($imageField, $imageFieldContainer) = GeneralHelper::getElementImageField('podcast', $podcastMapping);
+
             if ($imageField) {
-                if (get_class($imageField) == 'craft\fields\PlainText') {
-                    $imageFieldHandle = $imageField->handle;
-                    $imageUrl = $podcast->{$imageFieldHandle};
-                } elseif (get_class($imageField) == 'craft\fields\Assets') {
-                    $imageFieldHandle = $imageField->handle;
-                    $podcastImage = $podcast->$imageFieldHandle->one();
-                    if ($podcastImage) {
-                        $imageUrl = $podcastImage->url;
-                    }
-                }
+                list(,, $imageUrl,,) = GeneralHelper::getElementAsset($podcast, $imageFieldContainer, $imageField->handle);
                 if (isset($imageUrl)) {
                     $xmlPodcastImage = $xml->createElement("itunes:image");
                     $xmlPodcastImage->setAttribute("href", htmlspecialchars($imageUrl, ENT_QUOTES | ENT_XML1, 'UTF-8'));

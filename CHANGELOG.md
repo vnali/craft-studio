@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- Fixed a bug on generating RSS where field for podcast image is in a matrix field.
+
 ## 0.22.0 - 2024-04-29
 
 - Added uploaderId, uploader to the list of podcast and episode GQL fields.
