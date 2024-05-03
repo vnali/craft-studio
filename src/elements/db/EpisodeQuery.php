@@ -23,12 +23,6 @@ class EpisodeQuery extends ElementQuery
     public ?bool $explicit = null;
     public ?bool $rss = null;
 
-    public function id(mixed $value): \craft\elements\db\ElementQuery
-    {
-        $this->id = $value;
-        return $this;
-    }
-
     public function uploaderId($value)
     {
         $this->uploaderId = $value;
