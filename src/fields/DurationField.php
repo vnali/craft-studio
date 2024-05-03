@@ -37,4 +37,24 @@ class DurationField extends TextField
             'required' => $this->required,
         ]);
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function previewable(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function previewHtml(ElementInterface $element): string
+    {
+        if ($element->{$this->attribute()}) {
+            return Time::sec_to_time($element->{$this->attribute()});
+        } else {
+            return '';
+        }
+    }
 }

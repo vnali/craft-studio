@@ -18,6 +18,14 @@ class EpisodeField extends BaseRelationField
     /**
      * @inheritdoc
      */
+    public static function icon(): string
+    {
+        return 'microphone';
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function displayName(): string
     {
         return Craft::t('studio', 'Episodes');

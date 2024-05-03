@@ -14,10 +14,11 @@ use craft\elements\actions\Delete;
 use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\conditions\ElementConditionInterface;
+use craft\elements\db\EagerLoadPlan;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\errors\UnsupportedSiteException;
-use craft\events\DefineElementInnerHtmlEvent;
+use craft\events\DefineElementHtmlEvent;
 use craft\fieldlayoutelements\CustomField;
 use craft\helpers\Cp;
 use craft\helpers\Db;
@@ -35,7 +36,6 @@ use vnali\studio\elements\actions\PodcastEpisodeSettings;
 use vnali\studio\elements\actions\PodcastGeneralSettings;
 use vnali\studio\elements\conditions\podcasts\PodcastCondition;
 use vnali\studio\elements\db\PodcastQuery;
-use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\models\PodcastFormat;
 use vnali\studio\models\PodcastFormatEpisode;
 use vnali\studio\records\I18nRecord;
@@ -212,12 +212,13 @@ class Podcast extends Element
     /**
      * @inheritdoc
      */
-    public function setEagerLoadedElements(string $handle, array $elements): void
+    // TODO plan
+    public function setEagerLoadedElements(string $handle, array $elements, EagerLoadPlan $plan): void
     {
         if ($handle === 'uploader') {
             $this->_uploader = $elements[0] ?? false;
         } else {
-            parent::setEagerLoadedElements($handle, $elements);
+            parent::setEagerLoadedElements($handle, $elements, $plan);
         }
     }
 
@@ -278,12 +279,12 @@ class Podcast extends Element
     /**
      * @inheritdoc
      */
-    protected function tableAttributeHtml(string $attribute): string
+    protected function attributeHtml(string $attribute): string
     {
         switch ($attribute) {
             case 'uploader':
                 $uploader = $this->getUploader();
-                return $uploader ? Cp::elementHtml($uploader) : '';
+                return $uploader ? Cp::elementChipHtml($uploader) : '';
             case 'locked':
             case 'podcastBlock':
             case 'podcastComplete':
@@ -339,7 +340,7 @@ class Podcast extends Element
             default:
                 break;
         }
-        return parent::tableAttributeHtml($attribute);
+        return parent::attributeHtml($attribute);
     }
 
     /**
@@ -826,7 +827,10 @@ class Podcast extends Element
         return $sources;
     }
 
-    protected static function defineFieldLayouts(string $source): array
+    /**
+     * @inheritdoc
+     */
+    protected static function defineFieldLayouts(?string $source): array
     {
         $podcasts = [];
         if ($source === '*') {
@@ -1170,35 +1174,6 @@ class Podcast extends Element
     /**
      * @inheritdoc
      */
-    public function getThumbUrl(int $size): ?string
-    {
-        $fieldHandle = null;
-        $fieldContainer = null;
-        $podcastFormat = $this->getPodcastFormat();
-        $mapping = json_decode($podcastFormat->mapping, true);
-
-        // Get specified field for podcast image
-        if (isset($mapping['podcastImage']['container'])) {
-            $fieldContainer = $mapping['podcastImage']['container'];
-        }
-        if (isset($mapping['podcastImage']['field'])) {
-            $fieldUid = $mapping['podcastImage']['field'];
-            if ($fieldUid) {
-                $field = Craft::$app->fields->getFieldByUid($fieldUid);
-                if ($field) {
-                    $fieldHandle = $field->handle;
-                }
-            }
-        }
-        // get podcast image URL
-        list($assetFilename, $assetFilePath, $assetFileUrl) = GeneralHelper::getElementAsset($this, $fieldContainer, $fieldHandle);
-
-        return $assetFileUrl;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public static function trackChanges(): bool
     {
         return true;
@@ -1286,16 +1261,16 @@ class Podcast extends Element
     }
 
     /**
-     * Update podcast element's inner html
+     * Update podcast element's html
      *
-     * @param DefineElementInnerHtmlEvent $event
+     * @param DefineElementHtmlEvent $event
      * @return void
      */
-    public static function updatePodcastElementHtml(DefineElementInnerHtmlEvent $event)
+    public static function updatePodcastElementHtml(DefineElementHtmlEvent $event)
     {
         $element = $event->element;
         $context = $event->context;
-        $elementHtml = $event->innerHtml;
+        $elementHtml = $event->html;
 
         if (($context !== 'index') || !($element instanceof self)) {
             return;
@@ -1338,6 +1313,6 @@ class Podcast extends Element
         }
 
         $html = "<span class='extra-element-data' $extraData></span>";
-        $event->innerHtml = $elementHtml . $html;
+        $event->html = $elementHtml . $html;
     }
 }

@@ -10,12 +10,11 @@ use Craft;
 use craft\base\LocalFsInterface;
 use craft\elements\db\EntryQuery;
 use craft\elements\db\UserQuery;
+use craft\elements\Entry;
 use craft\fields\Matrix;
 use craft\fields\PlainText;
 use craft\fields\Table;
 use craft\web\Controller;
-use verbb\supertable\elements\SuperTableBlockElement;
-use verbb\supertable\fields\SuperTableField;
 use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\helpers\GeneralHelper;
 use vnali\studio\helpers\Id3;
@@ -45,7 +44,7 @@ class DefaultController extends Controller
     {
         $variables['entryType'][] = ['value' => '', 'label' => craft::t('studio', 'Select one')];
         if ($sectionId) {
-            foreach (Craft::$app->sections->getEntryTypesBySectionId($sectionId) as $entryType) {
+            foreach (Craft::$app->entries->getEntryTypesBySectionId($sectionId) as $entryType) {
                 $entryTypes['value'] = $entryType->id;
                 $entryTypes['label'] = $entryType->name;
                 $variables['entryType'][] = $entryTypes;
@@ -239,10 +238,10 @@ class DefaultController extends Controller
         $elementType = Craft::$app->getElements()->getElementTypeById($elementId);
 
         // Chapter field
-        list($chapterField, $chapterBlockTypeHandle) = GeneralHelper::getFieldDefinition('chapter');
+        list($chapterField, $chapterEntryTypeHandle) = GeneralHelper::getFieldDefinition('chapter');
 
         // Soundbite field
-        list($soundbiteField, $soundbiteBlockTypeHandle) = GeneralHelper::getFieldDefinition('soundbite');
+        list($soundbiteField, $soundbiteEntryTypeHandle) = GeneralHelper::getFieldDefinition('soundbite');
 
         // Transcript text field
         list($transcriptTextField) = GeneralHelper::getFieldDefinition('transcriptText');
@@ -256,8 +255,8 @@ class DefaultController extends Controller
             $transcriptTextIncluded = $fieldLayout->isFieldIncluded($transcriptTextField->handle);
             if ($transcriptTextIncluded) {
                 // Speakers
-                // TODO: we should not suggest all person and person roles as speaker
-                list($personField, $personBlockTypeHandle) = GeneralHelper::getFieldDefinition('episodePerson');
+                // TODO: we should not suggest all persons and person roles as speaker
+                list($personField, $personEntryTypeHandle) = GeneralHelper::getFieldDefinition('episodePerson');
                 if ($personField) {
                     $personFieldHandle = $personField->handle;
                     if (get_class($personField) == PlainText::class) {
@@ -278,16 +277,10 @@ class DefaultController extends Controller
                                 }
                             }
                         }
-                    } elseif (get_class($personField) == Matrix::class || get_class($personField) == SuperTableField::class) {
-                        $personBlocks = [];
-                        if (get_class($personField) == Matrix::class) {
-                            $blockQuery = \craft\elements\MatrixBlock::find();
-                            $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->type($personBlockTypeHandle)->all();
-                        } elseif (get_class($personField) == SuperTableField::class) {
-                            $blockQuery = SuperTableBlockElement::find();
-                            $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->all();
-                        }
-                        foreach ($personBlocks as $personBlock) {
+                    } elseif (get_class($personField) == Matrix::class) {
+                        $entryQuery = Entry::find();
+                        $personEntries = $entryQuery->fieldId($personField->id)->owner($episode)->type($personEntryTypeHandle)->all();
+                        foreach ($personEntries as $personBlock) {
                             if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
                                 $persons = $personBlock->userPerson->all();
                                 foreach ($persons as $person) {
@@ -333,7 +326,7 @@ class DefaultController extends Controller
                     // If speakers from episodePerson is empty, try podcastPerson
                     /** @var EpisodeElement $episode */
                     $podcast = $episode->getPodcast();
-                    list($personField, $personBlockTypeHandle) = GeneralHelper::getFieldDefinition('podcastPerson');
+                    list($personField, $personEntryTypeHandle) = GeneralHelper::getFieldDefinition('podcastPerson');
                     if ($personField) {
                         $personFieldHandle = $personField->handle;
                         if (get_class($personField) == PlainText::class) {
@@ -354,16 +347,10 @@ class DefaultController extends Controller
                                     }
                                 }
                             }
-                        } elseif (get_class($personField) == Matrix::class || get_class($personField) == SuperTableField::class) {
-                            $personBlocks = [];
-                            if (get_class($personField) == Matrix::class) {
-                                $blockQuery = \craft\elements\MatrixBlock::find();
-                                $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->type($personBlockTypeHandle)->all();
-                            } elseif (get_class($personField) == SuperTableField::class) {
-                                $blockQuery = SuperTableBlockElement::find();
-                                $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->all();
-                            }
-                            foreach ($personBlocks as $personBlock) {
+                        } elseif (get_class($personField) == Matrix::class) {
+                            $blockQuery = Entry::find();
+                            $entryBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->type($personEntryTypeHandle)->all();
+                            foreach ($entryBlocks as $personBlock) {
                                 if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
                                     $persons = $personBlock->userPerson->all();
                                     foreach ($persons as $person) {
@@ -408,16 +395,15 @@ class DefaultController extends Controller
                 }
             }
         }
-
         // Pass data
         $array = [
             'elementType' => $elementType,
             'chapterFieldType' => $chapterField ? get_class($chapterField) : null,
             'chapterFieldHandle' => $chapterField ? $chapterField->handle : null,
-            'chapterBlockTypeHandle' => $chapterBlockTypeHandle ?? null,
+            'chapterEntryTypeHandle' => $chapterEntryTypeHandle ?? null,
             'soundbiteFieldType' => $soundbiteField ? get_class($soundbiteField) : null,
             'soundbiteFieldHandle' => $soundbiteField ? $soundbiteField->handle : null,
-            'soundbiteBlockTypeHandle' => $soundbiteBlockTypeHandle ?? null,
+            'soundbiteEntryTypeHandle' => $soundbiteEntryTypeHandle ?? null,
             'transcriptTextFieldHandle' => ($transcriptTextField && $transcriptTextIncluded) ? $transcriptTextField->handle : null,
             'speakers' => $speakers,
         ];

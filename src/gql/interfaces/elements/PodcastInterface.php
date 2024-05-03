@@ -58,7 +58,7 @@ class PodcastInterface extends Element
      */
     public static function getFieldDefinitions(): array
     {
-        return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), self::getConditionalFields(),[
+        return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), self::getConditionalFields(), [
             'copyright' => [
                 'name' => 'copyright',
                 'type' => Type::string(),

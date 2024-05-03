@@ -5,13 +5,6 @@ body .selectize-dropdown-content>div[data-value="new matrix"]:before {
     vertical-align: middle;
 }
 
-body .selectize-dropdown-content>div[data-value="new super table"]:before {
-    font-family: 'Craft';
-    content: 'plus';
-    margin-right: 5px;
-    vertical-align: middle;
-}
-
 body .selectize-dropdown-content>div[data-value="new table"]:before {
     font-family: 'Craft';
     content: 'plus';

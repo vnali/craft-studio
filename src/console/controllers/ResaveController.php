@@ -14,7 +14,7 @@ use craft\elements\Asset;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\InvalidElementException;
-use craft\events\BatchElementActionEvent;
+use craft\events\MultiElementActionEvent;
 use craft\helpers\Assets;
 use craft\helpers\ElementHelper;
 use craft\helpers\Queue;
@@ -22,7 +22,6 @@ use craft\helpers\StringHelper;
 use craft\queue\jobs\ResaveElements;
 use craft\services\Elements;
 use Throwable;
-use verbb\supertable\SuperTable;
 use vnali\studio\elements\Episode;
 use vnali\studio\elements\Podcast;
 use vnali\studio\helpers\GeneralHelper;
@@ -398,7 +397,7 @@ class ResaveController extends Controller
         $elementsService = Craft::$app->getElements();
         $fail = false;
 
-        $beforeCallback = function(BatchElementActionEvent $e) use ($query, $count, $to, $elementItem) {
+        $beforeCallback = function(MultiElementActionEvent $e) use ($query, $count, $to, $elementItem) {
             if ($e->query === $query) {
                 $setting = null;
                 $importSetting = null;
@@ -731,15 +730,10 @@ class ResaveController extends Controller
                                                 $$containerTypeVar = $container[1];
                                             }
                                         }
-                                        $itemBlockType = null;
+                                        $itemEntryType = null;
                                         if ($container0Handle) {
-                                            if ($container0Type && ($container0Type === 'SuperTable')) {
-                                                $superTableField = $fieldsService->getFieldByHandle($container0Handle);
-                                                $blockTypes = SuperTable::$plugin->getService()->getBlockTypesByFieldId($superTableField->id);
-                                                $blockType = $blockTypes[0];
-                                                $itemBlockType = $blockType->id;
-                                            } elseif ($container0Type) {
-                                                $itemBlockType = $container1Handle;
+                                            if ($container0Type) {
+                                                $itemEntryType = $container1Handle;
                                             }
                                             $field = $fieldsService->getFieldByHandle($container0Handle);
                                             $existingMatrixQuery = $element->getFieldValue($container0Handle);
@@ -781,7 +775,7 @@ class ResaveController extends Controller
                                                 } else {
                                                     $sortOrder[] = 'new:1';
                                                     $newBlock = [
-                                                        'type' => $itemBlockType,
+                                                        'type' => $itemEntryType,
                                                         'fields' => [
                                                             $imageField->handle => [$imageId],
                                                         ],
@@ -840,7 +834,7 @@ class ResaveController extends Controller
             }
         };
 
-        $afterCallback = function(BatchElementActionEvent $e) use ($query, &$fail) {
+        $afterCallback = function(MultiElementActionEvent $e) use ($query, &$fail) {
             if ($e->query === $query) {
                 $element = $e->element;
                 if ($e->exception) {

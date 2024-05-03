@@ -587,14 +587,14 @@ class EpisodesController extends Controller
 
         $jsonChapter = $cache->getOrSet($rssCacheKey, function() use ($episode) {
             $chaptersArray = [];
-            list($chapterField, $chapterBlockTypeHandle) = GeneralHelper::getFieldDefinition('chapter');
+            list($chapterField, $chapterEntryTypeHandle) = GeneralHelper::getFieldDefinition('chapter');
             if ($chapterField) {
                 $chapterFieldHandle = $chapterField->handle;
                 if (isset($episode->$chapterFieldHandle)) {
                     $chapters = $episode->$chapterFieldHandle->all();
                     foreach ($chapters as $key => $chapter) {
                         $chapterArray = [];
-                        if (is_null($chapter->type->handle) || $chapter->type->handle == $chapterBlockTypeHandle) {
+                        if (is_null($chapter->type->handle) || $chapter->type->handle == $chapterEntryTypeHandle) {
                             // Start time is required
                             if ($chapter->startTime === null) {
                                 continue;
@@ -698,11 +698,11 @@ class EpisodesController extends Controller
      * Get transcript based on episode id, site and type
      *
      * @param integer $episodeId
-     * @param string|null $site
      * @param string $type
+     * @param string|null $site
      * @return string|null
      */
-    public function actionTranscript(int $episodeId, ?string $site = null, string $type): ?string
+    public function actionTranscript(int $episodeId, string $type, ?string $site = null): ?string
     {
         $cache = Craft::$app->getCache();
         if ($site) {
@@ -719,7 +719,7 @@ class EpisodesController extends Controller
 
         // Check if selected type is allowed
         $isSelected = false;
-        list($transcriptField, $transcriptBlockTypeHandle) = GeneralHelper::getFieldDefinition('transcript');
+        list($transcriptField,) = GeneralHelper::getFieldDefinition('transcript');
         if ($transcriptField) {
             if (get_class($transcriptField) == Checkboxes::class || get_class($transcriptField) == MultiSelect::class) {
                 foreach ($episode->{$transcriptField->handle}->getOptions() as $option) {

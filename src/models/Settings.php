@@ -13,57 +13,57 @@ class Settings extends Model
 
     public ?string $chapterField = null;
 
-    public ?string $chapterBlockType = null;
+    public ?string $chapterEntryType = null;
 
     public ?string $soundbiteField = null;
     
-    public ?string $soundbiteBlockType = null;
+    public ?string $soundbiteEntryType = null;
 
     public ?string $fundingField = null;
 
-    public ?string $fundingBlockType = null;
+    public ?string $fundingEntryType = null;
     
     public ?string $podcastLicenseField = null;
 
-    public ?string $podcastLicenseBlockType = null;
+    public ?string $podcastLicenseEntryType = null;
 
     public ?string $episodeLicenseField = null;
 
-    public ?string $episodeLicenseBlockType = null;
+    public ?string $episodeLicenseEntryType = null;
 
     public ?string $podcastPersonField = null;
 
-    public ?string $podcastPersonBlockType = null;
+    public ?string $podcastPersonEntryType = null;
 
     public ?string $episodePersonField = null;
 
-    public ?string $episodePersonBlockType = null;
+    public ?string $episodePersonEntryType = null;
 
     public ?string $transcriptTextField = null;
 
     public ?string $transcriptField = null;
 
-    public ?string $transcriptBlockType = null;
+    public ?string $transcriptEntryType = null;
 
     public ?string $trailerField = null;
 
-    public ?string $trailerBlockType = null;
+    public ?string $trailerEntryType = null;
 
     public ?string $enclosureField = null;
 
-    public ?string $enclosureBlockType = null;
+    public ?string $enclosureEntryType = null;
 
     public ?string $podcastLocationField = null;
 
-    public ?string $podcastLocationBlockType = null;
+    public ?string $podcastLocationEntryType = null;
 
     public ?string $episodeLocationField = null;
 
-    public ?string $episodeLocationBlockType = null;
+    public ?string $episodeLocationEntryType = null;
 
     public ?string $liveItemField = null;
 
-    public ?string $liveItemBlockType = null;
+    public ?string $liveItemEntryType = null;
 
     public ?string $socialInteractField = null;
 
@@ -73,11 +73,11 @@ class Settings extends Model
 
     public ?string $podcastValueField = null;
 
-    public ?string $podcastValueBlockType = null;
+    public ?string $podcastValueEntryType = null;
 
     public ?string $episodeValueField = null;
 
-    public ?string $episodeValueBlockType = null;
+    public ?string $episodeValueEntryType = null;
 
     public ?string $podrollField = null;
 

@@ -28,39 +28,33 @@ class PodcastQuery extends ElementQuery
     public ?bool $podcastIsNewFeedUrl = null;
     public string|array|null $medium = null;
 
-    public function blocked(?bool $value = true): self
+    public function blocked(?bool $value = true): static
     {
         $this->blocked = $value;
         return $this;
     }
 
-    public function locked(?bool $value = true): self
+    public function locked(?bool $value = true): static
     {
         $this->locked = $value;
         return $this;
     }
 
-    public function completed(?bool $value = true): self
+    public function completed(?bool $value = true): static
     {
         $this->completed = $value;
         return $this;
     }
 
-    public function explicit(?bool $value = true): self
+    public function explicit(?bool $value = true): static
     {
         $this->explicit = $value;
         return $this;
     }
 
-    public function podcastIsNewFeedUrl(?bool $value = true): self
+    public function podcastIsNewFeedUrl(?bool $value = true): static
     {
         $this->podcastIsNewFeedUrl = $value;
-        return $this;
-    }
-
-    public function id(mixed $value): \craft\elements\db\ElementQuery
-    {
-        $this->id = $value;
         return $this;
     }
 
@@ -76,7 +70,7 @@ class PodcastQuery extends ElementQuery
         return $this;
     }
 
-    public function podcastFormat(string $value): self
+    public function podcastFormat(string $value): static
     {
         $podcastFormatId = (new Query())
             ->select(['id'])

@@ -4,7 +4,6 @@
 {% set crumbs = [] %}
 
 {% set selectedSubnavItem = 'settings' %}
-{% set title = "Podcast Formats"|t('studio') %}
 {% set fullPageForm = false %}
 
 {% do view.registerTranslations('app', [
@@ -17,7 +16,7 @@
 ]) %}
 
 {% block actionButton %}
-    <a href="{{ url('studio/settings/podcast-formats/new') }}" class="btn submit add icon">{{ "New podcast format"|t('studio') }}</a>
+    <a href="{{ url('studio/settings/podcast-formats/new') }}" class="btn submit add icon">{{ 'New podcast format'|t('studio') }}</a>
 {% endblock %}
 
 {% block content %}

@@ -18,8 +18,6 @@ use craft\helpers\StringHelper;
 use Imagine\Exception\NotSupportedException;
 use InvalidArgumentException;
 
-use verbb\supertable\SuperTable;
-
 use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\elements\Podcast;
 use vnali\studio\helpers\GeneralHelper;
@@ -59,7 +57,6 @@ class ImporterService extends Component
             $podcastFormatEpisode = $podcast->getPodcastFormatEpisode();
             $itemElement = new EpisodeElement();
             $itemElement->podcastId = $podcastId;
-
             // Set site status for episode
             $siteId = null;
             $siteStatus = [];
@@ -80,7 +77,6 @@ class ImporterService extends Component
             }
             $itemElement->siteId = $siteId;
             $itemElement->setEnabledForSite($siteStatus);
-
             $fieldLayout = $itemElement->getFieldLayout();
             if ($fieldLayout->isFieldIncluded('episodeGUID')) {
                 $itemElement->episodeGUID = StringHelper::UUID();
@@ -330,26 +326,16 @@ class ImporterService extends Component
             }
         }
 
-        $itemBlockType = null;
-        $imgBlockType = null;
+        $itemEntryType = null;
+        $imgEntryType = null;
         if ($container0Handle || isset($imgContainer0Handle)) {
-            if ($container0Type && ($container0Type === 'SuperTable')) {
-                $superTableField = $fieldsService->getFieldByHandle($container0Handle);
-                $blockTypes = SuperTable::$plugin->getService()->getBlockTypesByFieldId($superTableField->id);
-                $blockType = $blockTypes[0];
-                $itemBlockType = $blockType->id;
-            } elseif ($container0Type) {
-                $itemBlockType = $container1Handle;
+            if ($container0Type) {
+                $itemEntryType = $container1Handle;
             }
-            if (isset($imgContainer0Handle) && isset($imgContainer0Type) && ($imgContainer0Type === 'SuperTable')) {
-                $superTableField = $fieldsService->getFieldByHandle($imgContainer0Handle);
-                $blockTypes = SuperTable::$plugin->getService()->getBlockTypesByFieldId($superTableField->id);
-                $blockType = $blockTypes[0];
-                $imgBlockType = $blockType->id;
-            } elseif (isset($imgContainer1Handle) && isset($imgContainer0Type)) {
-                $imgBlockType = $imgContainer1Handle;
+            if (isset($imgContainer1Handle) && isset($imgContainer0Type)) {
+                $imgEntryType = $imgContainer1Handle;
             }
-            if (isset($itemBlockType) && ($itemBlockType == $imgBlockType)) {
+            if (isset($itemEntryType) && ($itemEntryType == $imgEntryType)) {
                 $data = [];
                 $containerFields = [];
                 if (isset($imgContainer0Type) && isset($imageIds) && isset($imageOption) && $imageOption) {
@@ -359,23 +345,23 @@ class ImporterService extends Component
                     $containerFields[$itemFieldHandle] = [$element->id];
                 }
                 $data['new1'] = [
-                    'type' => $itemBlockType,
+                    'type' => $itemEntryType,
                     'fields' => $containerFields,
                 ];
                 $itemElement->setFieldValue($container0Handle, $data);
-            } elseif (isset($itemBlockType) || isset($imgBlockType)) {
+            } elseif (isset($itemEntryType) || isset($imgEntryType)) {
                 $data = [];
-                if (isset($itemBlockType)) {
+                if (isset($itemEntryType)) {
                     $data['new1'] = [
-                        'type' => $itemBlockType,
+                        'type' => $itemEntryType,
                         'fields' => [
                             $itemFieldHandle => [$element->id],
                         ],
                     ];
                 }
-                if (isset($imgBlockType) && isset($imageIds) && isset($imageOption) && $imageOption) {
+                if (isset($imgEntryType) && isset($imageIds) && isset($imageOption) && $imageOption) {
                     $data['new2'] = [
-                        'type' => $imgBlockType,
+                        'type' => $imgEntryType,
                         'fields' => [
                             $imageField->handle => $imageIds,
                         ],

@@ -23,12 +23,6 @@ class EpisodeQuery extends ElementQuery
     public ?bool $explicit = null;
     public ?bool $rss = null;
 
-    public function id(mixed $value): \craft\elements\db\ElementQuery
-    {
-        $this->id = $value;
-        return $this;
-    }
-
     public function uploaderId($value)
     {
         $this->uploaderId = $value;
@@ -41,19 +35,19 @@ class EpisodeQuery extends ElementQuery
         return $this;
     }
 
-    public function blocked(?bool $value = true): self
+    public function blocked(?bool $value = true): static
     {
         $this->blocked = $value;
         return $this;
     }
 
-    public function explicit(?bool $value = true): self
+    public function explicit(?bool $value = true): static
     {
         $this->explicit = $value;
         return $this;
     }
 
-    public function rss(?bool $value = true): self
+    public function rss(?bool $value = true): static
     {
         $this->rss = $value;
         return $this;
@@ -113,7 +107,7 @@ class EpisodeQuery extends ElementQuery
         $this->subQuery->innerJoin(['studio_i18n' => '{{%studio_i18n}}'], '[[studio_i18n.elementId]] = [[studio_episode.id]]');
         // Make sure podcast element is available for this site
         $this->query->innerJoin(['elements_sites_podcast' => '{{%elements_sites}}'], '[[studio_episode.podcastId]] = [[elements_sites_podcast.elementId]] and elements_sites_podcast.siteId=subquery.siteId');
-        
+
         if ($this->uploaderId) {
             $this->subQuery->andWhere(Db::parseParam('studio_episode.uploaderId', $this->uploaderId));
         }

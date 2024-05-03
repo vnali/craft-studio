@@ -213,7 +213,7 @@ return [
     'Save other user episodes' => 'Save other user episodes',
     'Season Name' => 'Season Name',
     'Select genre' => 'Select genre',
-    'Select one container (Matrix/SuperTable)' => 'Select one container (Matrix/SuperTable)',
+    'Select one container (Matrix)' => 'Select one container (Matrix)',
     'Select one' => 'Select one',
     'Select the volume' => 'Select the volume',
     'Select/Create field' => 'Select/Create field',

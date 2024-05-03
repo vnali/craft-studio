@@ -12,8 +12,8 @@ use craft\db\Table;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\elements\db\EntryQuery;
-use craft\elements\db\MatrixBlockQuery;
 use craft\elements\db\UserQuery;
+use craft\elements\Entry;
 use craft\fields\Assets;
 use craft\fields\Categories;
 use craft\fields\Checkboxes;
@@ -41,9 +41,6 @@ use doublesecretagency\googlemaps\fields\AddressField as GoogleMapAddressField;
 use doublesecretagency\googlemaps\models\Address as GoogleMapAddressModel;
 use studioespresso\easyaddressfield\fields\EasyAddressFieldField;
 use studioespresso\easyaddressfield\models\EasyAddressFieldModel;
-use verbb\supertable\elements\db\SuperTableBlockQuery;
-use verbb\supertable\elements\SuperTableBlockElement;
-use verbb\supertable\fields\SuperTableField;
 use vnali\studio\elements\db\EpisodeQuery;
 use vnali\studio\elements\Episode as EpisodeElement;
 use vnali\studio\elements\Podcast as PodcastElement;
@@ -460,7 +457,7 @@ class PodcastsController extends Controller
             }
 
             // Podcast Location
-            list($locationField, $locationBlockTypeHandle) = GeneralHelper::getFieldDefinition('podcastLocation');
+            list($locationField, $locationEntryTypeHandle) = GeneralHelper::getFieldDefinition('podcastLocation');
             if ($locationField) {
                 $locationFieldHandle = $locationField->handle;
                 if (get_class($locationField) == PlainText::class) {
@@ -505,15 +502,11 @@ class PodcastsController extends Controller
                         }
                         $xmlChannel->appendChild($xmlLocation);
                     }
-                } elseif (get_class($locationField) == Matrix::class || get_class($locationField) == SuperTableField::class) {
+                } elseif (get_class($locationField) == Matrix::class) {
                     $locationBlocks = [];
-                    if (get_class($locationField) == Matrix::class) {
-                        $blockQuery = \craft\elements\MatrixBlock::find();
-                        $locationBlocks = $blockQuery->fieldId($locationField->id)->owner($podcast)->type($locationBlockTypeHandle)->all();
-                    } elseif (get_class($locationField) == SuperTableField::class) {
-                        $blockQuery = SuperTableBlockElement::find();
-                        $locationBlocks = $blockQuery->fieldId($locationField->id)->owner($podcast)->all();
-                    }
+                    $blockQuery = Entry::find();
+                    $locationBlocks = $blockQuery->fieldId($locationField->id)->owner($podcast)->type($locationEntryTypeHandle)->all();
+
                     foreach ($locationBlocks as $locationBlock) {
                         if (isset($locationBlock->location) && $locationBlock->location) {
                             if (is_object($locationBlock->location) && get_class($locationBlock->location) == EasyAddressFieldModel::class) {
@@ -547,7 +540,7 @@ class PodcastsController extends Controller
             }
 
             // Podcast Funding
-            list($fundingField, $fundingBlockTypeHandle) = GeneralHelper::getFieldDefinition('funding');
+            list($fundingField, $fundingEntryTypeHandle) = GeneralHelper::getFieldDefinition('funding');
             if ($fundingField) {
                 $fundingFieldHandle = $fundingField->handle;
                 if (get_class($fundingField) == PlainText::class || get_class($fundingField) == Url::class) {
@@ -566,15 +559,10 @@ class PodcastsController extends Controller
                             }
                         }
                     }
-                } elseif (get_class($fundingField) == Matrix::class || get_class($fundingField) == SuperTableField::class) {
+                } elseif (get_class($fundingField) == Matrix::class) {
                     $fundingBlocks = [];
-                    if (get_class($fundingField) == Matrix::class) {
-                        $blockQuery = \craft\elements\MatrixBlock::find();
-                        $fundingBlocks = $blockQuery->fieldId($fundingField->id)->owner($podcast)->type($fundingBlockTypeHandle)->all();
-                    } elseif (get_class($fundingField) == SuperTableField::class) {
-                        $blockQuery = SuperTableBlockElement::find();
-                        $fundingBlocks = $blockQuery->fieldId($fundingField->id)->owner($podcast)->all();
-                    }
+                    $blockQuery = Entry::find();
+                    $fundingBlocks = $blockQuery->fieldId($fundingField->id)->owner($podcast)->type($fundingEntryTypeHandle)->all();
                     foreach ($fundingBlocks as $fundingBlock) {
                         if (isset($fundingBlock->fundingUrl) && $fundingBlock->fundingUrl) {
                             $xmlFunding = $xml->createElement("podcast:funding", (isset($fundingBlock->fundingTitle) && $fundingBlock->fundingTitle) ? htmlspecialchars($fundingBlock->fundingTitle, ENT_QUOTES | ENT_XML1, 'UTF-8') : '');
@@ -586,7 +574,7 @@ class PodcastsController extends Controller
             }
 
             // Podcast License
-            list($licenseField, $licenseBlockTypeHandle) = GeneralHelper::getFieldDefinition('podcastLicense');
+            list($licenseField, $licenseEntryTypeHandle) = GeneralHelper::getFieldDefinition('podcastLicense');
             if ($licenseField) {
                 $licenseFieldHandle = $licenseField->handle;
                 if (get_class($licenseField) == PlainText::class) {
@@ -623,15 +611,10 @@ class PodcastsController extends Controller
                             break;
                         }
                     }
-                } elseif (get_class($licenseField) == Matrix::class || get_class($licenseField) == SuperTableField::class) {
+                } elseif (get_class($licenseField) == Matrix::class) {
                     $licenseBlocks = [];
-                    if (get_class($licenseField) == Matrix::class) {
-                        $blockQuery = \craft\elements\MatrixBlock::find();
-                        $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($podcast)->type($licenseBlockTypeHandle)->all();
-                    } elseif (get_class($licenseField) == SuperTableField::class) {
-                        $blockQuery = SuperTableBlockElement::find();
-                        $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($podcast)->all();
-                    }
+                    $blockQuery = Entry::find();
+                    $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($podcast)->type($licenseEntryTypeHandle)->all();
                     foreach ($licenseBlocks as $licenseBlock) {
                         if (isset($licenseBlock->licenseTitle) && $licenseBlock->licenseTitle) {
                             $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($licenseBlock->licenseTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
@@ -653,7 +636,7 @@ class PodcastsController extends Controller
             }
 
             // Podcast Trailer
-            list($trailerField, $trailerBlockTypeHandle) = GeneralHelper::getFieldDefinition('trailer');
+            list($trailerField, $trailerEntryTypeHandle) = GeneralHelper::getFieldDefinition('trailer');
             if ($trailerField) {
                 $trailerFieldHandle = $trailerField->handle;
                 if (get_class($trailerField) == Assets::class) {
@@ -679,15 +662,10 @@ class PodcastsController extends Controller
                             }
                         }
                     }
-                } elseif (get_class($trailerField) == Matrix::class || get_class($trailerField) == SuperTableField::class) {
+                } elseif (get_class($trailerField) == Matrix::class) {
                     $trailerBlocks = [];
-                    if (get_class($trailerField) == Matrix::class) {
-                        $blockQuery = \craft\elements\MatrixBlock::find();
-                        $trailerBlocks = $blockQuery->fieldId($trailerField->id)->owner($podcast)->type($trailerBlockTypeHandle)->all();
-                    } elseif (get_class($trailerField) == SuperTableField::class) {
-                        $blockQuery = SuperTableBlockElement::find();
-                        $trailerBlocks = $blockQuery->fieldId($trailerField->id)->owner($podcast)->all();
-                    }
+                    $blockQuery = Entry::find();
+                    $trailerBlocks = $blockQuery->fieldId($trailerField->id)->owner($podcast)->type($trailerEntryTypeHandle)->all();
                     foreach ($trailerBlocks as $trailerBlock) {
                         if (isset($trailerBlock->trailerTitle) && $trailerBlock->trailerTitle && isset($trailerBlock->trailer) && $trailerBlock->trailer && isset($trailerBlock->pubdate) && $trailerBlock->pubdate) {
                             $xmlTrailer = $xml->createElement("podcast:trailer", htmlspecialchars($trailerBlock->trailerTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
@@ -736,7 +714,7 @@ class PodcastsController extends Controller
             }
 
             // podcast:person
-            list($personField, $personBlockTypeHandle) = GeneralHelper::getFieldDefinition('podcastPerson');
+            list($personField, $personEntryTypeHandle) = GeneralHelper::getFieldDefinition('podcastPerson');
             if ($personField) {
                 $personFieldHandle = $personField->handle;
                 if (get_class($personField) == PlainText::class) {
@@ -765,15 +743,10 @@ class PodcastsController extends Controller
                             }
                         }
                     }
-                } elseif (get_class($personField) == Matrix::class || get_class($personField) == SuperTableField::class) {
+                } elseif (get_class($personField) == Matrix::class) {
                     $personBlocks = [];
-                    if (get_class($personField) == Matrix::class) {
-                        $blockQuery = \craft\elements\MatrixBlock::find();
-                        $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->type($personBlockTypeHandle)->all();
-                    } elseif (get_class($personField) == SuperTableField::class) {
-                        $blockQuery = SuperTableBlockElement::find();
-                        $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->all();
-                    }
+                    $blockQuery = Entry::find();
+                    $personBlocks = $blockQuery->fieldId($personField->id)->owner($podcast)->type($personEntryTypeHandle)->all();
                     foreach ($personBlocks as $personBlock) {
                         $personsArray = [];
                         if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
@@ -915,11 +888,11 @@ class PodcastsController extends Controller
             }
 
             // Podcast Live Item
-            list($liveItemField, $liveItemBlockTypeHandle) = GeneralHelper::getFieldDefinition('liveItem');
+            list($liveItemField, $liveItemEntryTypeHandle) = GeneralHelper::getFieldDefinition('liveItem');
             if ($liveItemField) {
                 if (get_class($liveItemField) == Matrix::class) {
-                    $blockQuery = \craft\elements\MatrixBlock::find();
-                    $liveItemBlocks = $blockQuery->fieldId($liveItemField->id)->owner($podcast)->type($liveItemBlockTypeHandle)->all();
+                    $blockQuery = Entry::find();
+                    $liveItemBlocks = $blockQuery->fieldId($liveItemField->id)->owner($podcast)->type($liveItemEntryTypeHandle)->all();
                     foreach ($liveItemBlocks as $liveItemBlock) {
                         if (isset($liveItemBlock->liveStart) && $liveItemBlock->liveStart && isset($liveItemBlock->liveStatus) && $liveItemBlock->liveStatus) {
                             $xmlPodcastLiveItem = $xml->createElement("podcast:liveItem");
@@ -1003,7 +976,7 @@ class PodcastsController extends Controller
                                         $xmlPodcastLiveItem->appendChild($xmlLiveItemAlternateEnclosure);
                                     }
                                 }
-                            } elseif (isset($liveItemBlock->liveAlternateEnclosure) && is_object($liveItemBlock->liveAlternateEnclosure) && get_class($liveItemBlock->liveAlternateEnclosure) == SuperTableBlockQuery::class) {
+                            } elseif (isset($liveItemBlock->liveAlternateEnclosure) && is_object($liveItemBlock->liveAlternateEnclosure) && get_class($liveItemBlock->liveAlternateEnclosure) == EntryQuery::class) {
                                 foreach ($liveItemBlock->liveAlternateEnclosure->all() as $block) {
                                     $type = false;
                                     $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
@@ -1097,7 +1070,7 @@ class PodcastsController extends Controller
                                         $xmlLiveItemPerson = $xml->createElement("podcast:person", htmlspecialchars($liveItemBlock->person, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         $xmlPodcastLiveItem->appendChild($xmlLiveItemPerson);
                                     }
-                                } elseif (get_class($liveItemBlock->person) == SuperTableBlockQuery::class) {
+                                } elseif (get_class($liveItemBlock->person) == EntryQuery::class) {
                                     foreach ($liveItemBlock->person->all() as $personBlock) {
                                         $personsArray = [];
                                         if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
@@ -1325,7 +1298,7 @@ class PodcastsController extends Controller
                                         $xmlPodcastLiveItem->appendChild($xmlLiveItemAlternateEnclosure);
                                     }
                                 }
-                            } elseif (isset($liveItemBlock->liveAlternateEnclosure) && is_object($liveItemBlock->liveAlternateEnclosure) && (get_class($liveItemBlock->liveAlternateEnclosure) == SuperTableBlockQuery::class || get_class($liveItemBlock->liveAlternateEnclosure) == MatrixBlockQuery::class)) {
+                            } elseif (isset($liveItemBlock->liveAlternateEnclosure) && is_object($liveItemBlock->liveAlternateEnclosure) && (get_class($liveItemBlock->liveAlternateEnclosure) == EntryQuery::class)) {
                                 foreach ($liveItemBlock->liveAlternateEnclosure->all() as $block) {
                                     $type = false;
                                     $xmlLiveItemAlternateEnclosure = $xml->createElement("podcast:alternateEnclosure");
@@ -1418,7 +1391,7 @@ class PodcastsController extends Controller
                                             $xmlChannel->appendChild($xmlLiveItemPerson);
                                         }
                                     }
-                                } elseif (get_class($liveItemBlock->person) == MatrixBlockQuery::class || get_class($liveItemBlock->person) == SuperTableBlockQuery::class) {
+                                } elseif (get_class($liveItemBlock->person) == EntryQuery::class) {
                                     foreach ($liveItemBlock->person->all() as $personBlock) {
                                         $personsArray = [];
                                         if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
@@ -1587,7 +1560,7 @@ class PodcastsController extends Controller
             }
 
             // Podcast value
-            list($valueField, $valueBlockTypeHandle) = GeneralHelper::getFieldDefinition('podcastValue');
+            list($valueField,) = GeneralHelper::getFieldDefinition('podcastValue');
             if ($valueField) {
                 $valueFieldHandle = $valueField->handle;
                 if (isset($podcast->$valueFieldHandle) && get_class($podcast->$valueFieldHandle) == EntryQuery::class) {
@@ -1599,7 +1572,7 @@ class PodcastsController extends Controller
                         if (isset($value4value->valueSuggested) && $value4value->valueSuggested) {
                             $xmlPodcastValue->setAttribute("suggested", htmlspecialchars($value4value->valueSuggested, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                         }
-                        if (isset($value4value->recipient) && get_class($value4value->recipient) == MatrixBlockQuery::class) {
+                        if (isset($value4value->recipient) && get_class($value4value->recipient) == EntryQuery::class) {
                             $valueBlocks = $value4value->recipient->all();
                             foreach ($valueBlocks as $valueBlock) {
                                 $recipientsArray = [];
@@ -1783,7 +1756,7 @@ class PodcastsController extends Controller
                 }
 
                 // Episode Enclosure
-                list($enclosureField, $enclosureBlockTypeHandle) = GeneralHelper::getFieldDefinition('enclosure');
+                list($enclosureField, $enclosureEntryTypeHandle) = GeneralHelper::getFieldDefinition('enclosure');
                 if ($enclosureField) {
                     $enclosureFieldHandle = $enclosureField->handle;
                     $enclosureBlocks = [];
@@ -1841,11 +1814,8 @@ class PodcastsController extends Controller
                             }
                         }
                     } elseif (get_class($enclosureField) == Matrix::class) {
-                        $blockQuery = \craft\elements\MatrixBlock::find();
-                        $enclosureBlocks = $blockQuery->fieldId($enclosureField->id)->owner($episode)->type($enclosureBlockTypeHandle)->all();
-                    } elseif (get_class($enclosureField) == SuperTableField::class) {
-                        $blockQuery = SuperTableBlockElement::find();
-                        $enclosureBlocks = $blockQuery->fieldId($enclosureField->id)->owner($episode)->all();
+                        $blockQuery = Entry::find();
+                        $enclosureBlocks = $blockQuery->fieldId($enclosureField->id)->owner($episode)->type($enclosureEntryTypeHandle)->all();
                     }
                     foreach ($enclosureBlocks as $enclosureBlock) {
                         $type = false;
@@ -2092,7 +2062,7 @@ class PodcastsController extends Controller
                 }
 
                 // Episode Location
-                list($locationField, $locationBlockTypeHandle) = GeneralHelper::getFieldDefinition('episodeLocation');
+                list($locationField, $locationEntryTypeHandle) = GeneralHelper::getFieldDefinition('episodeLocation');
                 if ($locationField) {
                     $locationFieldHandle = $locationField->handle;
                     if (get_class($locationField) == PlainText::class) {
@@ -2137,15 +2107,10 @@ class PodcastsController extends Controller
                             }
                             $xmlItem->appendChild($xmlLocation);
                         }
-                    } elseif (get_class($locationField) == Matrix::class || get_class($locationField) == SuperTableField::class) {
+                    } elseif (get_class($locationField) == Matrix::class) {
                         $locationBlocks = [];
-                        if (get_class($locationField) == Matrix::class) {
-                            $blockQuery = \craft\elements\MatrixBlock::find();
-                            $locationBlocks = $blockQuery->fieldId($locationField->id)->owner($episode)->type($locationBlockTypeHandle)->all();
-                        } elseif (get_class($locationField) == SuperTableField::class) {
-                            $blockQuery = SuperTableBlockElement::find();
-                            $locationBlocks = $blockQuery->fieldId($locationField->id)->owner($episode)->all();
-                        }
+                        $blockQuery = Entry::find();
+                        $locationBlocks = $blockQuery->fieldId($locationField->id)->owner($episode)->type($locationEntryTypeHandle)->all();
                         foreach ($locationBlocks as $locationBlock) {
                             if (isset($locationBlock->location) && $locationBlock->location) {
                                 if (is_object($locationBlock->location) && get_class($locationBlock->location) == EasyAddressFieldModel::class) {
@@ -2181,15 +2146,12 @@ class PodcastsController extends Controller
                 $valueTimeSplits = [];
 
                 // Episode soundbite
-                list($soundbiteField, $soundbiteBlockTypeHandle) = GeneralHelper::getFieldDefinition('soundbite');
+                list($soundbiteField, $soundbiteEntryTypeHandle) = GeneralHelper::getFieldDefinition('soundbite');
                 if ($soundbiteField) {
                     $soundbiteBlocks = [];
                     if (get_class($soundbiteField) == Matrix::class) {
-                        $blockQuery = \craft\elements\MatrixBlock::find();
-                        $soundbiteBlocks = $blockQuery->fieldId($soundbiteField->id)->owner($episode)->type($soundbiteBlockTypeHandle)->all();
-                    } elseif (get_class($soundbiteField) == SuperTableField::class) {
-                        $blockQuery = SuperTableBlockElement::find();
-                        $soundbiteBlocks = $blockQuery->fieldId($soundbiteField->id)->owner($episode)->all();
+                        $blockQuery = Entry::find();
+                        $soundbiteBlocks = $blockQuery->fieldId($soundbiteField->id)->owner($episode)->type($soundbiteEntryTypeHandle)->all();
                     }
                     foreach ($soundbiteBlocks as $soundbiteBlock) {
                         if (isset($soundbiteBlock->startTime) && isset($soundbiteBlock->duration) && $soundbiteBlock->duration) {
@@ -2242,7 +2204,7 @@ class PodcastsController extends Controller
                                 //
                             }
                             $xmlPodcastValueRecipientItem = null;
-                            if (isset($soundbiteBlock->recipient) && get_class($soundbiteBlock->recipient) == SuperTableBlockQuery::class) {
+                            if (isset($soundbiteBlock->recipient) && get_class($soundbiteBlock->recipient) == EntryQuery::class) {
                                 $recipients = $soundbiteBlock->recipient->all();
                                 foreach ($recipients as $valueBlock) {
                                     $recipientsArray = [];
@@ -2323,14 +2285,11 @@ class PodcastsController extends Controller
                 }
 
                 // Episode chapter
-                list($chapterField, $chapterBlockTypeHandle) = GeneralHelper::getFieldDefinition('chapter');
+                list($chapterField, $chapterEntryTypeHandle) = GeneralHelper::getFieldDefinition('chapter');
                 if ($chapterField) {
                     if (get_class($chapterField) == Matrix::class) {
-                        $blockQuery = \craft\elements\MatrixBlock::find();
-                        $chapterBlock = $blockQuery->fieldId($chapterField->id)->owner($episode)->type($chapterBlockTypeHandle)->one();
-                    } elseif (get_class($chapterField) == SuperTableField::class) {
-                        $blockQuery = SuperTableBlockElement::find();
-                        $chapterBlock = $blockQuery->fieldId($chapterField->id)->owner($episode)->one();
+                        $blockQuery = Entry::find();
+                        $chapterBlock = $blockQuery->fieldId($chapterField->id)->owner($episode)->type($chapterEntryTypeHandle)->one();
                     }
                     if (isset($chapterBlock)) {
                         $chapterUrl = $site->getBaseUrl() . 'episodes/chapter?episodeId=' . $episode->id . '&site=' . $site->handle;
@@ -2346,8 +2305,8 @@ class PodcastsController extends Controller
                             foreach ($chapters as $key => $chapter) {
                                 $xmlPodcastValueRemoteItem = null;
                                 $xmlPodcastValueRecipientItem = null;
-                                // if this is related to super table or specified matrix block type
-                                if (is_null($chapter->type->handle) || $chapter->type->handle == $chapterBlockTypeHandle) {
+                                // if this is related to specified matrix block type
+                                if (is_null($chapter->type->handle) || $chapter->type->handle == $chapterEntryTypeHandle) {
                                     // Start time and duration -endtime- are required for value time split
                                     if ($chapter->startTime === null || $chapter->endTime === null) {
                                         continue;
@@ -2394,7 +2353,7 @@ class PodcastsController extends Controller
                                         }
                                     }
                                     //
-                                    if (isset($chapter->recipient) && get_class($chapter->recipient) == SuperTableBlockQuery::class) {
+                                    if (isset($chapter->recipient) && get_class($chapter->recipient) == EntryQuery::class) {
                                         $recipients = $chapter->recipient->all();
                                         foreach ($recipients as $valueBlock) {
                                             $recipientsArray = [];
@@ -2477,7 +2436,7 @@ class PodcastsController extends Controller
                 }
 
                 // Episode License
-                list($licenseField, $licenseBlockTypeHandle) = GeneralHelper::getFieldDefinition('episodeLicense');
+                list($licenseField, $licenseEntryTypeHandle) = GeneralHelper::getFieldDefinition('episodeLicense');
                 if ($licenseField) {
                     $licenseFieldHandle = $licenseField->handle;
                     if (get_class($licenseField) == PlainText::class) {
@@ -2514,15 +2473,10 @@ class PodcastsController extends Controller
                                 break;
                             }
                         }
-                    } elseif (get_class($licenseField) == Matrix::class || get_class($licenseField) == SuperTableField::class) {
+                    } elseif (get_class($licenseField) == Matrix::class) {
                         $licenseBlocks = [];
-                        if (get_class($licenseField) == Matrix::class) {
-                            $blockQuery = \craft\elements\MatrixBlock::find();
-                            $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($episode)->type($licenseBlockTypeHandle)->all();
-                        } elseif (get_class($licenseField) == SuperTableField::class) {
-                            $blockQuery = SuperTableBlockElement::find();
-                            $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($episode)->all();
-                        }
+                        $blockQuery = Entry::find();
+                        $licenseBlocks = $blockQuery->fieldId($licenseField->id)->owner($episode)->type($licenseEntryTypeHandle)->all();
                         foreach ($licenseBlocks as $licenseBlock) {
                             if (isset($licenseBlock->licenseTitle) && $licenseBlock->licenseTitle) {
                                 $xmlLicense = $xml->createElement("podcast:license", htmlspecialchars($licenseBlock->licenseTitle, ENT_QUOTES | ENT_XML1, 'UTF-8'));
@@ -2544,7 +2498,7 @@ class PodcastsController extends Controller
                 }
 
                 // podcast:person for episodes
-                list($personField, $personBlockTypeHandle) = GeneralHelper::getFieldDefinition('episodePerson');
+                list($personField, $personEntryTypeHandle) = GeneralHelper::getFieldDefinition('episodePerson');
                 if ($personField) {
                     $personFieldHandle = $personField->handle;
                     if (get_class($personField) == PlainText::class) {
@@ -2573,15 +2527,10 @@ class PodcastsController extends Controller
                                 }
                             }
                         }
-                    } elseif (get_class($personField) == Matrix::class || get_class($personField) == SuperTableField::class) {
+                    } elseif (get_class($personField) == Matrix::class) {
                         $personBlocks = [];
-                        if (get_class($personField) == Matrix::class) {
-                            $blockQuery = \craft\elements\MatrixBlock::find();
-                            $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->type($personBlockTypeHandle)->all();
-                        } elseif (get_class($personField) == SuperTableField::class) {
-                            $blockQuery = SuperTableBlockElement::find();
-                            $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->all();
-                        }
+                        $blockQuery = Entry::find();
+                        $personBlocks = $blockQuery->fieldId($personField->id)->owner($episode)->type($personEntryTypeHandle)->all();
                         foreach ($personBlocks as $personBlock) {
                             $personsArray = [];
                             if (isset($personBlock->userPerson) && get_class($personBlock->userPerson) == UserQuery::class && $personBlock->userPerson->one()) {
@@ -2723,7 +2672,7 @@ class PodcastsController extends Controller
                 }
 
                 // Episode transcript
-                list($transcriptField, $transcriptBlockTypeHandle) = GeneralHelper::getFieldDefinition('transcript');
+                list($transcriptField, $transcriptEntryTypeHandle) = GeneralHelper::getFieldDefinition('transcript');
                 if ($transcriptField) {
                     $transcriptFieldHandle = $transcriptField->handle;
                     if ((get_class($transcriptField) == Checkboxes::class || get_class($transcriptField) == MultiSelect::class) && isset($episode->$transcriptFieldHandle)) {
@@ -2796,15 +2745,10 @@ class PodcastsController extends Controller
                                 $xmlItem->appendChild($xmlTranscript);
                             }
                         }
-                    } elseif (get_class($transcriptField) == Matrix::class || get_class($transcriptField) == SuperTableField::class) {
+                    } elseif (get_class($transcriptField) == Matrix::class) {
                         $transcriptBlocks = [];
-                        if (get_class($transcriptField) == Matrix::class) {
-                            $blockQuery = \craft\elements\MatrixBlock::find();
-                            $transcriptBlocks = $blockQuery->fieldId($transcriptField->id)->owner($episode)->type($transcriptBlockTypeHandle)->all();
-                        } elseif (get_class($transcriptField) == SuperTableField::class) {
-                            $blockQuery = SuperTableBlockElement::find();
-                            $transcriptBlocks = $blockQuery->fieldId($transcriptField->id)->owner($episode)->all();
-                        }
+                        $blockQuery = Entry::find();
+                        $transcriptBlocks = $blockQuery->fieldId($transcriptField->id)->owner($episode)->type($transcriptEntryTypeHandle)->all();
                         foreach ($transcriptBlocks as $transcriptBlock) {
                             $xmlTranscript = null;
                             if (isset($transcriptBlock->transcript) && $transcriptBlock->transcript) {
@@ -2901,7 +2845,7 @@ class PodcastsController extends Controller
                 }
 
                 // podcast:value for episode
-                list($valueField, $valueBlockTypeHandle) = GeneralHelper::getFieldDefinition('episodeValue');
+                list($valueField,) = GeneralHelper::getFieldDefinition('episodeValue');
                 if ($valueField) {
                     $xmlPodcastRecipient = null;
                     $valueFieldHandle = $valueField->handle;
@@ -2915,8 +2859,8 @@ class PodcastsController extends Controller
                                 $xmlPodcastValue->setAttribute("suggested", htmlspecialchars($value4value->valueSuggested, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                             }
                             $recipientField = Craft::$app->fields->getFieldByHandle('recipient');
-                            if (isset($value4value->recipient) && get_class($value4value->recipient) == MatrixBlockQuery::class) {
-                                $blockQuery = \craft\elements\MatrixBlock::find();
+                            if (isset($value4value->recipient) && get_class($value4value->recipient) == EntryQuery::class) {
+                                $blockQuery = Entry::find();
                                 $value4valueEntry = $episode->$valueFieldHandle->one();
                                 $valueBlocks = $blockQuery->fieldId($recipientField->id)->owner($value4valueEntry)->type('recipient')->all();
                                 // Local Recipients
@@ -3058,7 +3002,7 @@ class PodcastsController extends Controller
                                         $xmlPodcastValueTimeSplit->setAttribute("startTime", htmlspecialchars($valueBlock->startTime, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         $xmlPodcastValueTimeSplit->setAttribute("duration", htmlspecialchars((string)$valueBlock->duration, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                                         //
-                                        if (isset($valueBlock->recipient) && get_class($valueBlock->recipient) == SuperTableBlockQuery::class) {
+                                        if (isset($valueBlock->recipient) && get_class($valueBlock->recipient) == EntryQuery::class) {
                                             $recipientRecords = $valueBlock->recipient->all();
                                             foreach ($recipientRecords as $recipientRecord) {
                                                 $recipientsArray = [];

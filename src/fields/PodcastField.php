@@ -22,6 +22,14 @@ class PodcastField extends BaseRelationField
     /**
      * @inheritdoc
      */
+    public static function icon(): string
+    {
+        return 'podcast';
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function displayName(): string
     {
         return Craft::t('studio', 'Podcasts');

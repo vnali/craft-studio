@@ -21,7 +21,6 @@ use craft\fields\Tags;
 use craft\fs\Local;
 use craft\helpers\Assets;
 use craft\helpers\Db;
-use verbb\supertable\SuperTable;
 
 use vnali\studio\models\Settings;
 use vnali\studio\Studio;
@@ -31,7 +30,7 @@ use yii\web\ServerErrorHttpException;
 class GeneralHelper
 {
     /**
-     * Get Matrix and super tables.
+     * General Helper class
      *
      * @param mixed $fieldLayout
      * @param string $containerTypes
@@ -42,7 +41,7 @@ class GeneralHelper
 
     public static function containers($fieldLayout, string $containerTypes = 'all',  string $item = null, bool $onlyContainer = true): array
     {
-        $containers = [['value' => '', 'label' => craft::t('studio', 'Select one container (Matrix/SuperTable)')]];
+        $containers = [['value' => '', 'label' => craft::t('studio', 'Select one container (Matrix)')]];
         switch ($item) {
             case 'podcast':
                 $fields = $fieldLayout->getCustomFields();
@@ -65,23 +64,12 @@ class GeneralHelper
                     }
                 }
             }
-            /** @phpstan-ignore-next-line */
-            if (($containerTypes == 'all' || $containerTypes == 'verbb\\supertable\\fields\\SuperTableField') && get_class($field) == 'verbb\\supertable\\fields\\SuperTableField') {
-                if ($onlyContainer) {
-                    $containers[] = ['value' => $field->handle, 'label' => $field->name];
-                } else {
-                    $types = GeneralHelper::getContainerInside($field);
-                    foreach ($types as $type) {
-                        $containers[] = $type;
-                    }
-                }
-            }
         }
         return $containers;
     }
 
     /**
-     * Get matrix and super inside, blocks and tables.
+     * Get matrix, nested entries and tables.
      *
      * @return array
      */
@@ -89,27 +77,13 @@ class GeneralHelper
     {
         $containers = [];
         if (get_class($field) == 'craft\fields\Matrix') {
-            $blockTypes = Craft::$app->matrix->getBlockTypesByFieldId($field->id);
-            foreach ($blockTypes as $blockType) {
-                $containers[] = ['value' => $field->handle . '-Matrix|' . $blockType->handle . '-BlockType', 'label' => $field->name . '(M) | ' . $blockType->name . '(BT)'];
-                $blockTypeFields = $blockType->getCustomFields();
-                foreach ($blockTypeFields as $blockTypeField) {
-                    if (get_class($blockTypeField) == 'craft\fields\Table') {
-                        $containers[] = ['value' => $field->handle . '-Matrix|' . $blockType->handle . '-BlockType|' . $blockTypeField->handle . '-Table', 'label' => $field->name . '(M) | ' . $blockType->name . '(BT) | ' . $blockTypeField->name . ' (T)'];
-                    }
-                }
-            }
-            /** @phpstan-ignore-next-line */
-        } elseif (get_class($field) == 'verbb\supertable\fields\SuperTableField') {
-            if (class_exists('verbb\supertable\SuperTable')) {
-                $blockTypes = SuperTable::$plugin->service->getBlockTypesByFieldId($field->id);
-                foreach ($blockTypes as $blockType) {
-                    $blockTypeFields = $blockType->getCustomFields();
-                    $containers[] = ['value' => $field->handle . '-SuperTable|', 'label' => $field->name . '(ST)'];
-                    foreach ($blockTypeFields as $blockTypeField) {
-                        if (get_class($blockTypeField) == 'craft\fields\Table') {
-                            $containers[] = ['value' => $field->handle . '-SuperTable|' . $blockTypeField->handle . '-Table', 'label' => $field->name . '(ST) | ' . $blockTypeField->name . ' (T)'];
-                        }
+            $entryTypes = $field->getEntryTypes();
+            foreach ($entryTypes as $entryType) {
+                $containers[] = ['value' => $field->handle . '-Matrix|' . $entryType->handle . '-EntryType', 'label' => $field->name . '(M) | ' . $entryType->name . '(ET)'];
+                $entryTypeFields = $entryType->getCustomFields();
+                foreach ($entryTypeFields as $entryTypeField) {
+                    if (get_class($entryTypeField) == 'craft\fields\Table') {
+                        $containers[] = ['value' => $field->handle . '-Matrix|' . $entryType->handle . '-EntryType|' . $entryTypeField->handle . '-Table', 'label' => $field->name . '(M) | ' . $entryType->name . '(ET) | ' . $entryTypeField->name . ' (T)'];
                     }
                 }
             }
@@ -206,29 +180,30 @@ class GeneralHelper
                 }
             }
 
-            if ($container0Type == 'Matrix' && $container1Type == 'BlockType') {
+            if ($container0Type == 'Matrix' && $container1Type == 'EntryType') {
                 $matrixField = Craft::$app->fields->getFieldByHandle($container0Handle);
                 if ($matrixField) {
-                    $matrixBlockTypes = Craft::$app->matrix->getBlockTypesByFieldId($matrixField->id);
-                    foreach ($matrixBlockTypes as $key => $matrixBlockType) {
-                        if ($matrixBlockType->handle == $container1Handle) {
-                            $blockTypeFields = $matrixBlockType->getCustomFields();
-                            foreach ($blockTypeFields as $blockTypeField) {
+                    /** @var Matrix $matrixField */
+                    $entryTypes = $matrixField->getEntryTypes();
+                    foreach ($entryTypes as $key => $entryType) {
+                        if ($entryType->handle == $container1Handle) {
+                            $entryTypeFields = $entryType->getCustomFields();
+                            foreach ($entryTypeFields as $entryTypeField) {
                                 if (!$container2Type) {
                                     if ($fieldType) {
-                                        if (get_class($blockTypeField) != $fieldType) {
+                                        if (get_class($entryTypeField) != $fieldType) {
                                             continue;
                                         }
                                     }
                                     if ($fieldHandle) {
-                                        if ($blockTypeField->handle != $fieldHandle) {
+                                        if ($entryTypeField->handle != $fieldHandle) {
                                             continue;
                                         }
                                     }
-                                    $fieldsArray[] = ['type' => 'field', 'field' => $blockTypeField, 'value' => $blockTypeField->uid, 'label' => $blockTypeField->name];
+                                    $fieldsArray[] = ['type' => 'field', 'field' => $entryTypeField, 'value' => $entryTypeField->uid, 'label' => $entryTypeField->name];
                                 } elseif ($container2Type == 'Table') {
-                                    if (get_class($blockTypeField) == 'craft\fields\Table' && $blockTypeField->handle == $container2Handle) {
-                                        foreach ($blockTypeField->columns as $key => $tableColumn) {
+                                    if (get_class($entryTypeField) == 'craft\fields\Table' && $entryTypeField->handle == $container2Handle) {
+                                        foreach ($entryTypeField->columns as $key => $tableColumn) {
                                             if ($fieldType) {
                                                 if ($tableColumn['type'] != TableHelper::fieldType2ColumnType($fieldType)) {
                                                     continue;
@@ -274,57 +249,6 @@ class GeneralHelper
                         break;
                     }
                 }
-            } elseif ($container0Type == 'SuperTable') {
-                $superTableField = Craft::$app->fields->getFieldByHandle($container0Handle);
-                if ($superTableField) {
-                    $blocks = SuperTable::$plugin->service->getBlockTypesByFieldId($superTableField->id);
-                    if (isset($blocks[0])) {
-                        $fieldLayout = $blocks[0]->getFieldLayout();
-                        $superTableFields = $fieldLayout->getCustomFields();
-                        foreach ($superTableFields as $key => $fieldItem) {
-                            if ($container1Type == 'Table') {
-                                if (get_class($fieldItem) == 'craft\fields\Table' && $fieldItem->handle == $container1Handle) {
-                                    foreach ($fieldItem->columns as $key => $field) {
-                                        if ($fieldType) {
-                                            if ($field['type'] != TableHelper::fieldType2ColumnType($fieldType)) {
-                                                continue;
-                                            }
-                                        }
-                                        if ($fieldHandle) {
-                                            if ($field['handle'] != $fieldHandle) {
-                                                continue;
-                                            }
-                                        }
-                                        if (!empty($field['handle'])) {
-                                            $fieldsArray[] = ['type' => 'column', 'table' => $fieldItem, 'column' => $field, 'value' => $field['handle'], 'label' => $field['handle']];
-                                        }
-                                    }
-                                    break;
-                                }
-                            } else {
-                                if ($fieldHandle) {
-                                    if ($fieldItem->handle == $fieldHandle) {
-                                        if ($fieldType) {
-                                            if (get_class($fieldItem) == $fieldType) {
-                                                $fieldsArray[] = ['type' => 'field', 'field' => $fieldItem, 'value' => $fieldItem->uid, 'label' => $fieldItem->name];
-                                            }
-                                        } else {
-                                            $fieldsArray[] = ['type' => 'field', 'field' => $fieldItem, 'value' => $fieldItem->uid, 'label' => $fieldItem->name];
-                                        }
-                                    }
-                                } else {
-                                    if ($fieldType) {
-                                        if (get_class($fieldItem) == $fieldType) {
-                                            $fieldsArray[] = ['type' => 'field', 'field' => $fieldItem, 'value' => $fieldItem->uid, 'label' => $fieldItem->name];
-                                        }
-                                    } else {
-                                        $fieldsArray[] = ['type' => 'field', 'field' => $fieldItem, 'value' => $fieldItem->uid, 'label' => $fieldItem->name];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
         return $fieldsArray;
@@ -351,14 +275,14 @@ class GeneralHelper
                         if ($assetId) {
                             $asset = Craft::$app->getAssets()->getAssetById($assetId);
                             $vol = $asset->getVolume();
+                            $subPath = $vol->getSubpath();
                             $fs = $vol->getFs();
-                            $volumeUrl = $fs->url;
                             $folderPath = $asset->getFolder()->path;
                             $assetFilename = $asset->filename;
                             if ($fs instanceof LocalFsInterface) {
                                 /** @var Local $fs */
                                 $volumePath = $fs->path;
-                                $assetFilePath = Craft::getAlias($volumePath) . '/' . $folderPath . $assetFilename;
+                                $assetFilePath = Craft::getAlias($volumePath) . '/' . $subPath . $folderPath . $assetFilename;
                             }
                             $assetFileUrl = $asset->getUrl();
                         }
@@ -391,7 +315,7 @@ class GeneralHelper
             }
 
             if ($container0Handle) {
-                if ($container0Type == 'Matrix' && $container1Type == 'BlockType' && $container1Handle) {
+                if ($container0Type == 'Matrix' && $container1Type == 'EntryType' && $container1Handle) {
                     if (isset($element->{$container0Handle})) {
                         $elementMatrixQuery = $element->{$container0Handle};
                         $elementMatrixBlocks = $elementMatrixQuery->all();
@@ -406,7 +330,6 @@ class GeneralHelper
                                             $asset = Craft::$app->assets->getAssetById($assetId);
                                             $vol = $asset->getVolume();
                                             $fs = $vol->getFs();
-                                            $volumeUrl = $fs->url;
                                             $folderPath = $asset->getFolder()->path;
                                             $assetFilename = $asset->filename;
                                             if ($fs instanceof LocalFsInterface) {
@@ -421,40 +344,6 @@ class GeneralHelper
                                     }
                                 } else {
                                     $assetFileUrl = $matrixBlockField;
-                                }
-                            }
-                        }
-                    }
-                } elseif ($container0Type == 'SuperTable') {
-                    if (isset($element->{$container0Handle})) {
-                        $elementSTQuery = $element->{$container0Handle};
-                        $elementSTBlocks = $elementSTQuery->all();
-                        foreach ($elementSTBlocks as $key => $elementSTBlock) {
-                            if (isset($elementSTBlock->{$fieldHandle})) {
-                                $elementBlockField = $elementSTBlock->{$fieldHandle};
-                                if (is_object($elementBlockField) && get_class($elementBlockField) == 'craft\elements\db\AssetQuery') {
-                                    $elementItem = $elementBlockField->all();
-                                    if (isset($elementItem[0])) {
-                                        $assetId = $elementItem[0]->id;
-                                        if ($assetId) {
-                                            $asset = Craft::$app->assets->getAssetById($assetId);
-                                            $vol = $asset->getVolume();
-                                            $fs = $vol->getFs();
-                                            $volumeUrl = $fs->url;
-                                            $folderPath = $asset->getFolder()->path;
-                                            $assetFilename = $asset->filename;
-                                            if ($fs instanceof LocalFsInterface) {
-                                                /** @var Local $fs */
-                                                $volumePath = $fs->path;
-                                                $assetFilePath = Craft::getAlias($volumePath) . '/' . $folderPath . $assetFilename;
-                                            }
-                                            $assetFileUrl = Craft::getAlias($volumeUrl) . '/' . $folderPath . $assetFilename;
-                                            $blockId = $elementSTBlock->id;
-                                            break;
-                                        }
-                                    }
-                                } else {
-                                    $assetFileUrl = $elementBlockField;
                                 }
                             }
                         }
@@ -493,12 +382,12 @@ class GeneralHelper
                 } elseif ($genreFieldType == Entries::class) {
                     if ($genreField->sources == '*') {
                         // select one Source
-                        $sections = Craft::$app->sections->getEditableSections();
+                        $sections = Craft::$app->entries->getEditableSections();
                         $genreFieldGroup = $sections[0];
                     } elseif (is_array($genreField->sources)) {
                         $source = $genreField->sources[0];
                         $sources = explode(':', $source);
-                        $genreFieldGroup = Craft::$app->sections->getSectionByUid($sources[1]);
+                        $genreFieldGroup = Craft::$app->entries->getSectionByUid($sources[1]);
                     } else {
                         throw new ServerErrorHttpException('sources for entries not accepted');
                     }
@@ -535,12 +424,12 @@ class GeneralHelper
                 } elseif ($keywordFieldType == Entries::class) {
                     if ($keywordField->sources == '*') {
                         // select one Source
-                        $sections = Craft::$app->sections->getEditableSections();
+                        $sections = Craft::$app->entries->getEditableSections();
                         $keywordFieldGroup = $sections[0];
                     } elseif (is_array($keywordField->sources)) {
                         $source = $keywordField->sources[0];
                         $sources = explode(':', $source);
-                        $keywordFieldGroup = Craft::$app->sections->getSectionByUid($sources[1]);
+                        $keywordFieldGroup = Craft::$app->entries->getSectionByUid($sources[1]);
                     } else {
                         throw new ServerErrorHttpException('sources for entries not accepted');
                     }
@@ -582,12 +471,12 @@ class GeneralHelper
                 } elseif (get_class($categoryField) == Entries::class) {
                     if ($categoryField->sources == '*') {
                         // select one Source
-                        $sections = Craft::$app->sections->getEditableSections();
+                        $sections = Craft::$app->entries->getEditableSections();
                         $categoryGroup = $sections[0];
                     } elseif (is_array($categoryField->sources)) {
                         $source = $categoryField->sources[0];
                         $sources = explode(':', $source);
-                        $categoryGroup = Craft::$app->sections->getSectionByUid($sources[1]);
+                        $categoryGroup = Craft::$app->entries->getSectionByUid($sources[1]);
                     } else {
                         throw new ServerErrorHttpException('sources for entries not accepted');
                     }
@@ -706,15 +595,10 @@ class GeneralHelper
                     }
                 }
 
-                $itemBlockType = null;
+                $itemEntryType = null;
                 if ($container0Handle) {
-                    if ($container0Type && ($container0Type === 'SuperTable')) {
-                        $superTableField = Craft::$app->fields->getFieldByHandle($container0Handle);
-                        $blockTypes = SuperTable::$plugin->getService()->getBlockTypesByFieldId($superTableField->id);
-                        $blockType = $blockTypes[0];
-                        $itemBlockType = $blockType->id;
-                    } elseif ($container0Type) {
-                        $itemBlockType = $container1Handle;
+                    if ($container0Type) {
+                        $itemEntryType = $container1Handle;
                     }
                     $field = Craft::$app->fields->getFieldByHandle($container0Handle);
                     $existingMatrixQuery = $element->getFieldValue($container0Handle);
@@ -728,7 +612,7 @@ class GeneralHelper
                     } else {
                         $sortOrder[] = 'new:1';
                         $newBlock = [
-                            'type' => $itemBlockType,
+                            'type' => $itemEntryType,
                             'fields' => [
                                 $fileField->handle => [$fileId],
                             ],
@@ -824,7 +708,7 @@ class GeneralHelper
                     if (!$itemCheck && !$entry) {
                         $entry = new Entry();
                         $entry->sectionId = $fieldGroupId;
-                        $entryTypes = Craft::$app->sections->getEntryTypesBySectionId($fieldGroupId);
+                        $entryTypes = Craft::$app->entries->getEntryTypesBySectionId($fieldGroupId);
                         $entry->typeId = $entryTypes[0]->id;
                         $entry->title = $keyword;
                         Craft::$app->getElements()->saveElement($entry);
@@ -898,63 +782,63 @@ class GeneralHelper
     public static function getFieldDefinition(string $fieldItem): array
     {
         $field = null;
-        $blockTypeHandle = null;
+        $entryTypeHandle = null;
         switch ($fieldItem) {
             case 'chapter':
                 $defaultHandle = 'episodeChapter';
                 $defaultHandle2 = 'episodeData';
-                $defaultBlockType = 'chapter';
+                $defaultEntryType = 'chapter';
                 $handleAttribute = 'chapterField';
-                $blockTypeAttribute = 'chapterBlockType';
+                $entryTypeAttribute = 'chapterEntryType';
                 break;
             case 'soundbite':
                 $defaultHandle = 'episodeSoundbite';
                 $defaultHandle2 = 'episodeData';
-                $defaultBlockType = 'soundbite';
+                $defaultEntryType = 'soundbite';
                 $handleAttribute = 'soundbiteField';
-                $blockTypeAttribute = 'soundbiteBlockType';
+                $entryTypeAttribute = 'soundbiteEntryType';
                 break;
             case 'funding':
                 $defaultHandle = 'podcastFunding';
                 $defaultHandle2 = 'podcastData';
-                $defaultBlockType = 'funding';
+                $defaultEntryType = 'funding';
                 $handleAttribute = 'fundingField';
-                $blockTypeAttribute = 'fundingBlockType';
+                $entryTypeAttribute = 'fundingEntryType';
                 break;
             case 'podcastLicense':
                 $defaultHandle = 'podcastLicense';
                 $defaultHandle2 = 'podcastData';
-                $defaultBlockType = 'license';
+                $defaultEntryType = 'license';
                 $handleAttribute = 'podcastLicenseField';
-                $blockTypeAttribute = 'podcastLicenseBlockType';
+                $entryTypeAttribute = 'podcastLicenseEntryType';
                 break;
             case 'episodeLicense':
                 $defaultHandle = 'episodeLicense';
                 $defaultHandle2 = 'episodeData';
-                $defaultBlockType = 'license';
+                $defaultEntryType = 'license';
                 $handleAttribute = 'episodeLicenseField';
-                $blockTypeAttribute = 'episodeLicenseBlockType';
+                $entryTypeAttribute = 'episodeLicenseEntryType';
                 break;
             case 'podcastPerson':
                 $defaultHandle = 'podcastPerson';
                 $defaultHandle2 = 'podcastData';
-                $defaultBlockType = 'person';
+                $defaultEntryType = 'person';
                 $handleAttribute = 'podcastPersonField';
-                $blockTypeAttribute = 'podcastPersonBlockType';
+                $entryTypeAttribute = 'podcastPersonEntryType';
                 break;
             case 'episodePerson':
                 $defaultHandle = 'episodePerson';
                 $defaultHandle2 = 'episodeData';
-                $defaultBlockType = 'person';
+                $defaultEntryType = 'person';
                 $handleAttribute = 'episodePersonField';
-                $blockTypeAttribute = 'episodePersonBlockType';
+                $entryTypeAttribute = 'episodePersonEntryType';
                 break;
             case 'transcript':
                 $defaultHandle = 'episodeTranscript';
                 $defaultHandle2 = 'episodeData';
-                $defaultBlockType = 'transcript';
+                $defaultEntryType = 'transcript';
                 $handleAttribute = 'transcriptField';
-                $blockTypeAttribute = 'transcriptBlockType';
+                $entryTypeAttribute = 'transcriptEntryType';
                 break;
             case 'transcriptText':
                 $defaultHandle = 'transcriptText';
@@ -963,37 +847,37 @@ class GeneralHelper
             case 'trailer':
                 $defaultHandle = 'podcastTrailer';
                 $defaultHandle2 = 'podcastData';
-                $defaultBlockType = 'trailer';
+                $defaultEntryType = 'trailer';
                 $handleAttribute = 'trailerField';
-                $blockTypeAttribute = 'trailerBlockType';
+                $entryTypeAttribute = 'trailerEntryType';
                 break;
             case 'enclosure':
                 $defaultHandle = 'episodeEnclosure';
                 $defaultHandle2 = 'episodeData';
-                $defaultBlockType = 'enclosure';
+                $defaultEntryType = 'enclosure';
                 $handleAttribute = 'enclosureField';
-                $blockTypeAttribute = 'enclosureBlockType';
+                $entryTypeAttribute = 'enclosureEntryType';
                 break;
             case 'podcastLocation':
                 $defaultHandle = 'podcastLocation';
                 $defaultHandle2 = 'podcastData';
-                $defaultBlockType = 'location';
+                $defaultEntryType = 'location';
                 $handleAttribute = 'podcastLocationField';
-                $blockTypeAttribute = 'podcastLocationBlockType';
+                $entryTypeAttribute = 'podcastLocationEntryType';
                 break;
             case 'episodeLocation':
                 $defaultHandle = 'episodeLocation';
                 $defaultHandle2 = 'episodeData';
-                $defaultBlockType = 'location';
+                $defaultEntryType = 'location';
                 $handleAttribute = 'episodeLocationField';
-                $blockTypeAttribute = 'episodeLocationBlockType';
+                $entryTypeAttribute = 'episodeLocationEntryType';
                 break;
             case 'liveItem':
                 $defaultHandle = 'podcastLiveItem';
                 $defaultHandle2 = 'podcastData';
-                $defaultBlockType = 'liveItem';
+                $defaultEntryType = 'liveItem';
                 $handleAttribute = 'liveItemField';
-                $blockTypeAttribute = 'liveItemBlockType';
+                $entryTypeAttribute = 'liveItemEntryType';
                 break;
             case 'socialInteract':
                 $defaultHandle = 'episodeSocialInteract';
@@ -1010,23 +894,23 @@ class GeneralHelper
             case 'podcastValue':
                 $defaultHandle = 'podcastValue';
                 $defaultHandle2 = 'podcastData';
-                $defaultBlockType = 'value';
+                $defaultEntryType = 'value';
                 $handleAttribute = 'podcastValueField';
-                $blockTypeAttribute = 'podcastValueBlockType';
+                $entryTypeAttribute = 'podcastValueEntryType';
                 break;
             case 'episodeValue':
                 $defaultHandle = 'episodeValue';
                 $defaultHandle2 = 'episodeData';
-                $defaultBlockType = 'value';
+                $defaultEntryType = 'value';
                 $handleAttribute = 'episodeValueField';
-                $blockTypeAttribute = 'episodeValueBlockType';
+                $entryTypeAttribute = 'episodeValueEntryType';
                 break;
             case 'podroll':
                 $defaultHandle = 'podcastPodroll';
                 $handleAttribute = 'podrollField';
                 break;
             default:
-                return array($field, $blockTypeHandle);
+                return array($field, $entryTypeHandle);
         }
         // First try to get specified field from plugin config
         /** @var Settings $settings */
@@ -1035,7 +919,7 @@ class GeneralHelper
             $fieldHandle = $settings->$handleAttribute;
             $field = Craft::$app->fields->getFieldByHandle($fieldHandle);
             if (!$field) {
-                return array($field, $blockTypeHandle);
+                return array($field, $entryTypeHandle);
             }
         }
         // If field is not found based on handle specified on plugin config, try to get based on default handle
@@ -1049,15 +933,15 @@ class GeneralHelper
                 }
             }
         }
-        // If field is a matrix, search for block type specified on config file. If not use default block type handle
+        // If field is a matrix, search for entry type specified on config file. If not use default entry type handle
         if ($field && get_class($field) == Matrix::class) {
-            if (isset($blockTypeAttribute) && $settings->$blockTypeAttribute) {
-                $blockTypeHandle = $settings->$blockTypeAttribute;
-            } elseif (isset($defaultBlockType)) {
-                $blockTypeHandle = $defaultBlockType;
+            if ((isset($entryTypeAttribute) && $settings->$entryTypeAttribute)) {
+                $entryTypeHandle = $settings->$entryTypeAttribute;
+            } elseif (isset($defaultEntryType)) {
+                $entryTypeHandle = $defaultEntryType;
             }
         }
-        return array($field, $blockTypeHandle);
+        return array($field, $entryTypeHandle);
     }
 
     public static function prefixUrl($url, $podcast, $siteId)

@@ -64,7 +64,7 @@ class ImportController extends Controller
         }
 
         $variables['sections'][] = ['value' => '', 'label' => Craft::t('studio', 'Select one')];
-        foreach (Craft::$app->sections->getSectionsByType('structure') as $section) {
+        foreach (Craft::$app->entries->getSectionsByType('structure') as $section) {
             $sections['value'] = $section->id;
             $sections['label'] = $section->name;
             $variables['sections'][] = $sections;
@@ -113,7 +113,7 @@ class ImportController extends Controller
             }
             $redirectTo = 'categories/index';
         } elseif ($sectionId && $entryTypeId) {
-            $section = Craft::$app->sections->getSectionById($sectionId);
+            $section = Craft::$app->entries->getSectionById($sectionId);
             $this->requirePermission("saveEntries:$section->uid");
             // Don't let import if section/entries already has categories
             $sampleEntry = Entry::find()->sectionId($sectionId)->typeId($entryTypeId)->siteId('*')->one();
@@ -207,7 +207,7 @@ class ImportController extends Controller
         }
 
         $variables['sections'][] = ['value' => '', 'label' => Craft::t('studio', 'Select one')];
-        foreach (Craft::$app->sections->getSectionsByType('structure') as $section) {
+        foreach (Craft::$app->entries->getSectionsByType('structure') as $section) {
             $sections['value'] = $section->id;
             $sections['label'] = $section->name;
             $variables['sections'][] = $sections;
@@ -240,7 +240,7 @@ class ImportController extends Controller
             return $this->redirect('studio/import/podcast-taxonomy');
         }
 
-        $section = Craft::$app->sections->getSectionById($sectionId);
+        $section = Craft::$app->entries->getSectionById($sectionId);
         $this->requirePermission("saveEntries:$section->uid");
         // Don't let import if section/entries already has categories
         $sampleEntry = Entry::find()->sectionId($sectionId)->typeId($entryTypeId)->siteId('*')->one();

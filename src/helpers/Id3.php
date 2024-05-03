@@ -139,7 +139,7 @@ class Id3
                     if (!$itemGenreCheck && !$entry) {
                         $entry = new Entry();
                         $entry->sectionId = $genreFieldGroupId;
-                        $entryTypes = Craft::$app->sections->getEntryTypesBySectionId($genreFieldGroupId);
+                        $entryTypes = Craft::$app->entries->getEntryTypesBySectionId($genreFieldGroupId);
                         $entry->typeId = $entryTypes[0]->id;
                         $entry->title = $genre;
                         Craft::$app->getElements()->saveElement($entry);

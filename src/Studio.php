@@ -89,7 +89,7 @@ class Studio extends Plugin
      */
     public static Studio $plugin;
 
-    public string $schemaVersion = '0.14.0';
+    public string $schemaVersion = '2.0.0-alpha.1';
 
     /**
      * @inheritdoc
@@ -159,7 +159,7 @@ class Studio extends Plugin
             }
         );
 
-        Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_INNER_HTML, [PodcastElement::class, 'updatePodcastElementHtml']);
+        Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_CHIP_HTML, [PodcastElement::class, 'updatePodcastElementHtml']);
 
         Event::on(
             Element::class,

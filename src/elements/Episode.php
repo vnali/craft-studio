@@ -14,11 +14,11 @@ use craft\elements\actions\Delete;
 use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\conditions\ElementConditionInterface;
+use craft\elements\db\EagerLoadPlan;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\errors\UnsupportedSiteException;
 use craft\fieldlayoutelements\CustomField;
-use craft\fields\Assets;
 use craft\helpers\Cp;
 use craft\helpers\Db;
 use craft\helpers\Html;
@@ -176,12 +176,13 @@ class Episode extends Element
     /**
      * @inheritdoc
      */
-    public function setEagerLoadedElements(string $handle, array $elements): void
+    // TODO plan
+    public function setEagerLoadedElements(string $handle, array $elements, EagerLoadPlan $plan): void
     {
         if ($handle === 'uploader') {
             $this->_uploader = $elements[0] ?? false;
         } else {
-            parent::setEagerLoadedElements($handle, $elements);
+            parent::setEagerLoadedElements($handle, $elements, $plan);
         }
     }
 
@@ -242,12 +243,12 @@ class Episode extends Element
     /**
      * @inheritdoc
      */
-    protected function tableAttributeHtml(string $attribute): string
+    protected function attributeHtml(string $attribute): string
     {
         switch ($attribute) {
             case 'uploader':
                 $uploader = $this->getUploader();
-                return $uploader ? Cp::elementHtml($uploader) : '';
+                return $uploader ? Cp::elementChipHtml($uploader) : '';
             case 'episodeBlock':
             case 'episodeExplicit':
             case 'publishOnRSS':
@@ -275,7 +276,7 @@ class Episode extends Element
             default:
                 break;
         }
-        return parent::tableAttributeHtml($attribute);
+        return parent::attributeHtml($attribute);
     }
 
     /**
@@ -1143,7 +1144,10 @@ class Episode extends Element
         return ['duration', 'episodeSeason', 'episodeNumber', 'episodeType', 'seasonName'];
     }
 
-    protected static function defineFieldLayouts(string $source): array
+    /**
+     * @inheritdoc
+     */
+    protected static function defineFieldLayouts(?string $source): array
     {
         $podcasts = [];
         if ($source === '*') {
@@ -1237,40 +1241,6 @@ class Episode extends Element
         $rules = parent::rules();
 
         return $rules;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getThumbUrl(int $size): ?string
-    {
-        $assetFileUrl = null;
-        $podcastFormatEpisode = $this->getPodcast()?->getPodcastFormatEpisode();
-
-        if ($podcastFormatEpisode) {
-            $mapping = json_decode($podcastFormatEpisode->mapping, true);
-            $fieldContainer = null;
-            $fieldHandle = null;
-            if (isset($mapping['episodeImage']['container'])) {
-                $fieldContainer = $mapping['episodeImage']['container'];
-            }
-            // Get specified field for episode image
-            if (isset($mapping['episodeImage']['field'])) {
-                $fieldUid = $mapping['episodeImage']['field'];
-                if ($fieldUid) {
-                    $field = Craft::$app->fields->getFieldByUid($fieldUid);
-                    if ($field) {
-                        $fieldHandle = $field->handle;
-                        if (get_class($field) == Assets::class) {
-                            list($assetFilename, $assetFilePath, $assetFileUrl, $asset) = GeneralHelper::getElementAsset($this, $fieldContainer, $fieldHandle);
-                        } else {
-                            $assetFileUrl = $this->{$fieldHandle};
-                        }
-                    }
-                }
-            }
-        }
-        return $assetFileUrl;
     }
 
     /**
