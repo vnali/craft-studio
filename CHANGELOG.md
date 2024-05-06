@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fixed a bug on generating RSS where field for podcast image is in a matrix field.
+- Fixed a bug where episode settings, general settings and import episodes actions were available for draft podcasts.
 
 ## 0.22.0 - 2024-04-29
 
