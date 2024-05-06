@@ -1,5 +1,9 @@
 # Release Notes for Studio plugin
 
+## Unreleased
+
+- Fixed a bug where episode settings, general settings and import episodes actions were available for draft podcasts.
+
 ## 2.0.0-alpha.1 - 2024-05-03
 
 > {warning} Please read [this announcement](https://github.com/vnali/craft-studio/discussions/27) before upgrade to Craft 5.

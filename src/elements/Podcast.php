@@ -1272,7 +1272,7 @@ class Podcast extends Element
         $context = $event->context;
         $elementHtml = $event->html;
 
-        if (($context !== 'index') || !($element instanceof self)) {
+        if (($context !== 'index') || !($element instanceof self) || $element->getIsDraft()) {
             return;
         }
 
