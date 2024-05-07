@@ -1,6 +1,6 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 2.0.0-alpha.2 - 2024-05-07
 
 - Fixed a bug where episode settings, general settings and import episodes actions were available for draft podcasts.
 
