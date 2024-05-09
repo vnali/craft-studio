@@ -1572,8 +1572,14 @@ class PodcastsController extends Controller
                         if (isset($value4value->valueSuggested) && $value4value->valueSuggested) {
                             $xmlPodcastValue->setAttribute("suggested", htmlspecialchars($value4value->valueSuggested, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                         }
-                        if (isset($value4value->recipient) && get_class($value4value->recipient) == EntryQuery::class) {
-                            $valueBlocks = $value4value->recipient->all();
+                        if ((isset($value4value->recipient) && get_class($value4value->recipient) == EntryQuery::class) ||
+                            isset($value4value->valueRecipient) && get_class($value4value->valueRecipient) == EntryQuery::class
+                        ) {
+                            if (isset($value4value->recipient) && get_class($value4value->recipient) == EntryQuery::class) {
+                                $valueBlocks = $value4value->recipient->all();
+                            } else {
+                                $valueBlocks = $value4value->valueRecipient->all();
+                            }
                             foreach ($valueBlocks as $valueBlock) {
                                 $recipientsArray = [];
                                 if (isset($valueBlock->userRecipient) && is_object($valueBlock->userRecipient) && get_class($valueBlock->userRecipient) == UserQuery::class && $valueBlock->userRecipient->one()) {
@@ -2858,12 +2864,18 @@ class PodcastsController extends Controller
                             if (isset($value4value->valueSuggested) && $value4value->valueSuggested) {
                                 $xmlPodcastValue->setAttribute("suggested", htmlspecialchars($value4value->valueSuggested, ENT_QUOTES | ENT_XML1, 'UTF-8'));
                             }
-                            $recipientField = Craft::$app->fields->getFieldByHandle('recipient');
-                            if (isset($value4value->recipient) && get_class($value4value->recipient) == EntryQuery::class) {
+                            if ((isset($value4value->recipient) && get_class($value4value->recipient) == EntryQuery::class)
+                                || isset($value4value->valueRecipient) && get_class($value4value->valueRecipient) == EntryQuery::class
+                            ) {
+                                if ((isset($value4value->recipient) && get_class($value4value->recipient) == EntryQuery::class)) {
+                                    $recipientField = Craft::$app->fields->getFieldByHandle('recipient');
+                                } else {
+                                    $recipientField = Craft::$app->fields->getFieldByHandle('valueRecipient');
+                                }
                                 $blockQuery = Entry::find();
                                 $value4valueEntry = $episode->$valueFieldHandle->one();
-                                $valueBlocks = $blockQuery->fieldId($recipientField->id)->owner($value4valueEntry)->type('recipient')->all();
                                 // Local Recipients
+                                $valueBlocks = $blockQuery->fieldId($recipientField->id)->owner($value4valueEntry)->type('recipient')->all();
                                 foreach ($valueBlocks as $valueBlock) {
                                     $recipientsArray = [];
                                     if (isset($valueBlock->userRecipient) && is_object($valueBlock->userRecipient) && get_class($valueBlock->userRecipient) == UserQuery::class && $valueBlock->userRecipient->one()) {
