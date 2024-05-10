@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Changed field handle of matrix field for value4value items to `valueRecipient` because `recipient` field handle is taken and used in some matrix sub fields in fresh Craft5 projects.
+- Changed $enclosureField and $enclosureEntryType to $alternateEnclosureField and $alternateEnclosureEntryType settings to be more clear.
 
 ## 2.0.0-alpha.2 - 2024-05-07
 

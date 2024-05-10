@@ -1761,8 +1761,8 @@ class PodcastsController extends Controller
                     $xmlEnclosure->setAttribute("type", FileHelper::getMimeTypeByExtension($assetFileUrl));
                 }
 
-                // Episode Enclosure
-                list($enclosureField, $enclosureEntryTypeHandle) = GeneralHelper::getFieldDefinition('enclosure');
+                // Episode alternate enclosure
+                list($enclosureField, $enclosureEntryTypeHandle) = GeneralHelper::getFieldDefinition('alternateEnclosure');
                 if ($enclosureField) {
                     $enclosureFieldHandle = $enclosureField->handle;
                     $enclosureBlocks = [];

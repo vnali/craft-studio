@@ -49,9 +49,9 @@ class Settings extends Model
 
     public ?string $trailerEntryType = null;
 
-    public ?string $enclosureField = null;
+    public ?string $alternateEnclosureField = null;
 
-    public ?string $enclosureEntryType = null;
+    public ?string $alternateEnclosureEntryType = null;
 
     public ?string $podcastLocationField = null;
 

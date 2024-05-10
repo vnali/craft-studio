@@ -851,12 +851,12 @@ class GeneralHelper
                 $handleAttribute = 'trailerField';
                 $entryTypeAttribute = 'trailerEntryType';
                 break;
-            case 'enclosure':
+            case 'alternateEnclosure':
                 $defaultHandle = 'episodeEnclosure';
                 $defaultHandle2 = 'episodeData';
-                $defaultEntryType = 'enclosure';
-                $handleAttribute = 'enclosureField';
-                $entryTypeAttribute = 'enclosureEntryType';
+                $defaultEntryType = 'alternateEnclosure';
+                $handleAttribute = 'alternateEnclosureField';
+                $entryTypeAttribute = 'alternateEnclosureEntryType';
                 break;
             case 'podcastLocation':
                 $defaultHandle = 'podcastLocation';
