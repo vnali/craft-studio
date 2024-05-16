@@ -1,13 +1,13 @@
 # Release Notes for Studio plugin
 
-## Unreleased
+## 2.0.0-alpha.3 - 2024-05-16
 
 > {warning} Please read [#28](https://github.com/vnali/craft-studio/discussions/28) before update to this version.
 
 > {tip} The studio plugin [starter project](https://github.com/vnali/craft-studio-starter/tree/5.x) for Craft 5 is ready now.
 
 - Changed field handle of matrix field for value4value items to `valueRecipient` because `recipient` field handle is taken and used in some matrix sub fields in fresh Craft5 projects.
-- Changed $enclosureField and $enclosureEntryType to $alternateEnclosureField and $alternateEnclosureEntryType settings to be more clear.
+- Changed $enclosureField and $enclosureEntryType config settings to $alternateEnclosureField and $alternateEnclosureEntryType to be more clear.
 
 ## 2.0.0-alpha.2 - 2024-05-07
 
