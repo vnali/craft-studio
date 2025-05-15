@@ -1,4 +1,8 @@
 # Studio plugin for Craft CMS 5
+
+> [!CAUTION]
+> This plugin is minimally maintained. It does not appear to be actively used in production and is unlikely to receive updates for Craft 6.
+
 This Craft CMS plugin helps you to manage podcast, episodes and more!
 
 This plugin is in the development phase.
